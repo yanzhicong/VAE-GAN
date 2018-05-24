@@ -20,7 +20,7 @@ discriminator_params_dict = {
 
 def get_discriminator(name, config, model_config):
     if name in discriminator_dict:
-        return discriminator_dict[name](config, model_config, **discriminator_dict)
+        return discriminator_dict[name](config, model_config, **discriminator_params_dict[name])
     else : 
         raise Exception("None discriminator named " + name)
 

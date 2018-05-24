@@ -13,10 +13,10 @@ from abc import ABCMeta, abstractmethod
 
 # from .utils import set_trainable, zero_loss, time_format
 
-class BaseModel(object):
+class BaseModel(object, metaclass=ABCMeta):
 
 
-	__metaclass__ = ABCMeta
+	# __metaclass__ = ABCMeta
 	'''
 	Base class for non-conditional generative networks
 	'''

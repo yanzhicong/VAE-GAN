@@ -5,7 +5,7 @@
 
 
 
-from cvaegan import CVAEGAN
+from .cvaegan import CVAEGAN
 
 
 model_dict = {

@@ -7,7 +7,7 @@ import sys
 
 
 
-from encoder_pixel import EncoderPixel
+from .encoder_pixel import EncoderPixel
 
 
 
@@ -35,7 +35,6 @@ encoder_params_dict = {
 def get_encoder(name, config, model_config):
     if name in encoder_dict : 
         return encoder_dict[name](config, model_config, **encoder_params_dict[name])
-
     else:
         raise Exception("None encoder named " + name)
 

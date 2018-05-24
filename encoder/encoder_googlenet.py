@@ -16,10 +16,9 @@ from network.activation import get_activation
 from network.normalization import get_normalization
 
 
+class EncoderGoogleNet(object):
 
-class EncoderPixel(object):
-
-	def __init__(self, config, model_config, name="EncoderPixel"):
+	def __init__(self, config, model_config, name="EncoderGoogleNet"):
 		self.name = name
 		self.training = model_config["is_training"]
 		self.normalizer_params = {
@@ -31,7 +30,37 @@ class EncoderPixel(object):
 		self.config = config
 		self.model_config = model_config
 
-	def __call__(self, i, reuse=False):
+
+    def inception_layer(inputs,
+                    conv_11_size,
+                    conv_33_reduce_size, conv_33_size,
+                    conv_55_reduce_size, conv_55_size,
+                    pool_size,
+                    data_dict={},
+                    trainable=False,
+                    name='inception'):
+
+        # arg_scope = tf.contrib.framework.arg_scope
+        # with arg_scope([conv], nl=tf.nn.relu, trainable=trainable,
+        #             data_dict=data_dict):
+            conv_11 = tcl.conv2d(inputs, 1, conv_11_size, '{}_1x1'.format(name))
+
+            conv_33_reduce = conv(inputs, 1, conv_33_reduce_size,
+                                '{}_3x3_reduce'.format(name))
+            conv_33 = conv(conv_33_reduce, 3, conv_33_size, '{}_3x3'.format(name))
+
+            conv_55_reduce = conv(inputs, 1, conv_55_reduce_size,
+                                '{}_5x5_reduce'.format(name))
+            conv_55 = conv(conv_55_reduce, 5, conv_55_size, '{}_5x5'.format(name))
+
+            pool = max_pool(inputs, '{}_pool'.format(name), stride=1,
+                            padding='SAME', filter_size=3)
+            convpool = conv(pool, 1, pool_size, '{}_pool_proj'.format(name))
+
+        return tf.concat([conv_11, conv_33, conv_55, convpool],
+                        3, name='{}_concat'.format(name))
+
+	def __call__(self, x, c, reuse=False):
 
 		if 'activation' in self.config:
 			act_fn = get_activation(self.config['activation'], self.config['activation_params'])
@@ -73,7 +102,7 @@ class EncoderPixel(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
-			x = tcl.conv2d(i, filters, 3,
+			x = tcl.conv2d(x, filters, 3,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv1_0')
 			x = tcl.conv2d(x, filters, 3,

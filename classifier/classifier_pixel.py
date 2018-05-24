@@ -1,15 +1,10 @@
-
 import os
 import sys
-
 
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
 sys.path.append('../')
-
-
 
 from network.weightsinit import get_weightsinit
 from network.activation import get_activation
@@ -32,7 +27,6 @@ class ClassifierPixel(object):
 
 		self.config = config
 		self.model_config = model_config
-
 
 	def __call__(self, i, reuse=False):
 
@@ -76,8 +70,6 @@ class ClassifierPixel(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
-
-
 			x = tcl.conv2d(i, filters, 3,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv1_0')
@@ -106,7 +98,6 @@ class ClassifierPixel(object):
 			x = tcl.conv2d(x, filters*4, 3,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv3_3')
-
 
 
 			x = tcl.conv2d_transpose(x, filters*2, 3,

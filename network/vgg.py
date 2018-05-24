@@ -4,9 +4,9 @@ import tensorflow.contrib.layers as tcl
 
 
 
-from weightsinit import get_weightsinit
-from activation import get_activation
-from normalization import get_normalization
+from .weightsinit import get_weightsinit
+from .activation import get_activation
+from .normalization import get_normalization
 
 
 class VGG16(object):
@@ -152,8 +152,7 @@ class VGG16(object):
 
 				x = tcl.fully_connected(x, output_classes, activation_fn=out_act_fn, weights_initialzr=winit_fn, scope='fc_out')
 
-			else : 
-				
+			else:
 				x = tcl.conv2d(x, output_classes, 1, 
 							stride=1, activation_fn=out_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
 

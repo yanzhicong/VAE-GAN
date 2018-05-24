@@ -5,10 +5,7 @@ import tensorflow.contrib.layers as tcl
 
 
 
-
-
-def get_lrelu(x, params):
-
+def get_lrelu(params):
     if params == None:
         leak = 0.1
     else :
@@ -34,7 +31,7 @@ def get_activation(name, params=None):
         # return activation_dict[name]
 
     if name == 'relu':
-        return tf.nn.relu,
+        return tf.nn.relu
     elif name == 'lrelu':
         return get_lrelu(params)
     elif name == 'softmax' : 

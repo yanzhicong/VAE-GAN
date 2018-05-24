@@ -3,7 +3,8 @@ import os
 import sys
 sys.path.append("../")
 
-
+import tensorflow as tf
+import tensorflow.contrib.layers as tcl
 
 from encoder.encoder import get_encoder
 from decoder.decoder import get_decoder
@@ -12,8 +13,6 @@ from discriminator.discriminator import get_discriminator
 
 
 from .basemodel import BaseModel
-
-
 
 
 
@@ -27,12 +26,12 @@ class CVAEGAN(BaseModel):
         # z_dims = 64,
         **kwargs
     ):
+        
         super(CVAEGAN, self).__init__(input_shape=config['input_shape'], **kwargs)
 
         self.input_shape = config['input_shape']
         self.num_classes = config['nb_classes']
         self.z_dim = config['z_dim']
-
 
         self.config = config
 
@@ -47,14 +46,19 @@ class CVAEGAN(BaseModel):
 
         self.build_model()
 
-
     def build_model(self):
-
         self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config)
         self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config)
         self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.config)
-        self.discriminator = get_discriminator(self.config['discriminator', self.config['discriminator params'], self.config])
+        self.discriminator = get_discriminator(self.config['discriminator'], self.config['discriminator params'], self.config)
         
+        x_r = tf.placeholder(tf.float32, shape=self.input_shape, name='xinput')
+        c = tf.placeholder(tf.float32, shape=[self.num_classes,], name='cls')
+
+        z_params = self.encoder([x_r, c])
+
+        z_avg = Lambda(lambda x : x[:, :self.z_dim], output_shape=(self.z_dim))(z_params)
+        z_log_var = Lamb
 
         pass
 
@@ -65,5 +69,9 @@ class CVAEGAN(BaseModel):
     def train_on_batch_unsupervised(self, x_batch):
         raise NotImplementedError   
 
+
     def predict(self, z_sample):
         raise NotImplementedError
+
+
+

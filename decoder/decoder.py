@@ -5,11 +5,11 @@ import os
 import sys
 sys.path.append('../')
 
-from decoder_pixel import DecoderPixel
+from .decoder_pixel import DecoderPixel
 
 
 decoder_dict = {
-    'decoder_pixel' : DecoderPixel,
+    'DecoderPixel' : DecoderPixel,
     # 'resn' : None,
     # 'vgg' : None,
 }
@@ -17,7 +17,7 @@ decoder_dict = {
 
 
 decoder_params_dict = {
-    'decoder_pixel' : {
+    'DecoderPixel' : {
         
     },
     # 'resn' : None,

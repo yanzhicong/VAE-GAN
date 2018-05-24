@@ -1,0 +1,46 @@
+{
+    "config name" : "cvaegan1",
+
+
+    "dataset name" : "production",
+    "dataset params" : {
+        
+    },
+
+
+    "ganmodel" : "cvaegan",
+    "ganmodel params" : {
+
+        "input_shape" : [128, 128, 3],
+        "nb_classes" : 10,
+        "z_dim" : 256,
+        "is_training" : true,
+ 
+        "encoder" : "EncoderPixel",
+        "encoder params" : {
+            "output_classes" : 32
+        },
+
+        "decoder" : "DecoderPixel",
+        "decoder params" : {
+            "output_classes" : 3
+        },
+
+        "classifier" : "ClassifierPixel",
+        "classifier params" : {
+            "output_classes" : 2
+        },
+
+        "discriminator" : "DiscriminatorVGG16",
+        "discriminator params" : {
+            "output_classes" : 1,
+            "including_top" : true,
+            "including_top_params" : [512, 256],
+            "out_activation" : null,
+            "out_activation_params" : ""
+        }
+    }
+
+}
+
+

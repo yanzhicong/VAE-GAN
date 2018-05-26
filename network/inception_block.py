@@ -2,8 +2,7 @@
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-    
-    
+
 def inception_v3_figure4(
     name, x, end_points, 
     act_fn, norm_fn, norm_params, winit_fn, 

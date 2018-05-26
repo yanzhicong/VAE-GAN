@@ -1,12 +1,9 @@
 {
     "config name" : "cvaegan1",
 
-
     "dataset name" : "production",
     "dataset params" : {
-        
     },
-
 
     "ganmodel" : "cvaegan",
     "ganmodel params" : {
@@ -15,6 +12,8 @@
         "nb_classes" : 10,
         "z_dim" : 256,
         "is_training" : true,
+
+        "sample_func" : "normal",
  
         "encoder" : "EncoderPixel",
         "encoder params" : {

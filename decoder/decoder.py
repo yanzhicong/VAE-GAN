@@ -6,10 +6,12 @@ import sys
 sys.path.append('../')
 
 from .decoder_pixel import DecoderPixel
+from .decoder_simple import DecoderSimple
 
 
 decoder_dict = {
     'DecoderPixel' : DecoderPixel,
+    'DecoderSimple' : DecoderSimple,
     # 'resn' : None,
     # 'vgg' : None,
 }
@@ -20,6 +22,9 @@ decoder_params_dict = {
     'DecoderPixel' : {
         
     },
+    'DecoderSimple' : {
+
+    }
     # 'resn' : None,
     # 'vgg' : None,
 }

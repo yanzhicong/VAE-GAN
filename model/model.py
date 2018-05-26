@@ -6,10 +6,13 @@
 
 
 from .cvaegan import CVAEGAN
+from .vae import VAE
+
 
 
 model_dict = {
     "cvaegan" : CVAEGAN,
+    'vae' : VAE,
 }
 
 

@@ -142,7 +142,6 @@ class VGG16(object):
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv4_2')
 
-
 			if including_top: 
 				x = tf.flatten(x)
 				

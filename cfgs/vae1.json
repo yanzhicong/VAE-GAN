@@ -1,0 +1,29 @@
+{
+    "config name" : "cvaegan1",
+
+    "dataset name" : "production",
+    "dataset params" : {
+    },
+
+    "ganmodel" : "vae",
+    "ganmodel params" : {
+
+        "input_shape" : [128, 128, 3],
+        "z_dim" : 256,
+        "is_training" : true,
+        "sample_func" : "normal",
+ 
+        "encoder" : "EncoderSimple",
+        "encoder params" : {
+            "output_dim" : 3
+        },
+
+        "decoder" : "DecoderSimple",
+        "decoder params" : {
+            "output_classes" : 3
+        }
+    }
+
+}
+
+

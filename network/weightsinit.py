@@ -1,10 +1,8 @@
 
 
+
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
-
-
-
 
 
 
@@ -16,6 +14,4 @@ def get_weightsinit(name, params=None):
         return None
     else :
         raise Exception("None weights initializer named " + name)
-
-
 

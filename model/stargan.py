@@ -40,33 +40,19 @@ from .basemodel import BaseModel
 
 
 
-class CVAEGAN(BaseModel):
+class StarGAN(BaseModel):
 
 
     def __init__(self, config,
-        # input_shape=(128, 128, 3),
-        # num_attrs=2,
-        # z_dims = 64,
         **kwargs
     ):
         
-        super(CVAEGAN, self).__init__(input_shape=config['input_shape'], **kwargs)
+        super(StarGAN, self).__init__(input_shape=config['input_shape'], **kwargs)
 
         self.input_shape = config['input_shape']
         self.nb_classes = config['nb_classes']
         self.z_dim = config['z_dim']
-
         self.config = config
-
-        # self.f_enc = None
-        # self.f_dec = None
-        # self.f_dis = None
-        # self.f_cls = None
-        # self.enc_trainer = None
-        # self.dec_trainer = None
-        # self.dis_trainer = None
-        # self.cls_trainer = None
-
         self.build_model()
 
     def build_model(self):
@@ -89,7 +75,6 @@ class CVAEGAN(BaseModel):
         z = get_sample(self.config['sample_func'], (z_avg, z_log_var))
 
 
-
         self.x_fake = self.decoder(tf.concat([z, self.label_real], axis=1))
 
 
@@ -100,7 +85,7 @@ class CVAEGAN(BaseModel):
 
 
         d_real, feature_disc_real = self.discriminator(self.x_real)
-        d_fake, feature_disc_fake = self.discriminator(x_fake, reuse=True)
+        d_fake, feature_disc_fake = self.discriminator(self.x_fake, reuse=True)
         d_possible, feature_disc_possible = self.discriminator(x_possible, reuse=True)
 
 

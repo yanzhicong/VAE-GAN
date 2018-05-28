@@ -31,10 +31,10 @@ decoder_params_dict = {
 
 
 
-def get_decoder(name, config, model_config):
+def get_decoder(name, config, model_config, is_training):
 
     if name in decoder_dict : 
-        return decoder_dict[name](config, model_config, **decoder_params_dict[name])
+        return decoder_dict[name](config, model_config, is_training, **decoder_params_dict[name])
     else :
         raise Exception("None decoder named " + name)
     pass

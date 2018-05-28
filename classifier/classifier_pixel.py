@@ -28,6 +28,8 @@ class ClassifierPixel(object):
 		self.config = config
 		self.model_config = model_config
 
+
+
 	def __call__(self, i, reuse=False):
 
 		if 'activation' in self.config:
@@ -77,14 +79,12 @@ class ClassifierPixel(object):
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv1_1')
 
-
 			x = tcl.conv2d(x, filters*2, 3,
 							stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv2_0')               
 			x = tcl.conv2d(x, filters*2, 3,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv2_1')
-
 
 			x = tcl.conv2d(x, filters*4, 3,
 							stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
@@ -98,7 +98,6 @@ class ClassifierPixel(object):
 			x = tcl.conv2d(x, filters*4, 3,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							padding='SAME', weights_initializer=winit_fn, scope='conv3_3')
-
 
 			x = tcl.conv2d_transpose(x, filters*2, 3,
 							stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,

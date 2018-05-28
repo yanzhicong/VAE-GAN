@@ -83,7 +83,6 @@ class EncoderGoogleNet(object):
 		else:
 			winit_fn = tf.random_normal_initializer(0, 0.02)
 
-
 		if 'nb_filters' in self.config: 
 			filters = int(self.config['nb_filters'])
 		else:

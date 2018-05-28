@@ -19,7 +19,7 @@ from network.normalization import get_normalization
 
 class EncoderSimple(object):
 
-	def __init__(self, config, model_config, name="EncoderSimple"):
+	def __init__(self, config, model_config, is_training, name="EncoderSimple"):
 		self.name = name
 		self.config = config
 		self.model_config = model_config
@@ -44,7 +44,7 @@ class EncoderSimple(object):
 		else:
 			nb_nodes = [256, 64]
 
-		output_dims = self.config['output_dims']
+		output_dim = self.config['output_dim']
 
 		with tf.variable_scope(self.name):
 			if reuse:
@@ -52,13 +52,15 @@ class EncoderSimple(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
-            x = i
-            for ind, nodes in enumerate(nb_nodes):
-                x = tcl.fully_connected(x, nodes, activation_fn=act_fn, 
-                            weighits_initializer=winit_fn, scope='efc%d'(ind+1))
+			x = i
+			for ind, nodes in enumerate(nb_nodes):
+				x = tcl.fully_connected(x, nodes, activation_fn=act_fn, 
+							weights_initializer=winit_fn, scope='efc%d'%(ind+1))
 
-            z_mean = tcl.fully_connected(x, output_dims, scope='efc_mean')
-            z_log_var = tcl.fully_connected(x, output_dim, scope='efc_log_var')
+			z_mean = tcl.fully_connected(x, output_dim, 
+						weights_initializer=winit_fn, scope='efc_mean')
+			z_log_var = tcl.fully_connected(x, output_dim, 
+						weights_initializer=winit_fn, scope='efc_log_var')
 
 		return z_mean, z_log_var
 

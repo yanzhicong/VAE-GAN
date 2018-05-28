@@ -23,35 +23,17 @@
 # ==============================================================================
 
 
-
-import tensorflow as tf
-import tensorflow.contrib.layers as tcl
+from .unsupervised import UnsupervisedTrainer
 
 
-
-def kl_loss(z_mean, z_log_var):
-    return -0.5 * tf.reduce_mean(1.0 + z_log_var - tf.exp(z_log_var) - tf.square(z_mean))
-
-def l2_loss(x, y):
-    return tf.reduce_mean(tf.square(x - y))
-
-loss_dict = {
-    'kl' : {
-        'gaussian' : kl_loss
-    },
-    'reconstruction' : {
-        'mse' : l2_loss
-    },
-    'classification' : {
-
-    }
+trainer_dict = {
+    'unsupervised' : UnsupervisedTrainer
 }
 
 
-def get_loss(loss_name, loss_type, loss_params):
-    if loss_name in loss_dict:
-        if loss_type in loss_dict[loss_name]:
-            return loss_dict[loss_name][loss_type](**loss_params)
-    raise Exception("None loss named " + loss_name + " " + loss_type)
-
+def get_trainer(name, config):
+    if name in trainer_dict:
+        return trainer_dict[name](config)
+    else:
+        raise Exception('None trainer named ' + name)
 

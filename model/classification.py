@@ -46,26 +46,19 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
-class VAE(BaseModel):
+class Classification(BaseModel):
 
 	def __init__(self, config,
 		**kwargs
 	):
 
-		super(VAE, self).__init__(config, **kwargs)
+		super(Classification, self).__init__(input_shape=config['input_shape'], **kwargs)
 
 		self.input_shape = config['input_shape']
 		self.z_dim = config['z_dim']
 		self.config = config
 
-
-		self.is_training = tf.placeholder(tf.bool, name='is_training')
-
 		self.build_model()
-
-		if 'summary' in self.config and self.config['summary']:
-			self.is_summary = True
-			self.get_summary()
 
 
 	def build_model(self):
@@ -77,11 +70,13 @@ class VAE(BaseModel):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 			self.encoder_input_shape = list(self.input_shape)
 
+
 		self.config['encoder params']['output_dim'] = self.z_dim
 		self.config['decoder params']['output_dim'] = self.encoder_input_shape
 		
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
+
+		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config)
+		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config)
 
 		self.z_mean, self.z_log_var = self.encoder(self.x_real)
 
@@ -96,6 +91,7 @@ class VAE(BaseModel):
 
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
 		self.x_test = self.decoder(self.z_test, reuse=True)
+
 
 		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
@@ -117,10 +113,7 @@ class VAE(BaseModel):
 			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.decoder.vars + self.encoder.vars)
 
 		self.train_update = tf.group([self.optimizer, self.global_step_update])
-
-		self.saver = tf.train.Saver(self.encoder.vars + self.decoder.vars + [self.global_step,])
 		
-
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		raise NotImplementedError
 
@@ -131,50 +124,18 @@ class VAE(BaseModel):
 
 		feed_dict = {
 			self.x_real : x_batch,
-			self.eps : np.random.random([x_batch.shape[0], self.z_dim]),
-			self.is_training : True
+			self.eps : np.random.random([x_batch.shape[0], self.z_dim])
 		}
+		_, step, lr, loss, kl_loss, xent_loss = sess.run([
+				self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss
+			],
+			feed_dict = feed_dict
+			)
 
-		if self.is_summary:
-			_, step, lr, loss, kl_loss, xent_loss, s_sum = sess.run([
-					self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss, self.sum_scalar
-				],
-				feed_dict = feed_dict
-				)
-			return step, lr, loss, s_sum
+		return step, lr, loss
 
-		else:
-			_, step, lr, loss, kl_loss, xent_loss = sess.run([
-					self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss
-				],
-				feed_dict = feed_dict
-				)
-			return step, lr, loss, None
+	def predict(self, z_sample):
+		raise NotImplementedError
 
-
-	def predict(self, sess, z_batch):
-		feed_dict = {
-			self.z_test : z_batch,
-			self.is_training : False
-		}
-		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
-		return x_batch
-
-
-	def summary(self, sess):
-		sum = sess.run(self.sum_hist)
-		return sum
-
-
-	def get_summary(self):
-		sum_1 = tf.summary.scalar('encoder/kl_loss', self.kl_loss)
-		sum_2 = tf.summary.scalar('lr', self.learning_rate)
-		sum_3 = tf.summary.scalar('decoder/reconstruction_loss', self.xent_loss)
-		sum_4 = tf.summary.scalar('loss', self.loss)
-
-		self.sum_scalar = tf.summary.merge([sum_1, sum_2, sum_3, sum_4])
-
-		hist_sum_d_list = [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
-		hist_sum_g_list = [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-
-		self.sum_hist = tf.summary.merge(hist_sum_g_list + hist_sum_d_list)
+	def summary():
+		pass

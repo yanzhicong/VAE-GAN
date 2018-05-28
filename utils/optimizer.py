@@ -23,35 +23,23 @@
 # ==============================================================================
 
 
-
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
-
-def kl_loss(z_mean, z_log_var):
-    return -0.5 * tf.reduce_mean(1.0 + z_log_var - tf.exp(z_log_var) - tf.square(z_mean))
-
-def l2_loss(x, y):
-    return tf.reduce_mean(tf.square(x - y))
-
-loss_dict = {
-    'kl' : {
-        'gaussian' : kl_loss
-    },
-    'reconstruction' : {
-        'mse' : l2_loss
-    },
-    'classification' : {
-
-    }
+optimizer_dict = {
+    'rmsprop' : tf.train.RMSPropOptimizer,
 }
 
 
-def get_loss(loss_name, loss_type, loss_params):
-    if loss_name in loss_dict:
-        if loss_type in loss_dict[loss_name]:
-            return loss_dict[loss_name][loss_type](**loss_params)
-    raise Exception("None loss named " + loss_name + " " + loss_type)
 
+def get_optimizer(name, params, target, variables):
+    if name == 'rmsprop':
+        return tf.train.RMSPropOptimizer(**params).minimize(target, var_list=variables)
+    elif name == 'sgd':
+        return tf.train.GradientDescentOptimizer(**params).minimize(target, var_list=variables)
+    elif name == 'adadelta':
+        return tf.train.AdadeltaOptimizer(**params).minimize(target, var_list=variables)
+    else:
+        raise Exception("None optimizer named " + name)
 

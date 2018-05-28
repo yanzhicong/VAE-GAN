@@ -8,15 +8,15 @@ from keras.utils import to_categorical
 
 
 
-
-
 class MNIST(object):
 
     def __init__(self, config):
         
         self._dataset_dir = 'D:\Data\MNIST'
         if not os.path.exists(self._dataset_dir):
-            self._dataset_dir = '\mnt\data01\dataset\MNIST'
+            self._dataset_dir = '/mnt/data01/dataset/MNIST'
+        if not os.path.exists(self._dataset_dir):
+            self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
 
         self.config = config
 
@@ -33,43 +33,64 @@ class MNIST(object):
         else:
             self.shuffle_test = False
 
-        if 'input_shape' in config:
-            self.input_shape = config['input_shape']
-        else:
-            self.input_shape = [28, 28, 1]
+        # if 'input_shape' in config:
+        #     self.input_shape = config['input_shape']
+        # else:
+        #     self.input_shape = [28, 28, 1]
 
         if 'batch_size' in config:
             self.batch_size = int(config['batch_size'])
         else:
-            self.batch_size = 128
+            self.batch_size = int(128)
 
-        self.y_train, self.x_train = read_data(
+        self.y_train, self.x_train = self.read_data(
             os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
             os.path.join(self._dataset_dir, 'train-images-idx3-ubyte.gz')
         )
 
-        self.y_test, self.x_test = read_data(
+        self.y_test, self.x_test = self.read_data(
             os.path.join(self._dataset_dir, 't10k-labels-idx1-ubyte.gz'),
             os.path.join(self._dataset_dir, 't10k-images-idx3-ubyte.gz')
         )
 
-        
-        # if 'supervised_size' in config:
-        #     self.supervised_size = config['supervised_size']
-        # else:
-        #     self.supervised_size = self.x_train.shape[0]
-        # self.
+        self.x_train = self.x_train.astype(np.float32) / 255.0
+        self.x_test = self.x_test.astype(np.float32) / 255.0
+
 
 
     def iter_trainimages_supervised(self):
 
-        index = np.range()
+        # index = np.range()
 
         pass
 
 
+
+    def iter_images(self):
+
+        index = np.arange(self.x_train.shape[0])
+
+        if self.shuffle_train:
+            np.random.shuffle(index)
+
+        for i in range(int(self.x_train.shape[0] / self.batch_size)):
+
+            batch = self.x_train[index[i*self.batch_size:(i+1)*self.batch_size], :]
+
+
+            if 'input_shape' in self.config:
+                batch = batch.reshape([self.batch_size,] + self.config['input_shape'])
+            
+            # print(batch.max())
+            # print(batch.min())
+            
+
+            yield i, batch
+
+        # pass
+
     
-    def read_data(self.label_url,image_url):
+    def read_data(self, label_url, image_url):
         with gzip.open(label_url) as flbl:
             magic, num = struct.unpack(">II",flbl.read(8))
             label = np.fromstring(flbl.read(),dtype=np.int8)

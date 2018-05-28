@@ -50,7 +50,6 @@
         "log steps" : 100,
         "save checkpoint steps" : 1000
     }
-
 }
 
 

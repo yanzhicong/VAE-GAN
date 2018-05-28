@@ -9,18 +9,18 @@ from keras.utils import to_categorical
 
 from .basedataset import BaseDataset
 
-class MNIST(BaseDataset):
+class Cifar10(BaseDataset):
 
     def __init__(self, config):
 
 
-        super(MNIST, self).__init__(config)
+        super(Cifar10, self).__init__(config)
         
-        self._dataset_dir = 'D:\Data\MNIST'
+        self._dataset_dir = 'D:\Data\Cifar10'
         if not os.path.exists(self._dataset_dir):
-            self._dataset_dir = '/mnt/data01/dataset/MNIST'
+            self._dataset_dir = '/mnt/data01/dataset/Cifar10'
         if not os.path.exists(self._dataset_dir):
-            self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
+            self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/Cifar10'
 
         self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
  

@@ -7,14 +7,10 @@ import matplotlib.pyplot as plt
 from keras.utils import to_categorical
 
 
-from .basedataset import BaseDataset
 
-class MNIST(BaseDataset):
+class MNIST(object):
 
     def __init__(self, config):
-
-
-        super(MNIST, self).__init__(config)
         
         self._dataset_dir = 'D:\Data\MNIST'
         if not os.path.exists(self._dataset_dir):
@@ -22,8 +18,31 @@ class MNIST(BaseDataset):
         if not os.path.exists(self._dataset_dir):
             self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
 
-        self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
- 
+        self.config = config
+
+        if 'dataset_dir' in config:
+            self._dataset_dir = config['dataset_dir']
+
+        if 'shuffle_train' in config:
+            self.shuffle_train = config['shuffle_train']
+        else:
+            self.shuffle_train = True
+
+        if 'shuffle_test' in config:
+            self.shuffle_test = config['shuffle_test']
+        else:
+            self.shuffle_test = False
+
+        # if 'input_shape' in config:
+        #     self.input_shape = config['input_shape']
+        # else:
+        #     self.input_shape = [28, 28, 1]
+
+        if 'batch_size' in config:
+            self.batch_size = int(config['batch_size'])
+        else:
+            self.batch_size = int(128)
+
         self.y_train, self.x_train = self.read_data(
             os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
             os.path.join(self._dataset_dir, 'train-images-idx3-ubyte.gz')
@@ -36,6 +55,7 @@ class MNIST(BaseDataset):
 
         self.x_train = self.x_train.astype(np.float32) / 255.0
         self.x_test = self.x_test.astype(np.float32) / 255.0
+
 
 
     def iter_trainimages_supervised(self):
@@ -54,9 +74,16 @@ class MNIST(BaseDataset):
             np.random.shuffle(index)
 
         for i in range(int(self.x_train.shape[0] / self.batch_size)):
+
             batch = self.x_train[index[i*self.batch_size:(i+1)*self.batch_size], :]
+
+
             if 'input_shape' in self.config:
                 batch = batch.reshape([self.batch_size,] + self.config['input_shape'])
+            
+            # print(batch.max())
+            # print(batch.min())
+            
 
             yield i, batch
 

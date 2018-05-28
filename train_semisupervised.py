@@ -40,39 +40,37 @@ import argparse
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--gpu_number',     type=str,   default='0')
-parser.add_argument('--config_file',    type=str,   default='vae1')     
-
+parser.add_argument('--config_file',    type=str,   default='vae1')
 
 args = parser.parse_args()
 
-
 if __name__ == '__main__':
-    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
-    os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu_number
-    tf.reset_default_graph()
+	os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
+	os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu_number
+	tf.reset_default_graph()
 
-    config = get_config(args.config_file)
+	config = get_config(args.config_file)
+
+	# make the assets directory and copy the config file to it
+	if not os.path.exists(config['assets dir']):
+		os.mkdir(config['assets dir'])
+	copyfile(os.path.join('./cfgs', args.config_file + '.json'), os.path.join(config['assets dir'], args.config_file + '.json'))
+
+	# prepare dataset
+	dataset = get_dataset(config['dataset'], config['dataset params'])
+
+	tfconfig = tf.ConfigProto()
+	tfconfig.gpu_options.allow_growth = True
 
 
-    # make the assets directory and copy the config file to it
-    if not os.path.exists(config['assets dir']):
-        os.mkdir(config['assets dir'])
-    copyfile(os.path.join('./cfgs', args.config_file + '.json'), os.path.join(config['assets dir'], args.config_file + '.json'))
+	with tf.Session(config=tfconfig) as sess:
 
-    # prepare dataset
-    dataset = get_dataset(config['dataset'], config['dataset params'])
+		# build model
+		config['ganmodel params']['assets dir'] = config['assets dir']
+		model = get_model(config['ganmodel'], config['ganmodel params'])
 
+		# start training
+		config['trainer params']['assets dir'] = config['assets dir']
+		trainer = get_trainer(config['trainer'], config['trainer params'])
 
-    tfconfig = tf.ConfigProto()
-    tfconfig.gpu_options.allow_growth = True
-    with tf.Session(config=tfconfig) as sess:
-
-        # build model
-        config['ganmodel params']['assets dir'] = config['assets dir']
-        model = get_model(config['ganmodel'], config['ganmodel params'])
-
-        # start training
-        config['trainer params']['assets dir'] = config['assets dir']
-        trainer = get_trainer(config['trainer'], config['trainer params'])
-        trainer.train(sess, dataset, model)
-
+		trainer.train(sess, dataset, model)

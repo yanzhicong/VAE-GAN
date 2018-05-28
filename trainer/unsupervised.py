@@ -50,7 +50,6 @@ class UnsupervisedTrainer(object):
 
 		sess.run(tf.global_variables_initializer())
 
-
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.checkpoint_dir):
 				print("Continue Train...")
@@ -60,7 +59,6 @@ class UnsupervisedTrainer(object):
 		else:
 			step = 0
 
-
 		while True:
 			for index, batch_x in dataset.iter_images():
 
@@ -68,14 +66,15 @@ class UnsupervisedTrainer(object):
 					summary = model.summary(sess)
 					self.summary_writer.add_summary(summary, step)
 
+
+				step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
+
 				if self.log_steps != 0 and step % self.log_steps == 0:
 					print("step : %d, lr : %f, loss : %f"%(step, lr, loss))
 
 				if self.save_steps != 0 and step % self.save_steps == 0:
 					model.checkpoint_save(sess, self.checkpoint_dir, step)
 
-
-				step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
 				if summary:
 					self.summary_writer.add_summary(summary, step)
 

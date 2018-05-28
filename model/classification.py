@@ -63,7 +63,7 @@ class Classification(BaseModel):
 
 	def build_model(self):
 
-		if 'flatten' in self.config and self.config['flatten']:
+		if self.config.get('flatten', False):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
 			self.encoder_input_shape = int(np.product(self.input_shape))
 		else:
@@ -74,21 +74,21 @@ class Classification(BaseModel):
 		self.config['encoder params']['output_dim'] = self.z_dim
 		self.config['decoder params']['output_dim'] = self.encoder_input_shape
 		
-
 		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config)
 
+
+		# build encoder
 		self.z_mean, self.z_log_var = self.encoder(self.x_real)
 
-		print(self.z_mean.get_shape())
-		print(self.z_log_var.get_shape())
-
+		# sample z from z_mean and z_log_var
 		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-
 		self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
+
+		# build decoder
 		self.x_decode = self.decoder(self.z_sample)
 
-
+		# build test decoder
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
 		self.x_test = self.decoder(self.z_test, reuse=True)
 
@@ -97,11 +97,8 @@ class Classification(BaseModel):
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
 
 
-		if 'kl loss prod' in self.config:
-			self.kl_loss = self.kl_loss * self.config['kl loss prod']
-
-		if 'reconstruction loss prod' in self.config:
-			self.xent_loss = self.xent_loss * self.config['reconstruction loss prod']
+		self.kl_loss = self.kl_loss * self.config.get('kl loss prod', 1.0)
+		self.xent_loss = self.xent_loss * self.config.get('reconstruction loss prod', 1.0)
 
 		self.loss = self.kl_loss + self.xent_loss
 
@@ -137,5 +134,7 @@ class Classification(BaseModel):
 	def predict(self, z_sample):
 		raise NotImplementedError
 
-	def summary():
+	def summary(self):
 		pass
+
+	def help():

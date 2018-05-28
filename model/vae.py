@@ -63,14 +63,13 @@ class VAE(BaseModel):
 
 		self.build_model()
 
-		if 'summary' in self.config and self.config['summary']:
+		if self.config.get('summary', False):
 			self.is_summary = True
 			self.get_summary()
 
 
 	def build_model(self):
-
-		if 'flatten' in self.config and self.config['flatten']:
+		if self.config.get('flatten', False):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
 			self.encoder_input_shape = int(np.product(self.input_shape))
 		else:
@@ -80,35 +79,33 @@ class VAE(BaseModel):
 		self.config['encoder params']['output_dim'] = self.z_dim
 		self.config['decoder params']['output_dim'] = self.encoder_input_shape
 		
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
+		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config)
+		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config)
 
+
+		# build encoder
 		self.z_mean, self.z_log_var = self.encoder(self.x_real)
 
-		print(self.z_mean.get_shape())
-		print(self.z_log_var.get_shape())
-
+		# sample z from z_mean and z_log_var
 		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-
 		self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
+
+		# build decoder
 		self.x_decode = self.decoder(self.z_sample)
 
-
+		# build test decoder
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
 		self.x_test = self.decoder(self.z_test, reuse=True)
 
+
+		# loss function
 		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
-
-
-		if 'kl loss prod' in self.config:
-			self.kl_loss = self.kl_loss * self.config['kl loss prod']
-
-		if 'reconstruction loss prod' in self.config:
-			self.xent_loss = self.xent_loss * self.config['reconstruction loss prod']
-
+		self.kl_loss = self.kl_loss * self.config.get('kl loss prod', 1.0)
+		self.xent_loss = self.xent_loss * self.config.get('reconstruction loss prod', 1.0)
 		self.loss = self.kl_loss + self.xent_loss
 
+		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
 		if 'lr' in self.config:
 			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
@@ -118,6 +115,7 @@ class VAE(BaseModel):
 
 		self.train_update = tf.group([self.optimizer, self.global_step_update])
 
+		# model saver
 		self.saver = tf.train.Saver(self.encoder.vars + self.decoder.vars + [self.global_step,])
 		
 
@@ -126,7 +124,8 @@ class VAE(BaseModel):
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		if 'flatten' in self.config and self.config['flatten']:
+
+		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 
 		feed_dict = {
@@ -142,7 +141,6 @@ class VAE(BaseModel):
 				feed_dict = feed_dict
 				)
 			return step, lr, loss, s_sum
-
 		else:
 			_, step, lr, loss, kl_loss, xent_loss = sess.run([
 					self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss
@@ -150,7 +148,6 @@ class VAE(BaseModel):
 				feed_dict = feed_dict
 				)
 			return step, lr, loss, None
-
 
 	def predict(self, sess, z_batch):
 		feed_dict = {
@@ -167,14 +164,14 @@ class VAE(BaseModel):
 
 
 	def get_summary(self):
+		# summary scalars are logged per step
 		sum_1 = tf.summary.scalar('encoder/kl_loss', self.kl_loss)
 		sum_2 = tf.summary.scalar('lr', self.learning_rate)
 		sum_3 = tf.summary.scalar('decoder/reconstruction_loss', self.xent_loss)
 		sum_4 = tf.summary.scalar('loss', self.loss)
-
 		self.sum_scalar = tf.summary.merge([sum_1, sum_2, sum_3, sum_4])
 
+		# summary hists are logged by calling self.summary()
 		hist_sum_d_list = [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
 		hist_sum_g_list = [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-
 		self.sum_hist = tf.summary.merge(hist_sum_g_list + hist_sum_d_list)

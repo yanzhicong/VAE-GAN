@@ -24,6 +24,8 @@ class Cifar10(BaseDataset):
 
         self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
  
+
+
         self.y_train, self.x_train = self.read_data(
             os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
             os.path.join(self._dataset_dir, 'train-images-idx3-ubyte.gz')

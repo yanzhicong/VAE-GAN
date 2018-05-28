@@ -50,16 +50,13 @@ class VGG16(object):
 			winit_fn = tf.random_normal_initializer(0, 0.02)
 
 
-		if 'nb_filters' in self.config: 
-			filters = int(self.config['nb_filters'])
-		else:
-			filters = 64
+		nb_blocks = int(self.config.get('nb_blocks', 5))
+		nb_filters = self.config.get('nb_filters', [64, 128, 256, 512, 512])
+		nb_layers = self.config.get('nb_layers', [2, 2, 3, 3, 3])
+		ksize = self.config.get('ksize', [3, 3, 3, 3, 3])
 
 
-		if 'no_maxpooling' in self.config:
-			no_maxpooling = self.config['no_maxpooling']
-		else:
-			no_maxpooling = False
+		no_maxpooling = self.config.get('no_maxpooling', False)
 
 
 		if 'including_top' in self.config:
@@ -69,14 +66,9 @@ class VGG16(object):
 			including_top = True
 			including_top_params = [1024, 1024]
 
-
-		if 'out_activation' in self.config:
-			out_act_fn = get_activation(self.config['out_activation'])
-		else:
-			out_act_fn = None
+		out_act_fn = get_activation(self.config.get('out_activation', None))
 
 		output_classes = self.config['output_classes']
-
 
 		with tf.variable_scope(self.name):
 			if reuse:
@@ -84,66 +76,28 @@ class VGG16(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
+			end_points = {}
 
-
-			x = tcl.conv2d(i, filters, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv1_0')
-			x = tcl.conv2d(x, filters, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv1_1')
-
-			if no_maxpooling:
-				x = tcl.conv2d(x, filters*2, 3,
-								stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv2_0')               
-			else:
-				x = tf.nn.maxpooling(x, ksize=2, strides=2, padding='SAME')
-				x = tcl.conv2d(x, filters*2, 3,
+			for block_ind in range(nb_blocks):
+				for layer_ind in range(nb_layers[block_ind]):
+					if layer_ind == 0 and block_ind != 0:
+						if no_maxpooling:
+							x = tcl.conv2d(i, nb_filters[block_ind], 3,
+									stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+						else:
+							x = tf.nn.maxpooling(x, ksize=2, strides=2, padding='SAME')
+							x = tcl.conv2d(x, nb_filters[block_ind], 3,
+									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+					else:
+						x = tcl.conv2d(i, nb_filters[block_ind], 3,
 								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv2_0')
-			x = tcl.conv2d(x, filters*2, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv2_1')
-
-
-			if no_maxpooling:
-				x = tcl.conv2d(x, filters*4, 3,
-								stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv3_0')               
-			else:
-				x = tf.nn.maxpooling(x, ksize=2, strides=2, padding='SAME')
-				x = tcl.conv2d(x, filters*4, 3,
-								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv3_0')
-			x = tcl.conv2d(x, filters*4, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv3_1')
-
-			x = tcl.conv2d(x, filters*4, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv3_2')
-
-
-			if no_maxpooling:
-				x = tcl.conv2d(x, filters*8, 3,
-								stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv4_0')               
-			else:
-				x = tf.nn.maxpooling(x, ksize=2, strides=2, padding='SAME')
-				x = tcl.conv2d(x, filters*8, 3,
-								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-								padding='SAME', weights_initializer=winit_fn, scope='conv4_0')
-			x = tcl.conv2d(x, filters*8, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv4_1')
-
-			x = tcl.conv2d(x, filters*8, 3,
-							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv4_2')
+								padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+					end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
 
 			if including_top: 
-				x = tf.flatten(x)
+				x = tf.nn.flatten(x)
 				
 				for ind, nb_nodes in enumerate(including_top_params):
 					x = tcl.fully_connected(x, nb_nodes, avtivation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
@@ -155,7 +109,7 @@ class VGG16(object):
 				x = tcl.conv2d(x, output_classes, 1, 
 							stride=1, activation_fn=out_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
 
-			return x
+			return x, end_points
 
 	@property
 	def vars(self):

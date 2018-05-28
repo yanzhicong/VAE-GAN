@@ -16,7 +16,6 @@ class HiddenVariableValidator(object):
 
         self.generate_method = config.get('generate_method', 'normppf')
         self.generate_method_params = config.get('generate_method_params', '')
-
         self.nb_samples = config.get('num_samples', 1000)
 
 

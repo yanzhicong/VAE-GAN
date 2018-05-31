@@ -39,7 +39,6 @@ from utils.sample import get_sample
 from .basemodel import BaseModel
 
 
-
 class StarGAN(BaseModel):
 
 
@@ -67,7 +66,6 @@ class StarGAN(BaseModel):
 
         z_params = self.encoder([self.x_real, self.label_real])
 
-        # z_avg = Lambda(lambda x : x[:, :self.z_dim], output_shape=(self.z_dim))(z_params)
 
         z_avg = z_params[:, :self.z_dim]
         z_log_var = z_params[:, self.z_dim:]
@@ -83,16 +81,13 @@ class StarGAN(BaseModel):
 
         x_possible = self.decoder(tf.concat([z_possible, c_possible],axis=1), reuse=True)
 
-
         d_real, feature_disc_real = self.discriminator(self.x_real)
         d_fake, feature_disc_fake = self.discriminator(self.x_fake, reuse=True)
         d_possible, feature_disc_possible = self.discriminator(x_possible, reuse=True)
 
-
         c_real, feature_clas_real = self.classifier(self.x_real)
         c_fake, feature_clas_fake = self.classifier(self.x_fake)
         c_possible, feature_clas_possible = self.classifier(self.x_possible)
-
 
 
 

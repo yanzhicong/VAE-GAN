@@ -112,24 +112,25 @@ class Classification(BaseModel):
 		self.train_update = tf.group([self.optimizer, self.global_step_update])
 		
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		raise NotImplementedError
-
-
-	def train_on_batch_unsupervised(self, sess, x_batch):
 		if 'flatten' in self.config and self.config['flatten']:
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 
 		feed_dict = {
 			self.x_real : x_batch,
+			self.y_real : y_batch,
 			self.eps : np.random.random([x_batch.shape[0], self.z_dim])
 		}
-		_, step, lr, loss, kl_loss, xent_loss = sess.run([
-				self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss
+		_, step, lr, loss = sess.run([
+				self.train_update, self.global_step, self.learning_rate, self.loss
 			],
 			feed_dict = feed_dict
 			)
 
 		return step, lr, loss
+
+
+	def train_on_batch_unsupervised(self, sess, x_batch):
+		raise NotImplementedError
 
 	def predict(self, z_sample):
 		raise NotImplementedError
@@ -137,4 +138,5 @@ class Classification(BaseModel):
 	def summary(self):
 		pass
 
-	def help():
+	def help(self):
+		pass

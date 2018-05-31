@@ -42,7 +42,6 @@ class MNIST(BaseDataset):
         self.x_test = self.x_test.astype(np.float32) / 255.0
 
     def iter_trainimages_supervised(self):
-
         pass
 
 
@@ -63,6 +62,22 @@ class MNIST(BaseDataset):
             # print(batch.min())
             
             yield i, batch
+
+    def iter_test_images(self):
+
+        index = np.arange(self.x_test.shape[0])
+
+        if self.shuffle_train:
+            np.random.shuffle(index)
+
+        for i in range(int(self.x_test.shape[0] / self.batch_size)):
+            batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
+            batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
+
+            if 'input_shape' in self.config:
+                batch_x = batch_x.reshape([self.batch_size,] + self.config['input_shape'])
+            
+            yield i, batch_x, batch_y
 
     
     def read_data(self, label_url, image_url):

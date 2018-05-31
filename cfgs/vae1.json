@@ -1,5 +1,7 @@
 {
     "config name" : "vae_1",
+
+
     "dataset" : "mnist",
     "dataset params" : {
     },
@@ -13,12 +15,12 @@
         "input_shape" : [28, 28, 1],
         "flatten" : true,
 
-        "z_dim" : 3,
+        "z_dim" : 2,
         "is_training" : true,
         "sample_func" : "normal",
 
         "optimizer" : "rmsprop",       
-        "lr" : 0.00001,
+        "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
             "decay_steps" : 1000,
@@ -26,7 +28,7 @@
         },
 
         "kl loss" : "gaussian",
-        "kl loss prod" : 0.001,
+        "kl loss prod" : 0.01,
         "reconstruction loss" : "mse",
         "reconstruction loss prod" : 1,
 
@@ -44,7 +46,7 @@
 
     "trainer" : "unsupervised",
     "trainer params" : {
-        "continue train" : true,
+        "continue train" : false,
         "train steps" : 20000,
         "summary steps" : 1000,
         "log steps" : 100,
@@ -55,7 +57,16 @@
                 "validator" : "hidden_variable_validator",
                 "validate steps" : 1000,
                 "validator params" : {
-                    
+                    "z_dim" : 2
+                }
+            },
+            {
+                "validator" : "scatter_plot_validator",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "watch variable" : "hidden dist",
+                    "x_dim" : 0,
+                    "y_dim" : 1
                 }
             }
         ]

@@ -54,7 +54,7 @@ class DecoderSimple(object):
 		if 'nb_nodes' in self.config: 
 			nb_nodes = self.config['nb_nodes']
 		else:
-			nb_nodes = [64, 256]
+			nb_nodes = [256,]
 
 		if 'out_activation' in self.config:
 			out_act_fn = get_activation(self.config['out_activation'], self.config['out_activation_params'])
@@ -76,7 +76,7 @@ class DecoderSimple(object):
 							weights_initializer=winit_fn, scope='dfc%d'%(ind+1))
 
 			x = tcl.fully_connected(x, output_dim, 
-							activation_fn=act_fn, scope='dfc_x')
+							activation_fn=out_act_fn, scope='dfc_x')
 
 			return x
 

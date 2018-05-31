@@ -42,7 +42,7 @@ class EncoderSimple(object):
 		if 'nb_nodes' in self.config: 
 			nb_nodes = self.config['nb_nodes']
 		else:
-			nb_nodes = [256, 64]
+			nb_nodes = [256,]
 
 		output_dim = self.config['output_dim']
 
@@ -57,9 +57,10 @@ class EncoderSimple(object):
 				x = tcl.fully_connected(x, nodes, activation_fn=act_fn, 
 							weights_initializer=winit_fn, scope='efc%d'%(ind+1))
 
-			z_mean = tcl.fully_connected(x, output_dim, 
+			z_mean = tcl.fully_connected(x, output_dim, activation_fn=None,
 						weights_initializer=winit_fn, scope='efc_mean')
-			z_log_var = tcl.fully_connected(x, output_dim, 
+
+			z_log_var = tcl.fully_connected(x, output_dim, activation_fn=None,
 						weights_initializer=winit_fn, scope='efc_log_var')
 
 		return z_mean, z_log_var

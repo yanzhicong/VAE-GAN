@@ -30,10 +30,10 @@ import tensorflow.contrib.layers as tcl
 
 
 def kl_loss(z_mean, z_log_var):
-    return -0.5 * tf.reduce_mean(1.0 + z_log_var - tf.exp(z_log_var) - tf.square(z_mean))
+    return -0.5 * tf.reduce_mean(1.0 + z_log_var - tf.exp(z_log_var) - tf.square(z_mean), axis=-1)
 
 def l2_loss(x, y):
-    return tf.reduce_mean(tf.square(x - y))
+    return tf.reduce_mean(tf.square(x - y), axis=-1)
 
 loss_dict = {
     'kl' : {

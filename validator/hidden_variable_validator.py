@@ -21,15 +21,17 @@ class HiddenVariableValidator(object):
 			os.mkdir(self.log_dir)
 
 		self.generate_method = config.get('generate_method', 'normppf')
-		self.generate_method_params = config.get('generate_method_params', '')
-		self.nb_samples = config.get('num_samples', 1000)
+
+		if self.generate_method == 'normppf':
+			# self.generate_method_params = config.get('generate_method_params', '')
+			self.nb_samples = config.get('num_samples', 30)
 
 
-	def validate(self, model, dataset, step):
+	def validate(self, model, dataset, sess, step):
 		
 		if self.generate_method == 'normppf':
 			
-			n = 30  # figure with 15x15 digits
+			n = self.nb_samples  # figure with 15x15 digits
 			digit_size = 28
 			figure = np.zeros((digit_size * n, digit_size * n))
 
@@ -40,19 +42,17 @@ class HiddenVariableValidator(object):
 			for i, yi in enumerate(grid_x):
 				for j, xi in enumerate(grid_y):
 					z_sample = np.array([[xi, yi]])
-					x_decoded = model.predict(z_sample)
+					x_decoded = model.predict(sess, z_sample)
 					digit = x_decoded[0].reshape(digit_size, digit_size)
 					figure[i * digit_size: (i + 1) * digit_size,
 						j * digit_size: (j + 1) * digit_size] = digit
 
 			plt.figure(figsize=(10, 10))
 			plt.imshow(figure, cmap='Greys_r')
-			plt.savefig(os.path.join(self.log_dir, ''))
+			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
 
 		pass
 
-
-	
 
 
 

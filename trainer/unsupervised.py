@@ -24,8 +24,14 @@
 
 
 import os
+import sys
+
+sys.path.append('.')
+sys.path.append('../')
+
 import tensorflow as tf
 
+from validator.validator import get_validator
 
 class UnsupervisedTrainer(object):
 	def __init__(self, config):
@@ -44,6 +50,17 @@ class UnsupervisedTrainer(object):
 		self.save_steps = int(self.config.get('save checkpoint steps', 0))
 
 
+		self.validator_list = []
+		for validator_config in self.config.get('validators', []):
+			
+			validator_params = validator_config.get('validator params', {})
+			validator_params['assets dir'] = self.config['assets dir']
+
+			validator = get_validator(validator_config['validator'], validator_params)
+			validator_steps = int(validator_config['validate steps'])
+			self.validator_list.append((validator_steps, validator))
+
+
 	def train(self, sess, dataset, model):
 
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
@@ -59,24 +76,34 @@ class UnsupervisedTrainer(object):
 		else:
 			step = 0
 
+		int epoch = 0
+
+
 		while True:
+
 			for index, batch_x in dataset.iter_images():
 
 				if self.summary_steps != 0 and step % self.summary_steps == 0:
 					summary = model.summary(sess)
 					self.summary_writer.add_summary(summary, step)
 
-
 				step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
-
-				if self.log_steps != 0 and step % self.log_steps == 0:
-					print("step : %d, lr : %f, loss : %f"%(step, lr, loss))
-
-				if self.save_steps != 0 and step % self.save_steps == 0:
-					model.checkpoint_save(sess, self.checkpoint_dir, step)
 
 				if summary:
 					self.summary_writer.add_summary(summary, step)
 
+				if self.log_steps != 0 and step % self.log_steps == 0:
+					print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step, lr, loss))
+
+				if self.save_steps != 0 and step % self.save_steps == 0:
+					model.checkpoint_save(sess, self.checkpoint_dir, step)
+
+				for validator_steps, validator in self.validator_list:
+					if validator_steps != 0 and step % validator_steps == 0:
+						validator.validate(model, dataset, sess, step)
+
 				if step > int(self.config['train steps']):
 					return
+
+
+			epoch += 1

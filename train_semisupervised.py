@@ -52,6 +52,11 @@ if __name__ == '__main__':
 	config = get_config(args.config_file)
 
 	# make the assets directory and copy the config file to it
+	
+	if not os.path.exists('./assets'):
+		os.mkdir('./assets')
+
+
 	if not os.path.exists(config['assets dir']):
 		os.mkdir(config['assets dir'])
 	copyfile(os.path.join('./cfgs', args.config_file + '.json'), os.path.join(config['assets dir'], args.config_file + '.json'))
@@ -61,7 +66,6 @@ if __name__ == '__main__':
 
 	tfconfig = tf.ConfigProto()
 	tfconfig.gpu_options.allow_growth = True
-
 
 	with tf.Session(config=tfconfig) as sess:
 
@@ -74,3 +78,6 @@ if __name__ == '__main__':
 		trainer = get_trainer(config['trainer'], config['trainer params'])
 
 		trainer.train(sess, dataset, model)
+
+
+

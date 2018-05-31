@@ -21,20 +21,11 @@ class ScatterPlotValidator(object):
 
 		self.watch_variable = config.get('watch variable', 'pred')
 
-
-		# self.generate_method = config.get('generate_method', 'normppf')
-		# if self.generate_method == 'normppf':
-		# 	# self.generate_method_params = config.get('generate_method_params', '')
-		# 	self.nb_samples = config.get('num_samples', 30)
-
-
 	def validate(self, model, dataset, sess, step):
 
 		x_pos_array = []
 		y_pos_array = []
 		label_array = []
-
-
 
 		for ind, batch_x, batch_y in dataset.iter_test_images():
 			
@@ -69,7 +60,6 @@ class ScatterPlotValidator(object):
 		y_pos_array = np.concatenate(y_pos_array, axis=0)
 		label_array = np.concatenate(label_array, axis=0)
 
-
 		if len(x_pos_array.shape) == 2:
 			for i in range(x_pos_array.shape[1]):
 				plt.figure(figsize=(6, 6))
@@ -77,7 +67,6 @@ class ScatterPlotValidator(object):
 				plt.scatter(x_pos_array[:, i], y_pos_array[:, i], c=label_array)
 				plt.colorbar()
 				plt.savefig(os.path.join(self.log_dir, '%07d_%d.png'%(step, i)))
-
 		else:
 			plt.figure(figsize=(6, 6))
 			plt.clf()

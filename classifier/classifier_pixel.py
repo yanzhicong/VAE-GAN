@@ -29,7 +29,6 @@ class ClassifierPixel(object):
 		self.model_config = model_config
 
 
-
 	def __call__(self, i, reuse=False):
 
 		if 'activation' in self.config:

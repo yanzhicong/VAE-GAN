@@ -37,10 +37,16 @@
  
         "encoder" : "EncoderSimple",
         "encoder params" : {
+            "nb_conv_blocks" : 0,
+            "batch_norm" : "none",
+            "nb_fc_nodes" : [256]
         },
 
         "decoder" : "DecoderSimple",
         "decoder params" : {
+            "nb_conv_blocks" : 0,
+            "batch_norm" : "none",
+            "nb_fc_nodes" : [256]
         }
     },
 

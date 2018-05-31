@@ -28,6 +28,9 @@ class BaseModel(object, metaclass=ABCMeta):
 		'''
 
 		self.name = config['name']
+		self.is_summary = config.get('summary', False)
+		self.is_training = tf.placeholder(tf.bool, name='is_training')
+		
 
 
 	def save_images(self, samples, filename):
@@ -103,4 +106,13 @@ class BaseModel(object, metaclass=ABCMeta):
 		pass
 
 
-	def train(self, loss, feed_dict):
+	def train(self, sess, feed_dict):
+
+		if self.is_summary:
+			_, s, lr, l, s_sum = sess.run([
+				self.train_update, self.global_step, self.learning_rate, self.loss, self.sum_scalar],	feed_dict = feed_dict)
+			return s, lr, l, s_sum
+		else:
+			_, s, lr, l = sess.run([
+				self.train_update, self.global_step, self.learning_rate, self.loss,],	feed_dict = feed_dict)
+			return s, lr, l, None

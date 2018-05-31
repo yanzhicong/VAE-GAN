@@ -40,7 +40,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--gpu_number',     type=str,   default='0')
-parser.add_argument('--config_file',    type=str,   default='vae1')
+parser.add_argument('--config_file',    type=str,   default='cvae1')
 
 args = parser.parse_args()
 

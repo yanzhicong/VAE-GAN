@@ -27,11 +27,6 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
-optimizer_dict = {
-    'rmsprop' : tf.train.RMSPropOptimizer,
-}
-
-
 
 def get_optimizer(name, params, target, variables):
     if name == 'rmsprop':

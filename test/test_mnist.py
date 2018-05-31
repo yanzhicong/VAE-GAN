@@ -27,13 +27,6 @@ if __name__ == '__main__':
 
 	dataset = MNIST(config)
 
-	# x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
-
-	# y, end_points = model(x)
-
-	# for name, value in end_points.items():
-		# print(name, '  --> ', value.get_shape())
-
 	for ind, x_batch in dataset.iter_images():
 		plt.figure(0)
 		plt.imshow(x_batch[0, :, :])

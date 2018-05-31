@@ -24,9 +24,11 @@
 
 
 from .unsupervised import UnsupervisedTrainer
+from .supervised import SupervisedTrainer
 
 trainer_dict = {
-    'unsupervised' : UnsupervisedTrainer
+    'unsupervised' : UnsupervisedTrainer,
+    'supervised' : SupervisedTrainer,
 }
 
 

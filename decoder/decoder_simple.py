@@ -61,7 +61,7 @@ class DecoderSimple(object):
 		else:
 			out_act_fn = get_activation('sigmoid', None)
 
-		output_dim = self.config['output_dim']
+		output_dim = self.config['output_dims']
 
 
 		with tf.variable_scope(self.name):

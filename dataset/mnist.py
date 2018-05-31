@@ -27,6 +27,7 @@ class MNIST(BaseDataset):
         self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
         self.input_shape = config.get('input_shape', [28, 28, 1])
         self.batch_size = int(config.get('batch_size', 128))
+        self.nb_classes = 10
 
         self.y_train, self.x_train = self.read_data(
             os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
@@ -46,38 +47,39 @@ class MNIST(BaseDataset):
 
 
 
-    def iter_images(self):
-        index = np.arange(self.x_train.shape[0])
+    # def iter_images(self):
+    #     index = np.arange(self.x_train.shape[0])
 
-        if self.shuffle_train:
-            np.random.shuffle(index)
+    #     if self.shuffle_train:
+    #         np.random.shuffle(index)
 
-        for i in range(int(self.x_train.shape[0] / self.batch_size)):
-            batch = self.x_train[index[i*self.batch_size:(i+1)*self.batch_size], :]
+    #     for i in range(int(self.x_train.shape[0] / self.batch_size)):
+    #         batch_x = self.x_train[index[i*self.batch_size:(i+1)*self.batch_size], :]
+    #         batch_y = self.y_train[index[i*self.batch_size:(i+1)*self.batch_size]]
 
-            if 'input_shape' in self.config:
-                batch = batch.reshape([self.batch_size,] + self.config['input_shape'])
+    #         if 'input_shape' in self.config:
+    #             batch_x = batch_x.reshape([self.batch_size,] + self.config['input_shape'])
             
-            # print(batch.max())
-            # print(batch.min())
+    #         # print(batch.max())
+    #         # print(batch.min())
             
-            yield i, batch
+    #         yield i, batch_x, batch_y
 
-    def iter_test_images(self):
+    # def iter_test_images(self):
 
-        index = np.arange(self.x_test.shape[0])
+    #     index = np.arange(self.x_test.shape[0])
 
-        if self.shuffle_train:
-            np.random.shuffle(index)
+    #     if self.shuffle_train:
+    #         np.random.shuffle(index)
 
-        for i in range(int(self.x_test.shape[0] / self.batch_size)):
-            batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
-            batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
+    #     for i in range(int(self.x_test.shape[0] / self.batch_size)):
+    #         batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
+    #         batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
 
-            if 'input_shape' in self.config:
-                batch_x = batch_x.reshape([self.batch_size,] + self.config['input_shape'])
+    #         if 'input_shape' in self.config:
+    #             batch_x = batch_x.reshape([self.batch_size,] + self.config['input_shape'])
             
-            yield i, batch_x, batch_y
+    #         yield i, batch_x, batch_y
 
     
     def read_data(self, label_url, image_url):

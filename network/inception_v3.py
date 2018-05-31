@@ -1,3 +1,27 @@
+# -*- coding: utf-8 -*-
+# MIT License
+# 
+# Copyright (c) 2018 ZhicongYan
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ==============================================================================
+
 from __future__ import absolute_import
 
 import os
@@ -23,8 +47,14 @@ from .inception_block import inception_v3_figure7
 
 
 class InceptionV3(object):
-	def __init__(self, config, model_config, name="InceptionV3"):
+	"""Inception model from http://arxiv.org/abs/1512.00567.
 
+	"Rethinking the Inception Architecture for Computer Vision"
+	Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens,
+	Zbigniew Wojna.
+	"""
+
+	def __init__(self, config, model_config, name="InceptionV3"):
 		self.name = name
 		self.training = model_config["is_training"]
 		self.normalizer_params = {
@@ -40,28 +70,17 @@ class InceptionV3(object):
 
 	def __call__(self, i, reuse=False):
 
-		if 'activation' in self.config:
-			act_fn = get_activation(self.config['activation'])
-		elif 'activation' in self.model_config:
-			act_fn = get_activation(self.model_config['activation'])
-		else:
-			act_fn = get_activation('relu')
+		act_fn = get_activation(
+					self.config.get('activation', 'relu'),
+					self.config.get('activation_params', {}))
 
-		if 'batch_norm' in self.config:
-			norm_fn, norm_params = get_normalization(self.config['batch_norm'])
-		elif 'batch_norm' in self.model_config:
-			norm_fn, norm_params = get_normalization(self.model_config['batch_norm'])
-		else:
-			norm_fn = tcl.batch_norm
-			norm_params = self.normalizer_params
+		norm_fn, norm_params = get_normalization(
+					self.config.get('batch_norm', 'batch_norm'),
+					self.config.get('batch_norm_params', self.normalizer_params))
 
-		if 'weightsinit' in self.config:
-			winit_fn = get_weightsinit(self.config['weightsinit'])
-		elif 'weightsinit' in self.model_config:
-			winit_fn = get_weightsinit(self.model_config['weightsinit'])
-		else:
-			winit_fn = tf.random_normal_initializer(0, 0.02)
-
+		winit_fn = get_weightsinit(
+					self.config.get('weightsinit', 'normal'),
+					self.config.get('weightsinit_params', '0.00 0.02'))
 
 		if 'nb_filters' in self.config: 
 			filters = int(self.config['nb_filters'])

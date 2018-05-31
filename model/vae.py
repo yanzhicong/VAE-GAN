@@ -22,6 +22,8 @@
 # SOFTWARE.
 # ==============================================================================
 
+
+
 import os
 import sys
 sys.path.append('.')
@@ -46,11 +48,13 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
+# Implementation of "Auto-Encoding Variational Bayes"
+# https://arxiv.org/pdf/1312.6114.pdf
+
+
 class VAE(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config, **kwargs):
 
 		super(VAE, self).__init__(config, **kwargs)
 
@@ -58,23 +62,14 @@ class VAE(BaseModel):
 		self.z_dim = config['z_dim']
 		self.config = config
 
-
-		self.is_training = tf.placeholder(tf.bool, name='is_training')
-
 		self.build_model()
 
-		if self.config.get('summary', False):
-			self.is_summary = True
+		if self.is_summary:
 			self.get_summary()
-		else:
-			self.is_summary = False
+
 
 
 	def build_model(self):
-
-		# with tf.variable_scope('vae'):
-
-		# 	with tf.variable_scope('model'):
 
 		if self.config.get('flatten', False):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
@@ -83,12 +78,11 @@ class VAE(BaseModel):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 			self.encoder_input_shape = list(self.input_shape)
 
-		self.config['encoder params']['output_dim'] = self.z_dim
-		self.config['decoder params']['output_dim'] = self.encoder_input_shape
+		self.config['encoder params']['output_dims'] = self.z_dim
+		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
 		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
-
 
 		# build encoder
 		self.z_mean, self.z_log_var = self.encoder(self.x_real)
@@ -104,8 +98,6 @@ class VAE(BaseModel):
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
 		self.x_test = self.decoder(self.z_test, reuse=True)
 
-		# with tf.variable_scope('loss'):
-
 		# loss function
 		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
@@ -113,9 +105,6 @@ class VAE(BaseModel):
 		self.xent_loss = tf.reduce_mean(self.xent_loss * self.config.get('reconstruction loss prod', 1.0))
 		self.loss = self.kl_loss + self.xent_loss
 
-
-
-		# with tf.variable_scope('optimizer'):
 
 		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
@@ -129,37 +118,22 @@ class VAE(BaseModel):
 
 		# model saver
 		self.saver = tf.train.Saver(self.encoder.vars + self.decoder.vars + [self.global_step,])
-		
+
+
 
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		raise NotImplementedError
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
-
 		feed_dict = {
 			self.x_real : x_batch,
 			self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
-
-		if self.is_summary:
-			_, step, lr, loss, kl_loss, xent_loss, s_sum = sess.run([
-					self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss, self.sum_scalar
-				],
-				feed_dict = feed_dict
-				)
-			return step, lr, loss, s_sum
-		else:
-			_, step, lr, loss, kl_loss, xent_loss = sess.run([
-					self.train_update, self.global_step, self.learning_rate, self.loss, self.kl_loss, self.xent_loss
-				],
-				feed_dict = feed_dict
-				)
-			return step, lr, loss, None
+		return self.train(sess, feed_dict)
 
 
 	def predict(self, sess, z_batch):
@@ -170,25 +144,23 @@ class VAE(BaseModel):
 		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
 		return x_batch
 
-
 	def hidden_distribution(self, sess, x_batch):
-
-
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
-
 		feed_dict = {
 			self.x_real : x_batch,
 			self.is_training : False
 		}
-
 		z_mean, z_log_var = sess.run([self.z_mean, self.z_log_var], feed_dict=feed_dict)
 		return z_mean, z_log_var
 
 
 	def summary(self, sess):
-		sum = sess.run(self.sum_hist)
-		return sum
+		if self.is_summary:
+			sum = sess.run(self.sum_hist)
+			return sum
+		else:
+			return None
 
 
 	def get_summary(self):

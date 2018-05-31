@@ -76,16 +76,17 @@ class UnsupervisedTrainer(object):
 		else:
 			step = 0
 
-		int epoch = 0
+		epoch = 0
 
 
 		while True:
 
-			for index, batch_x in dataset.iter_images():
+			for index, batch_x in dataset.iter_train_images():
 
 				if self.summary_steps != 0 and step % self.summary_steps == 0:
 					summary = model.summary(sess)
-					self.summary_writer.add_summary(summary, step)
+					if summary:
+						self.summary_writer.add_summary(summary, step)
 
 				step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
 
@@ -104,6 +105,4 @@ class UnsupervisedTrainer(object):
 
 				if step > int(self.config['train steps']):
 					return
-
-
 			epoch += 1

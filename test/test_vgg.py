@@ -23,7 +23,7 @@ if __name__ == '__main__':
 		'is_training' : True
 	}
 
-	model = VGG16(config, model_config)
+	model = VGG16(config, model_config, True)
 
 	x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
 

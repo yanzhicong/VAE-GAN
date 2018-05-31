@@ -1,13 +1,11 @@
+
+
+
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-
-
-
-
-
-
 
 class HiddenVariableValidator(object):
 	def __init__(self, config):
@@ -23,14 +21,11 @@ class HiddenVariableValidator(object):
 		self.generate_method = config.get('generate_method', 'normppf')
 
 		if self.generate_method == 'normppf':
-			# self.generate_method_params = config.get('generate_method_params', '')
 			self.nb_samples = config.get('num_samples', 30)
 
 
 	def validate(self, model, dataset, sess, step):
-		
 		if self.generate_method == 'normppf':
-			
 			n = self.nb_samples  # figure with 15x15 digits
 			digit_size = 28
 			figure = np.zeros((digit_size * n, digit_size * n))
@@ -50,9 +45,6 @@ class HiddenVariableValidator(object):
 			plt.figure(figsize=(10, 10))
 			plt.imshow(figure, cmap='Greys_r')
 			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
-
-		pass
-
 
 
 

@@ -1,21 +1,21 @@
 {
-    "config name" : "cvae_1",
+    "config name" : "cvae_3",
 
-    "dataset" : "mnist",
+    "dataset" : "cifar10",
     "dataset params" : {
     },
 
-    "assets dir" : "assets/cvae_1",
+    "assets dir" : "assets/cvae_3",
 
     "ganmodel" : "cvae",
     "ganmodel params" : {
         "name" : "cvae",
 
-        "input_shape" : [28, 28, 1],
+        "input_shape" : [32, 32, 3],
         "flatten" : true,
         "nb_classes" : 10,
 
-        "z_dim" : 2,
+        "z_dim" : 3,
         "is_training" : true,
         "sample_func" : "normal",
 
@@ -32,7 +32,8 @@
         "reconstruction loss" : "mse",
         "reconstruction loss prod" : 1,
 
-        "summary" : false,
+        "summary" : true,
+        "summary dir" : "log",
  
         "x encoder" : "EncoderSimple",
         "x encoder params" : {
@@ -71,7 +72,17 @@
                     "watch variable" : "hidden dist",
                     "x_dim" : 0,
                     "y_dim" : 1,
-                    "log dir" : "scatter"
+                    "log dir" : "scatter1"
+                }
+            },
+            {
+                "validator" : "scatter_plot_validator",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "watch variable" : "hidden dist",
+                    "x_dim" : 0,
+                    "y_dim" : 2,
+                    "log dir" : "scatter2"
                 }
             }
         ]

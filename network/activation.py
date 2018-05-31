@@ -18,18 +18,8 @@ def get_lrelu(params):
             return f1 * x + f2 * abs(x)
     return lrelu
 
-# activation_dict = {
-#     "relu" : tf.nn.relu,
-#     "lrelu" : lrelu,
-#     "softmax" : tf.nn.softmax,
-#     "sigmoid" : tf.nn.sigmoid
-# }
-
 
 def get_activation(name, params=None):
-    # if name in activation_dict : 
-        # return activation_dict[name]
-
     if name == 'relu':
         return tf.nn.relu
     elif name == 'lrelu':
@@ -38,6 +28,8 @@ def get_activation(name, params=None):
         return tf.nn.softmax
     elif name == 'sigmoid':
         return tf.nn.sigmoid
+    elif name == 'none' : 
+        return None
     else :
         raise Exception("None actiavtion named " + name)
 

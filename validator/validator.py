@@ -11,6 +11,8 @@ validator_dict = {
     'scatter_plot_validator' : ScatterPlotValidator
 }
 
+
+
 def get_validator(name, config):
     
     if name in validator_dict:

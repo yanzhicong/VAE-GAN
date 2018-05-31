@@ -46,18 +46,18 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
-class VAE(BaseModel):
+class CVAE(BaseModel):
 
 	def __init__(self, config,
 		**kwargs
 	):
 
-		super(VAE, self).__init__(config, **kwargs)
+		super(CVAE, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input_shape']
 		self.z_dim = config['z_dim']
+        self.nb_classes = config['nb_classes']
 		self.config = config
-
 
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
 
@@ -72,26 +72,28 @@ class VAE(BaseModel):
 
 	def build_model(self):
 
-		# with tf.variable_scope('vae'):
-
-		# 	with tf.variable_scope('model'):
-
 		if self.config.get('flatten', False):
 			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
+            self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
 			self.encoder_input_shape = int(np.product(self.input_shape))
 		else:
 			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+            self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
 			self.encoder_input_shape = list(self.input_shape)
 
-		self.config['encoder params']['output_dim'] = self.z_dim
+		self.config['x encoder params']['output_dim'] = self.z_dim
+        self.config['y encoder params']['output_dim'] = self.z_dim
 		self.config['decoder params']['output_dim'] = self.encoder_input_shape
 
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
+		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.config, self.is_training)
+        self.y_encoder = get_encoder(self.config['y encoder'], self.config['y encoder params'], self.config, self.is_training)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
 
 
 		# build encoder
-		self.z_mean, self.z_log_var = self.encoder(self.x_real)
+		self.z_mean, self.z_log_var = self.x_encoder(self.x_real)
+        self.z_mean_y = self.y_encoder(self.y_real)
+
 
 		# sample z from z_mean and z_log_var
 		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
@@ -107,15 +109,12 @@ class VAE(BaseModel):
 		# with tf.variable_scope('loss'):
 
 		# loss function
-		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
+		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : (self.z_mean - self.z_mean_y, 'z_log_var' : self.z_log_var})
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
 		self.kl_loss = tf.reduce_mean(self.kl_loss * self.config.get('kl loss prod', 1.0))
 		self.xent_loss = tf.reduce_mean(self.xent_loss * self.config.get('reconstruction loss prod', 1.0))
 		self.loss = self.kl_loss + self.xent_loss
 
-
-
-		# with tf.variable_scope('optimizer'):
 
 		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
@@ -132,16 +131,12 @@ class VAE(BaseModel):
 		
 
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		raise NotImplementedError
-
-
-	def train_on_batch_unsupervised(self, sess, x_batch):
-
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 
 		feed_dict = {
 			self.x_real : x_batch,
+            self.y_real : y_batch,
 			self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
@@ -160,6 +155,11 @@ class VAE(BaseModel):
 				feed_dict = feed_dict
 				)
 			return step, lr, loss, None
+
+
+
+	def train_on_batch_unsupervised(self, sess, x_batch):
+        return NotImplementedError
 
 
 	def predict(self, sess, z_batch):

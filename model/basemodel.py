@@ -103,4 +103,4 @@ class BaseModel(object, metaclass=ABCMeta):
 		pass
 
 
-
+	def train(self, loss, feed_dict):

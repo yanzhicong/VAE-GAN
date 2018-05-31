@@ -38,7 +38,6 @@ def get_learning_rate(name, initial, global_step, params):
 def get_global_step():
     global_step = tf.Variable(0, trainable=False, name='global_step')
     global_step_update = tf.assign(global_step, global_step+1)
-
     return global_step, global_step_update
 
 

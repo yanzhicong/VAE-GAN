@@ -1,0 +1,79 @@
+{
+    "config name" : "cvae_1",
+
+    "dataset" : "mnist",
+    "dataset params" : {
+    },
+
+    "assets dir" : "assets/cvae_1",
+
+    "ganmodel" : "cvae",
+    "ganmodel params" : {
+        "name" : "cvae",
+
+        "input_shape" : [28, 28, 1],
+        "flatten" : true,
+
+        "z_dim" : 2,
+        "is_training" : true,
+        "sample_func" : "normal",
+
+        "optimizer" : "rmsprop",       
+        "lr" : 0.001,
+        "lr_scheme" : "exponential",
+        "lr_params" : {
+            "decay_steps" : 1000,
+            "decay_rate" : 0.9
+        },
+
+        "kl loss" : "gaussian",
+        "kl loss prod" : 0.01,
+        "reconstruction loss" : "mse",
+        "reconstruction loss prod" : 1,
+
+        "summary" : true,
+        "summary dir" : "log",
+ 
+        "x encoder" : "EncoderSimple",
+        "x encoder params" : {
+        },
+
+        "y encoder" : "EncoderSimple",
+        "y encoder params" : {
+        },
+        
+        "decoder" : "DecoderSimple",
+        "decoder params" : {
+        }
+    },
+
+    "trainer" : "unsupervised",
+    "trainer params" : {
+        "continue train" : false,
+        "train steps" : 20000,
+        "summary steps" : 1000,
+        "log steps" : 100,
+        "save checkpoint steps" : 1000,
+        
+        "validators" : [
+            {
+                "validator" : "hidden_variable_validator",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "z_dim" : 2
+                }
+            },
+            {
+                "validator" : "scatter_plot_validator",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "watch variable" : "hidden dist",
+                    "x_dim" : 0,
+                    "y_dim" : 1
+                }
+            }
+        ]
+    }
+}
+
+

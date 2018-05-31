@@ -28,11 +28,13 @@ from .classification import Classification
 from .stargan import StarGAN
 from .cvaegan import CVAEGAN
 from .vae import VAE
+from .cvae import CVAE
 
 
 model_dict = {
     "cvaegan" : CVAEGAN,
     'vae' : VAE,
+    'cvae' : CVAE,
     'stargan' : StarGAN,
     'classification' : Classification
 }

@@ -47,7 +47,7 @@
         "y encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [256],
+            "nb_fc_nodes" : [],
             "output_distribution": "mean"
         },
         

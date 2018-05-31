@@ -25,7 +25,6 @@
 
 from .unsupervised import UnsupervisedTrainer
 
-
 trainer_dict = {
     'unsupervised' : UnsupervisedTrainer
 }

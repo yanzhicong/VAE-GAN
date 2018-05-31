@@ -38,15 +38,10 @@ from utils.sample import get_sample
 
 from .basemodel import BaseModel
 
-
-
 class CVAEGAN(BaseModel):
 
 
     def __init__(self, config,
-        # input_shape=(128, 128, 3),
-        # num_attrs=2,
-        # z_dims = 64,
         **kwargs
     ):
         
@@ -57,15 +52,6 @@ class CVAEGAN(BaseModel):
         self.z_dim = config['z_dim']
 
         self.config = config
-
-        # self.f_enc = None
-        # self.f_dec = None
-        # self.f_dis = None
-        # self.f_cls = None
-        # self.enc_trainer = None
-        # self.dec_trainer = None
-        # self.dis_trainer = None
-        # self.cls_trainer = None
 
         self.build_model()
 

@@ -62,7 +62,7 @@ class VGG16(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
-			endpoints = {}
+			end_points = {}
 
 			# construct convolution layers
 			for block_ind in range(nb_blocks):
@@ -82,7 +82,7 @@ class VGG16(object):
 						x = tcl.conv2d(x, nb_filters[block_ind], 3,
 								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 								padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
-					endpoints['conv%d_%d'%(block_ind+1, layer_ind)] = x
+					end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
 
 			# construct top fully connected layer
 			if including_top: 
@@ -90,19 +90,19 @@ class VGG16(object):
 				for ind, nb_nodes in enumerate(nb_fc_nodes):
 					x = tcl.fully_connected(x, nb_nodes, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							weights_initializer=winit_fn, scope='fc%d'%ind)
-					endpoints['fc%d'%ind] = x
+					end_points['fc%d'%ind] = x
 
 				if output_dims != 0:
 					x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, weights_initialzr=winit_fn, scope='fc_out')
-					endpoints['fc_out'] = x
+					end_points['fc_out'] = x
 
 			# else construct a convolution layer for output
 			elif output_dims != 0:
 				x = tcl.conv2d(x, output_dims, 1, 
 							stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
-				endpoints['conv_out'] = x
+				end_points['conv_out'] = x
 
-			return x, endpoints
+			return x, end_points
 
 	@property
 	def vars(self):

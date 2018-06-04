@@ -53,10 +53,8 @@ class EncoderSimple(object):
 		network_config = config.copy()
 		network_config['output_dims'] = 0
 		self.network = VGG16(network_config, model_config, is_training, name=self.name)
-
 		self.output_distribution = self.config.get('output_distribution', 'gaussian')
 		
-
 	def __call__(self, i, reuse=False):
 
 		output_act_fn = get_activation(
@@ -91,9 +89,6 @@ class EncoderSimple(object):
 				return z_mean
 			else:
 				raise Exception("None output distribution named " + self.output_distribution)
-
-
-
 
 	@property
 	def vars(self):

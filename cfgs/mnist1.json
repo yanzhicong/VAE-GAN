@@ -1,0 +1,47 @@
+{
+    "config name" : "inceptionV3_1",
+
+    "dataset" : "imagenet",
+    "dataset params" : {
+        "input_shape" : [299, 299, 3],
+        "batch_size" : 8
+    },
+
+    "assets dir" : "assets/inceptionV3_1",
+
+    "ganmodel" : "classification",
+    "ganmodel params" : {
+        "name" : "inception",
+
+        "input_shape" : [299, 299, 3],
+        "nb_classes" : 1000,
+
+        "optimizer" : "sgd",       
+        "lr" : 0.0001,
+        "lr_scheme" : "exponential",
+        "lr_params" : {
+            "decay_steps" : 70000,
+            "decay_rate" : 0.1
+        },
+
+        "classification loss" : "crossentropy",
+
+        "summary" : true,
+ 
+        "classifier" : "GoogleNet",
+        "classifier params" : {
+            "output_dims" : 1000
+        }
+
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+        "continue train" : false,
+        "train steps" : 200000,
+        "summary steps" : 1000,
+        "log steps" : 300,
+        "save checkpoint steps" : 10000
+    }
+}
+

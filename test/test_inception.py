@@ -14,13 +14,14 @@ from network.inception_v3 import InceptionV3
 
 if __name__ == '__main__':
 	config = {
-		'output_classes' : 10
+		'output_dims' : 1000,
+		'output_activation' : 'softmax'
 	}
 	model_config = {
 		'is_training' : True
 	}
 
-	inception_model = InceptionV3(config, model_config)
+	inception_model = InceptionV3(config, model_config, False)
 
 	x = tf.placeholder(tf.float32, shape=(None, 299, 299, 3), name='input')
 

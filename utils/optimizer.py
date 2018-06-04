@@ -33,6 +33,8 @@ def get_optimizer(name, params, target, variables):
         return tf.train.RMSPropOptimizer(**params).minimize(target, var_list=variables)
     elif name == 'sgd':
         return tf.train.GradientDescentOptimizer(**params).minimize(target, var_list=variables)
+    elif name == 'adam':
+        return tf.train.AdamOptimizer(**params).minimize(target, var_list=variables)
     elif name == 'adadelta':
         return tf.train.AdadeltaOptimizer(**params).minimize(target, var_list=variables)
     else:

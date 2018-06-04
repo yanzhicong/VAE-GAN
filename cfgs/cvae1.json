@@ -5,7 +5,7 @@
     "dataset params" : {
     },
 
-    "assets dir" : "assets/cvae_1",
+    "assets dir" : "assets/cvae_1_2",
 
     "ganmodel" : "cvae",
     "ganmodel params" : {
@@ -28,7 +28,7 @@
         },
 
         "kl loss" : "gaussian",
-        "kl loss prod" : 0.01,
+        "kl loss prod" : 0.00001,
         "reconstruction loss" : "mse",
         "reconstruction loss prod" : 1,
 

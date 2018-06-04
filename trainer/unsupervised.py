@@ -49,7 +49,6 @@ class UnsupervisedTrainer(object):
 		self.log_steps = int(self.config.get('log steps', 0))
 		self.save_steps = int(self.config.get('save checkpoint steps', 0))
 
-
 		self.validator_list = []
 		for validator_config in self.config.get('validators', []):
 			
@@ -64,7 +63,6 @@ class UnsupervisedTrainer(object):
 	def train(self, sess, dataset, model):
 
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-
 		sess.run(tf.global_variables_initializer())
 
 		if self.config.get('continue train', False):
@@ -78,11 +76,8 @@ class UnsupervisedTrainer(object):
 
 		epoch = 0
 
-
 		while True:
-
 			for index, batch_x in dataset.iter_train_images():
-
 				if self.summary_steps != 0 and step % self.summary_steps == 0:
 					summary = model.summary(sess)
 					if summary:

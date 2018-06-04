@@ -73,14 +73,17 @@ class CVAE(BaseModel):
 
 	def build_model(self):
 
-		if self.config.get('flatten', False):
-			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
-			self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
-			self.encoder_input_shape = int(np.product(self.input_shape))
-		else:
-			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-			self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
-			self.encoder_input_shape = list(self.input_shape)
+		self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
+		self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')		
+
+
+		# if self.config.get('flatten', False):
+
+		self.encoder_input_shape = int(np.product(self.input_shape))
+		# else:
+		# 	self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+		# 	self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
+		# 	self.encoder_input_shape = list(self.input_shape)
 
 		self.config['x encoder params']['output_dims'] = self.z_dim
 		self.config['y encoder params']['output_dims'] = self.z_dim

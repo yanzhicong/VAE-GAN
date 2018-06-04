@@ -33,7 +33,7 @@ class DecoderSimple(object):
 		self.config = config
 		self.model_config = model_config
 
-	def __call__(self, i, reuse=False):
+	def __call__(self, x, reuse=False):
 
 
 		if 'activation' in self.config:

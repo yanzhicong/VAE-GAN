@@ -41,7 +41,9 @@ from .normalization import get_normalization
 
 from .inception_block import inception_v3_figure4
 from .inception_block import inception_v3_figure5
+from .inception_block import inception_v3_figure5_downsample
 from .inception_block import inception_v3_figure6
+from .inception_block import inception_v3_figure6_downsample
 from .inception_block import inception_v3_figure7
 
 
@@ -54,9 +56,9 @@ class InceptionV3(object):
 	Zbigniew Wojna.
 	"""
 
-	def __init__(self, config, model_config, name="InceptionV3"):
+	def __init__(self, config, model_config, is_training, name="InceptionV3"):
 		self.name = name
-		self.training = model_config["is_training"]
+		self.training = is_training
 		self.normalizer_params = {
 			'decay' : 0.999,
 			'center' : True,
@@ -82,33 +84,17 @@ class InceptionV3(object):
 					self.config.get('weightsinit', 'normal'),
 					self.config.get('weightsinit_params', '0.00 0.02'))
 
-		if 'nb_filters' in self.config: 
-			filters = int(self.config['nb_filters'])
-		else:
-			filters = 32
+		filters = self.config.get('nb_filters', 32)
 
+		# fully connected parameters
+		including_top = self.config.get('including_top', True)
+		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 1024])
 
-		if 'no_maxpooling' in self.config:
-			no_maxpooling = self.config['no_maxpooling']
-		else:
-			no_maxpooling = False
-
-
-		if 'including_top' in self.config:
-			including_top = self.config['including_top']
-			including_top_params = self.config['including_top_params']
-		else:
-			including_top = True
-			including_top_params = [1024, 1024]
-
-
-		if 'out_activation' in self.config:
-			out_act_fn = get_activation(self.config['out_activation'])
-		else:
-			out_act_fn = None
-
-
-		output_classes = self.config['output_classes']
+		# output stage parameters
+		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_act_fn = get_activation(
+					self.config.get('output_activation', 'none'),
+					self.config.get('output_activation_params', ''))
 
 		with tf.variable_scope(self.name):
 			if reuse:
@@ -167,8 +153,8 @@ class InceptionV3(object):
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure5('inception1b', x, end_points, 
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
-			x, end_points = inception_v3_figure5('inception1c', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn, downsample=True)
+			x, end_points = inception_v3_figure5_downsample('inception1c', x, end_points, 
+						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 
 
 			# x : 17 * 17 * 768
@@ -180,8 +166,8 @@ class InceptionV3(object):
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure6('inception2d', x, end_points, n=7,
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
-			x, end_points = inception_v3_figure6('inception2e', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn, downsample=True)
+			x, end_points = inception_v3_figure6_downsample('inception2e', x, end_points, n=7,
+						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
   
 
 			# x : 8 * 8 * 1280
@@ -189,12 +175,28 @@ class InceptionV3(object):
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure7('inception3b', x, end_points, 
 						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
-			# x, end_points = inception_v3_figure7('inception3c', x, end_points, 
-			# 			act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn, downsample=True)
-  
+
+			# construct top fully connected layer
+			if including_top: 
+				with tf.variable_scope("logits"):  
+					x = tcl.avg_pool2d(x,kernel_size=[8,8],padding="VALID",  
+										  scope="avgpool_1a_8x8")  
+					x = tcl.dropout(x,keep_prob=0.5,scope="dropout_1b")  
+					end_points["global_avg_pooling"] = x  
+
+					x = tcl.flatten(x)
+
+
+					if output_dims != 0:
+						x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, normalizer_fn=None,
+								weights_initializer=winit_fn, scope='fc_out')
+						end_points['fc_out'] = x
+	
 			return x, end_points
 
 	@property
 	def vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
+
+
 

@@ -3,14 +3,15 @@ import numpy as np
 
 from .mnist import MNIST
 from .cifar10 import Cifar10
+from .imagenet import ImageNet
+
 
 
 dataset_dict = {
     'mnist' : MNIST,
-    'cifar10' : Cifar10
+    'cifar10' : Cifar10,
+    'imagenet' : ImageNet
 }
-
-
 
 
 

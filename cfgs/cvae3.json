@@ -5,7 +5,7 @@
     "dataset params" : {
     },
 
-    "assets dir" : "assets/cvae_3",
+    "assets dir" : "assets/cvae_3_2",
 
     "ganmodel" : "cvae",
     "ganmodel params" : {
@@ -19,7 +19,7 @@
         "is_training" : true,
         "sample_func" : "normal",
 
-        "optimizer" : "rmsprop",       
+        "optimizer" : "adam",       
         "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
@@ -28,7 +28,7 @@
         },
 
         "kl loss" : "gaussian",
-        "kl loss prod" : 0.01,
+        "kl loss prod" : 0.00001,
         "reconstruction loss" : "mse",
         "reconstruction loss prod" : 1,
 
@@ -40,7 +40,8 @@
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [256],
-            "output_distribution": "gaussian"
+            "output_distribution": "gaussian",
+            "_comment" : "no convolution layers and batch normalization, just a single hidden layer with 256 nodes"
         },
 
         "y encoder" : "EncoderSimple",

@@ -42,6 +42,7 @@ from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
 from utils.sample import get_sample
 from utils.loss import get_loss
+from utils.metric import get_metric
 
 from .basemodel import BaseModel
 
@@ -52,81 +53,52 @@ class Classification(BaseModel):
 		**kwargs
 	):
 
-		super(Classification, self).__init__(input_shape=config['input_shape'], **kwargs)
+		super(Classification, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input_shape']
-		self.z_dim = config['z_dim']
+		# self.z_dim = config['z_dim']
+		self.nb_classes = config['nb_classes']
 		self.config = config
-
 		self.build_model()
+		if self.is_summary:
+			self.build_summary()
+
 
 
 	def build_model(self):
-
-		if self.config.get('flatten', False):
-			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
-			self.encoder_input_shape = int(np.product(self.input_shape))
-		else:
-			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-			self.encoder_input_shape = list(self.input_shape)
-
-
-		self.config['encoder params']['output_dim'] = self.z_dim
-		self.config['decoder params']['output_dim'] = self.encoder_input_shape
+		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
+		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
 		
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config)
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config)
-
+		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], 
+					 self.config, self.is_training)
 
 		# build encoder
-		self.z_mean, self.z_log_var = self.encoder(self.x_real)
+		self.logits, end_points = self.classifier(self.x)
+		self.y = tf.nn.softmax(self.logits)
+		self.loss = get_loss('classification', self.config['classification loss'], {'pred' : self.logits, 'label' : self.label})
 
-		# sample z from z_mean and z_log_var
-		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-		self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
-
-		# build decoder
-		self.x_decode = self.decoder(self.z_sample)
-
-		# build test decoder
-		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
-		self.x_test = self.decoder(self.z_test, reuse=True)
-
-
-		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
-		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
-
-
-		self.kl_loss = self.kl_loss * self.config.get('kl loss prod', 1.0)
-		self.xent_loss = self.xent_loss * self.config.get('reconstruction loss prod', 1.0)
-
-		self.loss = self.kl_loss + self.xent_loss
+		self.acc = get_metric('accuracy', 'top1', {'logits': self.logits, 'labels':self.label})
 
 		self.global_step, self.global_step_update = get_global_step()
 		if 'lr' in self.config:
 			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
-			self.optimizer = get_optimizer(self.config['optimizer'], {'learning_rate' : self.learning_rate}, self.loss, self.decoder.vars + self.encoder.vars)
+			self.optimizer = get_optimizer(self.config['optimizer'], {'learning_rate' : self.learning_rate}, self.loss, self.classifier.vars)
 		else:
-			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.decoder.vars + self.encoder.vars)
+			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.classifier.vars)
 
 		self.train_update = tf.group([self.optimizer, self.global_step_update])
+
+		# model saver
+		self.saver = tf.train.Saver(self.classifier.vars + [self.global_step,])
+		
 		
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		if 'flatten' in self.config and self.config['flatten']:
-			x_batch = x_batch.reshape([x_batch.shape[0], -1])
-
 		feed_dict = {
-			self.x_real : x_batch,
-			self.y_real : y_batch,
-			self.eps : np.random.random([x_batch.shape[0], self.z_dim])
+			self.x : x_batch,
+			self.label : y_batch,
+			self.is_training : True
 		}
-		_, step, lr, loss = sess.run([
-				self.train_update, self.global_step, self.learning_rate, self.loss
-			],
-			feed_dict = feed_dict
-			)
-
-		return step, lr, loss
+		return self.train(sess, feed_dict)
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
@@ -135,8 +107,24 @@ class Classification(BaseModel):
 	def predict(self, z_sample):
 		raise NotImplementedError
 
-	def summary(self):
-		pass
+	def summary(self, sess):
+		if self.is_summary:
+			sum = sess.run(self.sum_hist)
+			return sum
+		else:
+			return None
 
 	def help(self):
 		pass
+
+	def build_summary(self):
+		# summary scalars are logged per step
+		sum_list = []
+		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
+		sum_list.append(tf.summary.scalar('train loss', self.loss))
+		sum_list.append(tf.summary.scalar('train acc', self.acc))
+		self.sum_scalar = tf.summary.merge(sum_list)
+
+		# summary hists are logged by calling self.summary()
+		hist_sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars]
+		self.sum_hist = tf.summary.merge(hist_sum_list)

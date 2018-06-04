@@ -70,7 +70,6 @@ class DecoderSimple(object):
 			else:
 				assert tf.get_variable_scope().reuse is False
 
-			x = i
 			for ind, nodes in enumerate(nb_nodes):
 				x = tcl.fully_connected(x, nodes, activation_fn=act_fn, 
 							weights_initializer=winit_fn, scope='dfc%d'%(ind+1))

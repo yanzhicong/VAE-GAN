@@ -23,28 +23,25 @@
 # ==============================================================================
 
 
-from .classification import Classification
 
-from .stargan import StarGAN
-from .cvaegan import CVAEGAN
-from .vae import VAE
-from .cvae import CVAE
-
-
-model_dict = {
-    "cvaegan" : CVAEGAN,
-    'vae' : VAE,
-    'cvae' : CVAE,
-    'stargan' : StarGAN,
-    'classification' : Classification
-}
-
-
-def get_model(modelname, modelparams):
-    if modelname in model_dict:
-        return model_dict[modelname](modelparams)
+def get_model(model_name, model_params):
+    if model_name == 'cvaegan':
+        from .cvaegan import CVAEGAN
+        return CVAEGAN(model_params)
+    elif model_name == 'vae':
+        from .vae import VAE
+        return VAE(model_params)
+    elif model_name == 'cvae':
+        from .cvae import CVAE
+        return CVAE(model_params)
+    elif model_name == 'classification':
+        from .classification import Classification
+        return Classification(model_params)
+    elif model_name == 'stargan':
+        from .stargan import StarGAN
+        return StarGAN(model_params)
     else:
-        raise Exception("None model named " + modelname)
+        raise Exception("None model named " + model_name)
 
 
 

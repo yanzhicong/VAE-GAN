@@ -1,36 +1,44 @@
 {
     "config name" : "inceptionV3_1",
 
-    "dataset" : "imagenet",
+    "dataset" : "mnist",
     "dataset params" : {
-        "input_shape" : [299, 299, 3],
-        "batch_size" : 8
+        "input_shape" : [28, 28, 1],
+        "batch_size" : 128
     },
 
-    "assets dir" : "assets/inceptionV3_1",
+    "assets dir" : "assets/mnist_1",
 
     "ganmodel" : "classification",
     "ganmodel params" : {
-        "name" : "inception",
+        "name" : "classify",
 
-        "input_shape" : [299, 299, 3],
-        "nb_classes" : 1000,
+        "input_shape" : [28, 28, 1],
+        "nb_classes" : 10,
 
         "optimizer" : "sgd",       
-        "lr" : 0.0001,
+        "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
-            "decay_steps" : 70000,
-            "decay_rate" : 0.1
+            "decay_steps" : 10000,
+            "decay_rate" : 0.9
         },
 
         "classification loss" : "crossentropy",
 
         "summary" : true,
  
-        "classifier" : "GoogleNet",
+        "classifier" : "VGG",
         "classifier params" : {
-            "output_dims" : 1000
+            "no_maxpooling" : true,
+            "nb_conv_blocks" : 3,
+            "nb_conv_layers" : [2, 2, 2],
+            "nb_conv_filters" : [16, 32, 64],
+
+            "including_top" : true,
+            "nb_fc_nodes" : [256, 128],
+            
+            "output_dims" : 10
         }
 
     },
@@ -38,10 +46,10 @@
     "trainer" : "supervised",
     "trainer params" : {
         "continue train" : false,
-        "train steps" : 200000,
+        "train steps" : 10000,
         "summary steps" : 1000,
-        "log steps" : 300,
-        "save checkpoint steps" : 10000
+        "log steps" : 100,
+        "save checkpoint steps" : 1000
     }
 }
 

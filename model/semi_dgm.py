@@ -36,48 +36,57 @@ from decoder.decoder import get_decoder
 from classifier.classifier import get_classifier
 from discriminator.discriminator import get_discriminator
 
-
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
-from utils.sample import get_sample
 from utils.loss import get_loss
 
 from .basemodel import BaseModel
 
 
 
-class CVAE(BaseModel):
+class SemiDeepGenerativeModel(BaseModel):
+	"""
+		Implementation of "Semi-Supervised Learning with Deep Generative Models"
+		Diederik P. Kingma, Danilo J. Rezende, Shakir Mohamed, Max Welling
+
+		@article{DBLP:journals/corr/KingmaRMW14,
+			author    = {Diederik P. Kingma and
+						Danilo Jimenez Rezende and
+						Shakir Mohamed and
+						Max Welling},
+			title     = {Semi-Supervised Learning with Deep Generative Models},
+			journal   = {CoRR},
+			volume    = {abs/1406.5298},
+			year      = {2014},
+			url       = {http://arxiv.org/abs/1406.5298},
+			archivePrefix = {arXiv},
+			eprint    = {1406.5298},
+			timestamp = {Wed, 07 Jun 2017 14:42:55 +0200},
+			biburl    = {https://dblp.org/rec/bib/journals/corr/KingmaRMW14},
+			bibsource = {dblp computer science bibliography, https://dblp.org}
+		}
+	"""
 
 	def __init__(self, config,
 		**kwargs
 	):
 
-		super(CVAE, self).__init__(config, **kwargs)
+		super(SemiDeepGenerativeModel, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input_shape']
 		self.z_dim = config['z_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config
 
+		self.is_training = tf.placeholder(tf.bool, name='is_training')
 
 		self.build_model()
 
 		if self.is_summary:
 			self.get_summary()
 
-
-
 	def build_model(self):
-
-		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-
-		self.config['encoder params']['output_dims'] = self.z_dim
-		self.config['decoder params']['output_dims'] = self.input_shape
-
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
-
 
 		self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
 		self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')		

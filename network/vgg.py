@@ -38,10 +38,10 @@ class VGG16(object):
 					self.config.get('weightsinit_params', '0.00 0.02'))
 
 		# convolution structure parameters
-		nb_blocks = int(self.config.get('nb_conv_blocks', 5))
-		nb_filters = self.config.get('nb_filters', [64, 128, 256, 512, 512])
-		nb_layers = self.config.get('nb_layers', [2, 2, 3, 3, 3])
-		ksize = self.config.get('ksize', [3, 3, 3, 3, 3])
+		nb_conv_blocks = int(self.config.get('nb_conv_blocks', 5))
+		nb_conv_filters = self.config.get('nb_conv_filters', [64, 128, 256, 512, 512])
+		nb_conv_layers = self.config.get('nb_conv_layers', [2, 2, 3, 3, 3])
+		nb_conv_ksize = self.config.get('nb_conv_ksize', [3, 3, 3, 3, 3])
 
 		no_maxpooling = self.config.get('no_maxpooling', False)
 
@@ -65,21 +65,21 @@ class VGG16(object):
 			end_points = {}
 
 			# construct convolution layers
-			for block_ind in range(nb_blocks):
-				for layer_ind in range(nb_layers[block_ind]):
+			for block_ind in range(nb_conv_blocks):
+				for layer_ind in range(nb_conv_layers[block_ind]):
 
-					if layer_ind == nb_layers[block_ind]-1:
+					if layer_ind == nb_conv_layers[block_ind]-1:
 						if no_maxpooling:
-							x = tcl.conv2d(x, nb_filters[block_ind], 3,
+							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
 									stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 						else:
-							x = tcl.conv2d(x, nb_filters[block_ind], 3,
+							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
 									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 							x = tcl.max_pool2d(x, 2, stride=2, padding='SAME')							
 					else:
-						x = tcl.conv2d(x, nb_filters[block_ind], 3,
+						x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
 								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 								padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 					end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
@@ -93,7 +93,7 @@ class VGG16(object):
 					end_points['fc%d'%ind] = x
 
 				if output_dims != 0:
-					x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, weights_initialzr=winit_fn, scope='fc_out')
+					x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, weights_initializer=winit_fn, scope='fc_out')
 					end_points['fc_out'] = x
 
 			# else construct a convolution layer for output

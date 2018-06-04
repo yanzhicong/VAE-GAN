@@ -46,6 +46,3 @@ class HiddenVariableValidator(object):
 			plt.imshow(figure, cmap='Greys_r')
 			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
 
-
-
-

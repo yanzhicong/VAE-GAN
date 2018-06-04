@@ -37,7 +37,7 @@ def l2_loss(x, y):
 
 
 def binary_cls_loss(pred, label):
-    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=label, logits=pred))
+    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=label, logits=pred))
 
 loss_dict = {
     'kl' : {

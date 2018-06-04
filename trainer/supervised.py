@@ -71,7 +71,6 @@ class SupervisedTrainer(object):
 			self.validator_list.append((validator_steps, validator))
 
 
-
 	def read_data_inner_loop(self, coord, dataset, indices, t_ind, nb_threads):
 		'''
 			a inner read data loop thread, only be create or joined by read_data_loop.
@@ -134,7 +133,7 @@ class SupervisedTrainer(object):
 		step, lr, loss, summary = model.train_on_batch_supervised(sess, batch_x, batch_y)
 		
 		if summary:
-			self.summary_writer.add_summary(summary, step)
+			self.summary_writer.add_summary(summary, step-1)
 
 		if self.log_steps != 0 and step % self.log_steps == 1:
 			print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step-1, lr, loss))
@@ -191,7 +190,7 @@ class SupervisedTrainer(object):
 					step = self.train_inner(epoch, batch_x, batch_y, sess, model, dataset)
 					if step > int(self.config['train steps']):
 						return
-			epoch += 1
+				epoch += 1
 
 		# join all thread when in multi thread model
 		self.coord.request_stop()

@@ -29,10 +29,20 @@ import tensorflow.contrib.layers as tcl
 
 import tensorflow.contrib.metrics as tcm
 
-def accuracy_top_1(logits, labels, moveing_weight=0.9):
+
+
+
+def _assign_moving_average(variable, value, decay):
+    with tf.name_scope(None, 'AssignMovingAvg', [variable, value, decay]) as scope:
+        decay = tf.convert_to_tensor(decay, name='decay')
+        update_delta = (variable - value) * decay
+        return tf.assign_sub(variable, update_delta, name=scope)
+
+
+def accuracy_top_1(logits, labels, decay=0.01):
     acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1))
-    # tf.Variable(0.0, )
-    return acc
+    var = tf.Variable(0.0, name='acc_top_1')
+    return _assign_moving_average(var, acc, decay)
 
 
 metric_dict = {

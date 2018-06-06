@@ -163,5 +163,14 @@ class ImageNet(BaseDataset):
             # in case of single channel image
             if len(train_image.shape) == 2:
                 train_image = cv2.merge([train_image, train_image, train_image])
-            train_image = cv2.resize(train_image, (self.input_shape[1], self.input_shape[0]))
+                
+            # in case of RGBA image
+            if train_image.shape[2] == 4:
+                train_image = train_image[:, :, 0:3]
+
+            # other cases
+            if len(train_image.shape) != 3 or train_image.shape[2] != 3:
+                return None, None
+
+            train_image = cv2.resize(train_image, (self.input_shape[1], self.input_shape[0])).astype(np.float32) / 255.0
             return train_image, train_image_label

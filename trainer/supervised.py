@@ -80,7 +80,8 @@ class SupervisedTrainer(object):
 			if not coord.should_stop():
 				if i % nb_threads == t_ind:
 					img, label = dataset.read_train_image_by_index(ind)
-					self.train_data_inner_queue.put((img, label))
+					if img is not None:
+						self.train_data_inner_queue.put((img, label))
 			else:
 				break
 

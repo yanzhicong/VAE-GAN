@@ -106,13 +106,17 @@ class BaseModel(object, metaclass=ABCMeta):
 		pass
 
 
-	def train(self, sess, feed_dict):
+	def train(self, sess, feed_dict,
+				update_op=self.train_update, 
+				step=self.global_step,
+				learning_rate=self.learning_rate,
+				loss=self.loss
+				):
 
 		if self.is_summary:
-			_, s, lr, l, s_sum = sess.run([
-				self.train_update, self.global_step, self.learning_rate, self.loss, self.sum_scalar],	feed_dict = feed_dict)
+			_, s, lr, l, s_sum = sess.run([update_op, step, learning_rate, loss, self.sum_scalar],	
+						feed_dict = feed_dict)
 			return s, lr, l, s_sum
 		else:
-			_, s, lr, l = sess.run([
-				self.train_update, self.global_step, self.learning_rate, self.loss,],	feed_dict = feed_dict)
+			_, s, lr, l = sess.run([update_op, step, learning_rate, loss],	feed_dict = feed_dict)
 			return s, lr, l, None

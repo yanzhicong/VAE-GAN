@@ -40,6 +40,9 @@ def get_model(model_name, model_params):
     elif model_name == 'stargan':
         from .stargan import StarGAN
         return StarGAN(model_params)
+    elif model_name == 'semidgm':
+        from .semi_dgm import SemiDeepGenerativeModel
+        return SemiDeepGenerativeModel(model_params)
     else:
         raise Exception("None model named " + model_name)
 

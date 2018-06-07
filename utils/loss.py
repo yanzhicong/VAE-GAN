@@ -29,25 +29,34 @@ import tensorflow.contrib.layers as tcl
 
 
 
-def kl_loss(z_mean, z_log_var):
-    return -0.5 * tf.reduce_mean(1.0 + z_log_var - tf.exp(z_log_var) - tf.square(z_mean), axis=-1)
+def kl_loss(mean, log_var):
+    return -0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1)
+
+def kl_bernoulli_loss(logits=None, probs=None):
+    if logits is not None:
+        probs = tf.nn.softmax(logits)
+    logprobs = tf.log(probs)
+    return tf.reduce_sum(probs * logprobs)
+
 
 def l2_loss(x, y):
     return tf.reduce_mean(tf.square(x - y), axis=-1)
 
 
-def binary_cls_loss(pred, label):
-    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=label, logits=pred))
+def binary_cls_loss(logits, labels):
+    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
 
 loss_dict = {
     'kl' : {
-        'gaussian' : kl_loss
+        'gaussian' : kl_loss,
+        'bernoulli' : kl_bernoulli_loss
     },
     'reconstruction' : {
-        'mse' : l2_loss
+        'mse' : l2_loss,
+        'l2' : l2_loss
     },
     'classification' : {
-        'crossentropy' : binary_cls_loss
+        'cross entropy' : binary_cls_loss
     }
 }
 

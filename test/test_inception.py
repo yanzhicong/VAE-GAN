@@ -18,7 +18,6 @@ if __name__ == '__main__':
 		'output_activation' : 'softmax'
 	}
 	model_config = {
-		'is_training' : True
 	}
 
 	inception_model = InceptionV3(config, model_config, False)

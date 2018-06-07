@@ -187,7 +187,7 @@ class SupervisedTrainer(object):
 			epoch = 0
 			while True:
 				# in single thread model, the image data were read in by dataset.iter_train_images()
-				for ind, batch_x, batch_y in dataset.iter_train_images():
+				for ind, batch_x, batch_y in dataset.iter_train_images_supervised():
 					step = self.train_inner(epoch, batch_x, batch_y, sess, model, dataset)
 					if step > int(self.config['train steps']):
 						return

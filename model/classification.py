@@ -68,14 +68,19 @@ class Classification(BaseModel):
 	def build_model(self):
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
 		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
+
+		self.x_test = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
 		
 		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], 
 					 self.config, self.is_training)
 
 		# build encoder
-		self.logits, end_points = self.classifier(self.x)
+		self.logits, end_points = self.classifier(self.x, reuse=False)
 		self.y = tf.nn.softmax(self.logits)
-		self.loss = get_loss('classification', self.config['classification loss'], {'pred' : self.logits, 'label' : self.label})
+		self.loss = get_loss('classification', self.config['classification loss'], {'logits' : self.logits, 'labels' : self.label})
+
+		logits, end_points = self.classifier(self.x_test, reuse=True)
+		self.y_test = tf.nn.softmax(logits)
 
 		self.acc = get_metric('accuracy', 'top1', {'logits': self.logits, 'labels':self.label})
 
@@ -86,7 +91,7 @@ class Classification(BaseModel):
 		else:
 			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.classifier.vars)
 
-		self.train_update = tf.group([self.optimizer, self.global_step_update])
+		self.train_op = tf.group([self.optimizer, self.global_step_update])
 
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.vars + [self.global_step,])
@@ -104,8 +109,13 @@ class Classification(BaseModel):
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		raise NotImplementedError
 
-	def predict(self, z_sample):
-		raise NotImplementedError
+	def predict(self, sess, x_batch):
+		feed_dict = {
+			self.x_test : x_batch,
+			self.is_training : False
+		}
+		y = sess.run([self.y_test], feed_dict = feed_dict)
+		return y
 
 	def summary(self, sess):
 		if self.is_summary:
@@ -116,6 +126,7 @@ class Classification(BaseModel):
 
 	def help(self):
 		pass
+
 
 	def build_summary(self):
 		# summary scalars are logged per step

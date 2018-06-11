@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
 		# start training
 		config['trainer params']['assets dir'] = config['assets dir']
-		trainer = get_trainer(config['trainer'], config['trainer params'], model)
+		trainer = get_trainer(config['trainer'], config['trainer params'])
 
 		trainer.train(sess, dataset, model)
 

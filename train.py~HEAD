@@ -37,7 +37,6 @@ from trainer.trainer import get_trainer
 
 import argparse
 
-
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--gpu_number',     type=str,   default='1')
 parser.add_argument('--config_file',    type=str,   default='cvae1')
@@ -49,13 +48,12 @@ if __name__ == '__main__':
 	os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu_number
 	tf.reset_default_graph()
 
+	# load config file
 	config = get_config(args.config_file)
 
 	# make the assets directory and copy the config file to it
-	
 	if not os.path.exists('./assets'):
 		os.mkdir('./assets')
-
 
 	if not os.path.exists(config['assets dir']):
 		os.mkdir(config['assets dir'])
@@ -75,7 +73,7 @@ if __name__ == '__main__':
 
 		# start training
 		config['trainer params']['assets dir'] = config['assets dir']
-		trainer = get_trainer(config['trainer'], config['trainer params'])
+		trainer = get_trainer(config['trainer'], config['trainer params'], model)
 
 		trainer.train(sess, dataset, model)
 

@@ -3,11 +3,13 @@
 
     "dataset" : "mnist",
     "dataset params" : {
+        "semi-supervised" : true,
+        "nb_labelled_image_per_class" : 100,
         "input_shape" : [28, 28, 1],
         "batch_size" : 128
     },
 
-    "assets dir" : "assets/mnist_1",
+    "assets dir" : "assets/mnist_100",
 
     "ganmodel" : "classification",
     "ganmodel params" : {
@@ -24,7 +26,7 @@
             "decay_rate" : 0.9
         },
 
-        "classification loss" : "crossentropy",
+        "classification loss" : "cross entropy",
 
         "summary" : true,
  
@@ -37,7 +39,7 @@
 
             "including_top" : true,
             "nb_fc_nodes" : [256, 128],
-            
+
             "output_dims" : 10
         }
 

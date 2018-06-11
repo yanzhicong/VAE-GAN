@@ -68,7 +68,7 @@ class EncoderSimple(object):
 		output_dims = self.config.get('output_dims', 3)
 
 	
-		x, end_points = self.network(i)
+		x, end_points = self.network(i, reuse=reuse)
 
 		with tf.variable_scope(self.name):
 			if reuse:

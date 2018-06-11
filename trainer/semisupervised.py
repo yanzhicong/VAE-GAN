@@ -23,7 +23,6 @@
 # ==============================================================================
 
 
-
 import os
 import sys
 import queue
@@ -34,24 +33,28 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
-from keras.utils import to_categorical
 
 from validator.validator import get_validator
 
-class SupervisedTrainer(object):
+from .basetrainer import BaseTrainer
+
+
+
+class SemiSupervisedTrainer(BaseTrainer):
 	def __init__(self, config, model):
 		self.config = config
+		self.model = model
 
-		super(SupervisedTrainer, self).__init__(config, model)
-		
-		self.multi_thread = self.config.get('multi thread', False)
-		if self.multi_thread:
-			self.batch_size = int(self.config.get('batch_size', 8))
-			self.train_data_queue = queue.Queue(maxsize=5)
-			self.train_data_inner_queue = queue.Queue(maxsize = self.batch_size * 3)
+		super(SemiSupervisedTrainer, self).__init__(config, model)
 
+		self.supervised_step = self.config.get('supervised step', 1)
+		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
+		self.supervised_image_queue = queue.Queue(maxsize=5)
+		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 3)
 
+		self.unsupervised_image_queue = queue.Queue(maxsize=5)
+		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*3)
 
 
 	def train(self, sess, dataset, model):
@@ -59,46 +62,51 @@ class SupervisedTrainer(object):
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		sess.run(tf.global_variables_initializer())
 
-		# if in multi thread model, start threads for read data
-		if self.multi_thread:
-			self.coord = tf.train.Coordinator()
-			threads = [threading.Thread(target=self.read_data_loop, 
-											args=(self.coord, dataset, self.train_data_inner_queue, 'supervised')),
-						threading.Thread(target=self.read_data_transport_loop, 
-											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'supervised'))]
-			for t in threads:
-				t.start()
+
+		self.coord = tf.train.Coordinator()
+		threads = [threading.Thread(target=self.read_data_loop, 
+										args=(self.coord, dataset, self.supervised_image_inner_queue, 'supervised')),
+					threading.Thread(target=self.read_data_transport_loop, 
+										args=(self.coord, self.supervised_image_inner_queue, self.supervised_image_queue, 'supervised'))]
+
+		threads += [threading.Thread(target=self.read_data_loop, 
+										args=(self.coord, dataset, self.unsupervised_image_inner_queue, 'unsupervised')),
+					threading.Thread(target=self.read_data_transport_loop, 
+										args=(self.coord, self.unsupervised_image_inner_queue, self.unsupervised_image_queue, 'unsupervised'))]
+		for t in threads:
+			t.start()
+
 
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.checkpoint_dir):
 				print("Continue Train...")
 			else:
 				print("Load Checkpoint Failed")
+			step = -1
+		else:
+			step = 0
 
+		while True:
 
-		if self.multi_thread : 
-			# in multi thread model, the image data were read in by dataset.get_train_indices()
-			# and dataset.read_train_image_by_index()
-			while True:
-				epoch, batch_x, batch_y = self.train_data_queue.get()
+			for i in range(self.supervised_step):
+				epoch, batch_x, batch_y = self.supervised_image_queue.get()
 				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y)
 				if step > int(self.config['train steps']):
 					break
-		else:
-			epoch = 0
-			while True:
-				# in single thread model, the image data were read in by dataset.iter_train_images_supervised()
-				for ind, batch_x, batch_y in dataset.iter_train_images_supervised():
-					step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y)
-					if step > int(self.config['train steps']):
-						return
-				epoch += 1
 
-		# join all thread when in multi thread model
+			for i in range(self.unsupervised_step):
+				epoch, batch_x = self.unsupervised_image_queue.get()
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
+				if step > int(self.config['train steps']):
+					break
+
+			if step > int(self.config['train steps']):
+				return
+
 		self.coord.request_stop()
-		while not self.train_data_queue.empty():
-			epoch, batch_x, batch_y = self.train_data_queue.get()
-		self.train_data_inner_queue.task_done()
-		self.train_data_queue.task_done()
+		while not self.supervised_image_queue.empty():
+			epoch, batch_x, batch_y = self.supervised_image_queue.get()
+		while not self.unsupervised_image_queue.empty():
+			epoch, batch_x = self.unsupervised_image_queue.get()
 		self.coord.join(threads)
 

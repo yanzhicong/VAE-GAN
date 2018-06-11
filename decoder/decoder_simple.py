@@ -16,7 +16,6 @@ from network.activation import get_activation
 from network.normalization import get_normalization
 
 
-
 class DecoderSimple(object):
 
 	def __init__(self, config, model_config, is_training, name="DecoderSimple"):
@@ -34,32 +33,26 @@ class DecoderSimple(object):
 		self.model_config = model_config
 
 	def __call__(self, x, reuse=False):
+		act_fn = get_activation(
+					self.config.get('activation', 'relu'),
+					self.config.get('activation_params', {}))
 
+		norm_fn, norm_params = get_normalization(
+					self.config.get('batch_norm', 'batch_norm'),
+					self.config.get('batch_norm_params', self.normalizer_params))
 
-		if 'activation' in self.config:
-			act_fn = get_activation(self.config['activation'], self.config['activation_params'])
-		elif 'activation' in self.model_config:
-			act_fn = get_activation(self.model_config['activation'], self.model_config['activation_params'])
-		else:
-			act_fn = get_activation('relu')
-
-
-		if 'weightsinit' in self.config:
-			winit_fn = get_weightsinit(self.config['weightsinit'], self.config['weightsinit_params'])
-		elif 'weightsinit' in self.model_config:
-			winit_fn = get_weightsinit(self.model_config['weightsinit'], self.config['weightsinit_params'])
-		else:
-			winit_fn = tf.random_normal_initializer(0, 0.02)
+		winit_fn = get_weightsinit(
+					self.config.get('weightsinit', 'normal'),
+					self.config.get('weightsinit_params', '0.00 0.02'))
 
 		if 'nb_nodes' in self.config: 
 			nb_nodes = self.config['nb_nodes']
 		else:
 			nb_nodes = [256,]
 
-		if 'out_activation' in self.config:
-			out_act_fn = get_activation(self.config['out_activation'], self.config['out_activation_params'])
-		else:
-			out_act_fn = get_activation('sigmoid', None)
+		output_act_fn = get_activation(
+					self.config.get('output_activation', 'sigmoid'),
+					self.config.get('output_activation_params', ''))
 
 		output_dim = self.config['output_dims']
 
@@ -75,7 +68,7 @@ class DecoderSimple(object):
 							weights_initializer=winit_fn, scope='dfc%d'%(ind+1))
 
 			x = tcl.fully_connected(x, output_dim, 
-							activation_fn=out_act_fn, scope='dfc_x')
+							activation_fn=output_act_fn, scope='dfc_x')
 
 			return x
 

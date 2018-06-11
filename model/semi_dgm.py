@@ -86,107 +86,158 @@ class SemiDeepGenerativeModel(BaseModel):
 		if self.is_summary:
 			self.get_summary()
 
+
 	def build_model(self):
 
-		self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
-		self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')		
+		self.xl = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xl_input')
+		self.yl = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='yl_input')		
 
+		self.xu = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xu_input')
+		self.eps = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='eps')
+		self.eps2 = tf.placeholder(tf.float32, shape=[None, self.z_dim, self.nb_classes], name='eps2')
 
-		# if self.config.get('flatten', False):
+		self.xtest = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
 
-		self.encoder_input_shape = int(np.product(self.input_shape))
-		# else:
-		# 	self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-		# 	self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')
-		# 	self.encoder_input_shape = list(self.input_shape)
-
-		self.config['x encoder params']['output_dims'] = self.z_dim
-		self.config['y encoder params']['output_dims'] = self.z_dim
-		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
 		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.config, self.is_training,
 					net_name='EncoderSimpleX')
-		self.y_encoder = get_encoder(self.config['y encoder'], self.config['y encoder params'], self.config, self.is_training,
-					net_name='EncoderSimpleY')
+
+		self.hx_y_encoder = get_encoder(self.config['hx_y encoder'], self.config['hx_y encoder params'], self.config, self.is_training,
+					net_name='EncoderSimpleHXY')
+
+		self.hx_classifier = get_classifier(self.config['hx classifier'], self.config['hx classifier params'], self.config, self.is_training)
+
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
 
 
-		# build encoder
-		self.z_mean, self.z_log_var = self.x_encoder(self.x_real)
-		self.z_mean_y = self.y_encoder(self.y_real)
+		# for supervised:
+
+		hx = self.x_encoder(self.xl, reuse=False)
+
+		yl_logits, end_points = self.hx_classifier(hx, reuse=False)
+		yl_probs = tf.nn.softmax(yl_logits)
+
+		hx_yl = tf.concat([hx, self.yl], axis=1)
+
+		mean_z, log_var_z = self.hx_y_encoder(hx_yl, reuse=False)
+
+		z_sample = mean_z + tf.exp(log_var_z / 2) * self.eps
+
+		x_decode = self.decoder(z_sample, reuse=False)
 
 
-		# sample z from z_mean and z_log_var
-		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-		self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
 
-		# build decoder
-		self.x_decode = self.decoder(self.z_sample)
+		self.su_loss_kl_z = get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z})
+		self.su_loss_kl_z *= self.config.get('loss kl z prod', 1.0)
+		self.su_loss_recon = get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode})
+		self.su_loss_recon *= self.config.get('loss recon prod', 1.0)
+		self.su_loss_cls = get_loss('classification', 'cross entropy', {'logits' : yl_logits, 'labels' : self.yl})
+		self.su_loss_cls *= self.config.get('loss cls prod', 1.0)
 
-		# build test decoder
-		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
-		self.x_test = self.decoder(self.z_test, reuse=True)
+		self.su_loss = self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls
 
-		# loss function
-		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : (self.z_mean - self.z_mean_y), 'z_log_var' : self.z_log_var})
-		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
-		self.kl_loss = tf.reduce_mean(self.kl_loss * self.config.get('kl loss prod', 1.0))
-		self.xent_loss = tf.reduce_mean(self.xent_loss * self.config.get('reconstruction loss prod', 1.0))
-		self.loss = self.kl_loss + self.xent_loss
 
+		# for unsupervised:
+
+		hx = self.x_encoder(self.xu, reuse=True)
+
+		yu_logits, end_points = self.hx_classifier(hx, reuse=True)
+		yu_probs = tf.nn.softmax(yu_logits)
+
+		yu_logprobs = tf.log(yu_probs)
+
+
+		self.unsu_loss_kl_y = get_loss('kl', 'bernoulli', {'probs' : yu_probs})
+		self.unsu_loss_kl_y *= self.config.get('loss kl y unsupervised prod', 1.0)
+
+		unsu_loss_kl_z_list = []
+		unsu_loss_recon_list = []
+
+		for i in range(self.nb_classes):
+			y_fake = tf.ones([tf.shape(self.xu)[0], ], dtype=tf.int32) * i
+			y_fake = tf.one_hot(y_fake, depth=self.nb_classes)
+			hx_yf = tf.concat([hx, y_fake], axis=1)
+
+			mean_z, log_var_z = self.hx_y_encoder(hx_yf, reuse=True)
+
+			z_sample = mean_z = tf.exp(log_var_z / 2) * self.eps2[:, :, i]
+
+			x_decode = self.decoder(z_sample, reuse=True)
+
+			unsu_loss_kl_z_list.append(
+				get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z}) * yu_probs[:, i]
+			)
+			unsu_loss_recon_list.append(
+				get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode}) * yu_probs[:, i]
+			)
+
+		self.unsu_loss_kl_z = tf.reduce_sum(unsu_loss_kl_z_list)
+		self.unsu_loss_kl_z *= self.config.get('loss kl z unsupervised prod', 1.0)
+		self.unsu_loss_recon = tf.reduce_sum(unsu_loss_recon_list)
+		self.unsu_loss_recon *= self.config.get('loss recon unsupervised prod', 1.0)
+
+		self.unsu_loss = self.unsu_loss_kl_y + self.unsu_loss_kl_z + self.unsu_loss_recon
+
+		hx = self.x_encoder(self.xtest, reuse=True)
+		ylogits, endpoints = self.hx_classifier(hx, reuse=True)
+		self.ytest = tf.nn.softmax(ylogits)
 
 		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
 		if 'lr' in self.config:
 			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
-			self.optimizer = get_optimizer(self.config['optimizer'], {'learning_rate' : self.learning_rate}, self.loss, 
-							self.decoder.vars + self.x_encoder.vars + self.y_encoder.vars)
+			optimizer_params = {'learning_rate' : self.learning_rate}
 		else:
-			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.decoder.vars + self.x_encoder.vars + self.y_encoder.vars)
+			optimizer_params = {}
 
-		self.train_update = tf.group([self.optimizer, self.global_step_update])
+
+		self.supervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.su_loss, 
+						self.vars)
+		self.unsupervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.unsu_loss, 
+						self.vars)
+
+		self.supervised_train_update = tf.group([self.supervised_optimizer, self.global_step_update])
+		self.unsupervised_train_update = tf.group([self.unsupervised_optimizer, self.global_step_update])
 
 		# model saver
-		self.saver = tf.train.Saver(self.x_encoder.vars + self.y_encoder.vars, self.decoder.vars + [self.global_step,])
+		self.saver = tf.train.Saver(self.vars + [self.global_step,])
 		
+	@property
+	def vars(self):
+		return self.x_encoder.vars + self.hx_y_encoder.vars + self.hx_classifier.vars + self.decoder.vars
 
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		if self.config.get('flatten', False):
-			x_batch = x_batch.reshape([x_batch.shape[0], -1])
-			
 		feed_dict = {
-			self.x_real : x_batch,
-			self.y_real : y_batch,
+			self.xl : x_batch,
+			self.yl : y_batch,
 			self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
-		return self.train(sess, feed_dict)
+		return self.train(sess, feed_dict, 
+								update_op = self.supervised_train_update,
+								loss = self.su_loss,
+								summary = self.su_sum_scalar)
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		return NotImplementedError
-
-
-	def predict(self, sess, z_batch):
 		feed_dict = {
-			self.z_test : z_batch,
+			self.xu : x_batch,
+			self.eps2 : np.random.randn(x_batch.shape[0], self.z_dim, self.nb_classes),
+			self.is_training : True
+		}
+		return self.train(sess, feed_dict, 
+								update_op = self.unsupervised_train_update,
+								loss = self.unsu_loss,
+								summary = self.unsu_sum_scalar)
+
+
+	def predict(self, sess, x_batch):
+		feed_dict = {
+			self.xtest : x_batch,
 			self.is_training : False
 		}
-		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
-		return x_batch
-
-
-	def hidden_distribution(self, sess, x_batch):
-		if self.config.get('flatten', False):
-			x_batch = x_batch.reshape([x_batch.shape[0], -1])
-
-		feed_dict = {
-			self.x_real : x_batch,
-			self.is_training : False
-		}
-
-		z_mean, z_log_var = sess.run([self.z_mean, self.z_log_var], feed_dict=feed_dict)
-		return z_mean, z_log_var
+		y_pred = sess.run([self.ytest], feed_dict = feed_dict)
+		return y_pred
 
 
 	def summary(self, sess):
@@ -199,15 +250,21 @@ class SemiDeepGenerativeModel(BaseModel):
 
 	def get_summary(self):
 		# summary scalars are logged per step
-		sum_1 = tf.summary.scalar('encoder/kl_loss', self.kl_loss)
-		sum_2 = tf.summary.scalar('lr', self.learning_rate)
-		sum_3 = tf.summary.scalar('decoder/reconstruction_loss', self.xent_loss)
-		sum_4 = tf.summary.scalar('loss', self.loss)
 
+		sum_list = []
+		sum_list.append(tf.summary.scalar('supervised/kl_z_loss', self.su_loss_kl_z))
+		sum_list.append(tf.summary.scalar('supervised/reconstruction_loss', self.su_loss_recon))
+		sum_list.append(tf.summary.scalar('supervised/classify loss', self.su_loss_cls))
+		sum_list.append(tf.summary.scalar('supervised/loss', self.su_loss))
+		self.su_sum_scalar = tf.summary.merge(sum_list)
 		
-		self.sum_scalar = tf.summary.merge([sum_1, sum_2, sum_3, sum_4])
-
+		sum_list = []
+		sum_list.append(tf.summary.scalar('unsupervised/kl_z_loss', self.unsu_loss_kl_z))
+		sum_list.append(tf.summary.scalar('unsupervised/kl_y_loss', self.unsu_loss_kl_y))
+		sum_list.append(tf.summary.scalar('unsupervised/reconstruction_loss', self.unsu_loss_recon))
+		sum_list.append(tf.summary.scalar('unsupervised/loss', self.unsu_loss))
+		self.unsu_sum_scalar = tf.summary.merge(sum_list)
+		
 		# summary hists are logged by calling self.summary()
-		hist_sum_d_list = [tf.summary.histogram('encoder/'+var.name, var) for var in self.x_encoder.vars + self.y_encoder.vars]
-		hist_sum_g_list = [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-		self.sum_hist = tf.summary.merge(hist_sum_g_list + hist_sum_d_list)
+		hist_sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
+		self.sum_hist = tf.summary.merge(hist_sum_list)

@@ -12,7 +12,6 @@ validator_dict = {
 }
 
 
-
 def get_validator(name, config):
     
     if name in validator_dict:

@@ -51,9 +51,10 @@ from .inception_block import inception_v3_figure7
 class InceptionV3(object):
 	"""Inception model from http://arxiv.org/abs/1512.00567.
 
-	"Rethinking the Inception Architecture for Computer Vision"
-	Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens,
-	Zbigniew Wojna.
+		
+		"Rethinking the Inception Architecture for Computer Vision"
+		Christian Szegedy, Vincent Vanhoucke, Sergey Ioffe, Jonathon Shlens,
+		Zbigniew Wojna.
 	"""
 
 	def __init__(self, config, model_config, is_training, name="InceptionV3"):
@@ -150,31 +151,31 @@ class InceptionV3(object):
 
 			# x : 35 * 35 * 288
 			x, end_points = inception_v3_figure5('inception1a', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure5('inception1b', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure5_downsample('inception1c', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 
 
 			# x : 17 * 17 * 768
 			x, end_points = inception_v3_figure6('inception2a', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure6('inception2b', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure6('inception2c', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure6('inception2d', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure6_downsample('inception2e', x, end_points, n=7,
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
   
 
 			# x : 8 * 8 * 1280
 			x, end_points = inception_v3_figure7('inception3a', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 			x, end_points = inception_v3_figure7('inception3b', x, end_points, 
-						act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
+									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 
 			# construct top fully connected layer
 			if including_top: 

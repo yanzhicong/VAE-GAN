@@ -107,11 +107,20 @@ class BaseModel(object, metaclass=ABCMeta):
 
 
 	def train(self, sess, feed_dict,
-				update_op=self.train_update, 
-				step=self.global_step,
-				learning_rate=self.learning_rate,
-				loss=self.loss
+				update_op=None, 
+				step=None,
+				learning_rate=None,
+				loss=None
 				):
+
+		if update_op is None:
+			update_op = self.train_op
+		if step is None:
+			step = self.global_step
+		if learning_rate is None:
+			learning_rate = self.learning_rate
+		if loss is None:
+			loss = self.loss
 
 		if self.is_summary:
 			_, s, lr, l, s_sum = sess.run([update_op, step, learning_rate, loss, self.sum_scalar],	

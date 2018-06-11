@@ -32,9 +32,9 @@ trainer_dict = {
 }
 
 
-def get_trainer(name, config):
+def get_trainer(name, config, model):
     if name in trainer_dict:
-        return trainer_dict[name](config)
+        return trainer_dict[name](config, model)
     else:
         raise Exception('None trainer named ' + name)
 

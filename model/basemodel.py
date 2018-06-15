@@ -110,7 +110,8 @@ class BaseModel(object, metaclass=ABCMeta):
 				update_op=None, 
 				step=None,
 				learning_rate=None,
-				loss=None
+				loss=None,
+				summary=None,
 				):
 
 		if update_op is None:
@@ -123,7 +124,10 @@ class BaseModel(object, metaclass=ABCMeta):
 			loss = self.loss
 
 		if self.is_summary:
-			_, s, lr, l, s_sum = sess.run([update_op, step, learning_rate, loss, self.sum_scalar],	
+			if summary is None:
+				summary = self.sum_scalar
+
+			_, s, lr, l, s_sum = sess.run([update_op, step, learning_rate, loss, summary],	
 						feed_dict = feed_dict)
 			return s, lr, l, s_sum
 		else:

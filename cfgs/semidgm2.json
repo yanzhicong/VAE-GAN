@@ -5,11 +5,10 @@
     "dataset params" : {
         "semi-supervised" : true,
         "input_shape" : [28, 28, 1],
-        "batch_size" : 32,
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm2/semidgm7",
+    "assets dir" : "assets/semidgm_2",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {
@@ -29,9 +28,6 @@
         },
 
 
-        "loss kl z prod" : 0.001,
-        "loss kl y prod" : 0.001,
-
         "summary" : true,
  
         "x encoder" : "EncoderSimple",
@@ -47,7 +43,7 @@
         "hx_y encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [64, 32],
+            "nb_fc_nodes" : [32],
             "output_distribution": "gaussian",
             "output_dims" : 2
         },
@@ -71,12 +67,11 @@
     "trainer params" : {
         "continue train" : false,
         "train steps" : 20000,
-        "summary steps" : 100,
+        "summary steps" : 1000,
         "log steps" : 100,
-        "supervised step" : 1,
-        "unsupervised step" : 5,
-        "batch_size" : 64,
-        "print info" : true,
+        "save checkpoint steps" : 1000,
+        "unsupervised step" : 0,
+
         "validators" : [
             {
                 "validator" : "dataset_validator",
@@ -85,16 +80,6 @@
                 "validator params" : {
                     "metric" : "accuracy",
                     "metric type" : "top1"
-                }
-            },
-            {
-                "validator" : "scatter_plot_validator",
-                "validate steps" : 1000,
-                "validator params" : {
-                    "watch variable" : "hidden dist",
-                    "x_dim" : 0,
-                    "y_dim" : 1,
-                    "log dir" : "scatter1"
                 }
             }
         ]

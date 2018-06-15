@@ -1,0 +1,342 @@
+2018-06-15 11:53:56.156655: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2018-06-15 11:53:57.312548: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:65:00.0
+totalMemory: 11.78GiB freeMemory: 10.80GiB
+2018-06-15 11:53:57.312584: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-06-15 11:53:57.563088: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-06-15 11:53:57.563126: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-06-15 11:53:57.563132: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-06-15 11:53:57.563297: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10433 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:65:00.0, compute capability: 7.0)
+2018-06-15 11:55:16.278194: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2018-06-15 11:55:17.441356: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:65:00.0
+totalMemory: 11.78GiB freeMemory: 10.23GiB
+2018-06-15 11:55:17.441391: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-06-15 11:55:17.725700: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-06-15 11:55:17.725744: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-06-15 11:55:17.725750: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-06-15 11:55:17.725926: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 9882 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:65:00.0, compute capability: 7.0)
+2018-06-15 11:55:41.602556: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2018-06-15 11:55:42.802404: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:65:00.0
+totalMemory: 11.78GiB freeMemory: 9.66GiB
+2018-06-15 11:55:42.802487: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-06-15 11:55:43.154811: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-06-15 11:55:43.154854: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-06-15 11:55:43.154862: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-06-15 11:55:43.155029: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 9331 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:65:00.0, compute capability: 7.0)
+/usr/local/lib/python3.5/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+epoch : 0, step : 0, lr : 0.001000, loss : 2.535557
+epoch : 1, step : 100, lr : 0.000990, loss : 2.534516
+epoch : 2, step : 200, lr : 0.000979, loss : 2.046677
+epoch : 4, step : 300, lr : 0.000969, loss : 1.252847
+epoch : 5, step : 400, lr : 0.000959, loss : 0.948989
+epoch : 6, step : 500, lr : 0.000949, loss : 0.685193
+epoch : 8, step : 600, lr : 0.000939, loss : 1.001767
+epoch : 9, step : 700, lr : 0.000929, loss : 0.780455
+epoch : 10, step : 800, lr : 0.000919, loss : 0.600965
+epoch : 12, step : 900, lr : 0.000909, loss : 0.559213
+epoch : 13, step : 1000, lr : 0.000900, loss : 0.306072
+epoch : 14, step : 1100, lr : 0.000890, loss : 0.867655
+epoch : 16, step : 1200, lr : 0.000881, loss : 0.383954
+epoch : 17, step : 1300, lr : 0.000872, loss : 0.329053
+epoch : 18, step : 1400, lr : 0.000863, loss : 0.470569
+epoch : 20, step : 1500, lr : 0.000854, loss : 0.222647
+epoch : 21, step : 1600, lr : 0.000845, loss : 0.415060
+epoch : 22, step : 1700, lr : 0.000836, loss : 0.145199
+epoch : 24, step : 1800, lr : 0.000827, loss : 0.238647
+epoch : 25, step : 1900, lr : 0.000819, loss : 0.173383
+epoch : 26, step : 2000, lr : 0.000810, loss : 0.143884
+epoch : 28, step : 2100, lr : 0.000801, loss : 0.156150
+epoch : 29, step : 2200, lr : 0.000793, loss : 0.103981
+epoch : 30, step : 2300, lr : 0.000785, loss : 0.166128
+epoch : 32, step : 2400, lr : 0.000776, loss : 0.111372
+epoch : 33, step : 2500, lr : 0.000768, loss : 0.091044
+epoch : 34, step : 2600, lr : 0.000760, loss : 0.090428
+epoch : 36, step : 2700, lr : 0.000752, loss : 0.087105
+epoch : 37, step : 2800, lr : 0.000745, loss : 0.100153
+epoch : 38, step : 2900, lr : 0.000737, loss : 0.094825
+epoch : 40, step : 3000, lr : 0.000729, loss : 0.091510
+epoch : 41, step : 3100, lr : 0.000721, loss : nan
+epoch : 42, step : 3200, lr : 0.000714, loss : nan
+epoch : 44, step : 3300, lr : 0.000706, loss : nan
+epoch : 45, step : 3400, lr : 0.000699, loss : nan
+epoch : 46, step : 3500, lr : 0.000692, loss : nan
+epoch : 48, step : 3600, lr : 0.000684, loss : nan
+epoch : 49, step : 3700, lr : 0.000677, loss : nan
+epoch : 50, step : 3800, lr : 0.000670, loss : nan
+epoch : 52, step : 3900, lr : 0.000663, loss : nan
+epoch : 53, step : 4000, lr : 0.000656, loss : nan
+/usr/local/lib/python3.5/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+epoch : 0, step : 0, lr : 0.001000, loss : 2.533829
+epoch : 1, step : 100, lr : 0.000989, loss : 2.535076
+epoch : 0, step : 200, lr : 0.000979, loss : -25.532740
+epoch : 3, step : 300, lr : 0.000969, loss : 2.161879
+epoch : 4, step : 400, lr : 0.000959, loss : 1.598127
+epoch : 0, step : 500, lr : 0.000949, loss : -19.337757
+epoch : 6, step : 600, lr : 0.000939, loss : 0.953674
+epoch : 7, step : 700, lr : 0.000929, loss : 0.861323
+epoch : 0, step : 800, lr : 0.000919, loss : -13.768333
+epoch : 9, step : 900, lr : 0.000909, loss : 0.899224
+epoch : 10, step : 1000, lr : 0.000900, loss : 0.624992
+epoch : 0, step : 1100, lr : 0.000891, loss : -6.847105
+epoch : 12, step : 1200, lr : 0.000881, loss : 0.698311
+epoch : 13, step : 1300, lr : 0.000872, loss : 0.382977
+epoch : 0, step : 1400, lr : 0.000863, loss : -8.687825
+epoch : 16, step : 1500, lr : 0.000854, loss : 0.380884
+epoch : 17, step : 1600, lr : 0.000845, loss : 0.420952
+epoch : 0, step : 1700, lr : 0.000836, loss : -5.375062
+epoch : 19, step : 1800, lr : 0.000827, loss : 0.348925
+epoch : 20, step : 1900, lr : 0.000818, loss : 0.511144
+epoch : 0, step : 2000, lr : 0.000810, loss : -5.863547
+epoch : 22, step : 2100, lr : 0.000801, loss : 0.306358
+epoch : 23, step : 2200, lr : 0.000793, loss : 0.186389
+epoch : 0, step : 2300, lr : 0.000785, loss : -2.048328
+epoch : 25, step : 2400, lr : 0.000776, loss : 0.204766
+epoch : 26, step : 2500, lr : 0.000768, loss : 0.395971
+epoch : 0, step : 2600, lr : 0.000760, loss : -1.861851
+epoch : 28, step : 2700, lr : 0.000752, loss : 0.332977
+epoch : 29, step : 2800, lr : 0.000744, loss : 0.238855
+epoch : 0, step : 2900, lr : 0.000737, loss : -0.470440
+epoch : 32, step : 3000, lr : 0.000729, loss : 0.215066
+epoch : 33, step : 3100, lr : 0.000721, loss : 0.175140
+epoch : 0, step : 3200, lr : 0.000714, loss : 1.244849
+epoch : 35, step : 3300, lr : 0.000706, loss : 0.100919
+epoch : 36, step : 3400, lr : 0.000699, loss : 0.122119
+epoch : 0, step : 3500, lr : 0.000692, loss : 1.333855
+epoch : 38, step : 3600, lr : 0.000684, loss : 0.123289
+epoch : 39, step : 3700, lr : 0.000677, loss : 0.123275
+epoch : 0, step : 3800, lr : 0.000670, loss : 3.737538
+epoch : 41, step : 3900, lr : 0.000663, loss : 0.095056
+epoch : 42, step : 4000, lr : 0.000656, loss : 0.113910
+epoch : 0, step : 4100, lr : 0.000649, loss : 1.856411
+epoch : 44, step : 4200, lr : 0.000642, loss : 0.100403
+epoch : 45, step : 4300, lr : 0.000636, loss : 0.095917
+epoch : 0, step : 4400, lr : 0.000629, loss : 3.920756
+epoch : 48, step : 4500, lr : 0.000622, loss : 0.075742
+epoch : 49, step : 4600, lr : 0.000616, loss : 0.072210
+epoch : 0, step : 4700, lr : 0.000609, loss : 3.094974
+epoch : 51, step : 4800, lr : 0.000603, loss : 0.074289
+epoch : 52, step : 4900, lr : 0.000597, loss : 0.076342
+epoch : 0, step : 5000, lr : 0.000590, loss : 3.980526
+epoch : 54, step : 5100, lr : 0.000584, loss : 0.077458
+epoch : 55, step : 5200, lr : 0.000578, loss : 0.076317
+epoch : 0, step : 5300, lr : 0.000572, loss : 5.140323
+epoch : 57, step : 5400, lr : 0.000566, loss : 0.067567
+epoch : 58, step : 5500, lr : 0.000560, loss : 0.068992
+epoch : 0, step : 5600, lr : 0.000554, loss : nan
+epoch : 60, step : 5700, lr : 0.000548, loss : nan
+epoch : 61, step : 5800, lr : 0.000543, loss : nan
+epoch : 0, step : 5900, lr : 0.000537, loss : nan
+epoch : 64, step : 6000, lr : 0.000531, loss : nan
+/usr/local/lib/python3.5/dist-packages/h5py/__init__.py:36: FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated. In future, it will be treated as `np.float64 == np.dtype(float).type`.
+  from ._conv import register_converters as _register_converters
+Using TensorFlow backend.
+epoch : 0, step : 0, lr : 0.001000, loss : 2.534255
+epoch : 0, step : 100, lr : 0.000989, loss : 2.546189
+epoch : 1, step : 200, lr : 0.000979, loss : 2.631748
+epoch : 2, step : 300, lr : 0.000969, loss : 2.585941
+epoch : 3, step : 400, lr : 0.000959, loss : 2.457834
+epoch : 4, step : 500, lr : 0.000949, loss : 2.295794
+epoch : 4, step : 600, lr : 0.000939, loss : 2.182733
+epoch : 5, step : 700, lr : 0.000929, loss : 2.100995
+epoch : 6, step : 800, lr : 0.000919, loss : 2.060605
+epoch : 7, step : 900, lr : 0.000909, loss : 1.821210
+epoch : 8, step : 1000, lr : 0.000900, loss : 1.935838
+epoch : 8, step : 1100, lr : 0.000890, loss : 2.074223
+epoch : 9, step : 1200, lr : 0.000881, loss : 1.868229
+epoch : 10, step : 1300, lr : 0.000872, loss : 1.890567
+epoch : 11, step : 1400, lr : 0.000863, loss : 2.052056
+epoch : 12, step : 1500, lr : 0.000854, loss : 1.925955
+epoch : 12, step : 1600, lr : 0.000845, loss : 1.916420
+epoch : 13, step : 1700, lr : 0.000836, loss : 1.728662
+epoch : 14, step : 1800, lr : 0.000827, loss : 1.906340
+epoch : 15, step : 1900, lr : 0.000818, loss : 1.712113
+epoch : 16, step : 2000, lr : 0.000810, loss : 1.925680
+epoch : 16, step : 2100, lr : 0.000802, loss : 1.886227
+epoch : 17, step : 2200, lr : 0.000793, loss : 1.761195
+epoch : 18, step : 2300, lr : 0.000785, loss : 1.734170
+epoch : 19, step : 2400, lr : 0.000777, loss : 1.770487
+epoch : 20, step : 2500, lr : 0.000768, loss : 1.637384
+epoch : 20, step : 2600, lr : 0.000760, loss : 1.759269
+epoch : 21, step : 2700, lr : 0.000752, loss : 1.624752
+epoch : 22, step : 2800, lr : 0.000744, loss : 1.727674
+epoch : 23, step : 2900, lr : 0.000737, loss : 1.692862
+epoch : 24, step : 3000, lr : 0.000729, loss : 1.669101
+epoch : 24, step : 3100, lr : 0.000721, loss : 1.749701
+epoch : 25, step : 3200, lr : 0.000714, loss : 1.601386
+epoch : 26, step : 3300, lr : 0.000706, loss : 1.769126
+epoch : 27, step : 3400, lr : 0.000699, loss : 1.726277
+epoch : 28, step : 3500, lr : 0.000692, loss : 1.763201
+epoch : 28, step : 3600, lr : 0.000684, loss : 1.669379
+epoch : 29, step : 3700, lr : 0.000677, loss : 1.642367
+epoch : 30, step : 3800, lr : 0.000670, loss : 1.585125
+epoch : 31, step : 3900, lr : 0.000663, loss : 1.611320
+epoch : 32, step : 4000, lr : 0.000656, loss : 1.646592
+epoch : 32, step : 4100, lr : 0.000649, loss : 1.675860
+epoch : 33, step : 4200, lr : 0.000642, loss : 1.630700
+epoch : 34, step : 4300, lr : 0.000636, loss : 1.813313
+epoch : 35, step : 4400, lr : 0.000629, loss : 1.663605
+epoch : 36, step : 4500, lr : 0.000622, loss : 1.575316
+epoch : 36, step : 4600, lr : 0.000616, loss : 1.749016
+epoch : 37, step : 4700, lr : 0.000609, loss : 1.682528
+epoch : 38, step : 4800, lr : 0.000603, loss : 1.515539
+epoch : 39, step : 4900, lr : 0.000597, loss : 1.440088
+epoch : 40, step : 5000, lr : 0.000590, loss : 1.469484
+epoch : 40, step : 5100, lr : 0.000584, loss : 1.563973
+epoch : 41, step : 5200, lr : 0.000578, loss : 1.461397
+epoch : 42, step : 5300, lr : 0.000572, loss : 1.543029
+epoch : 43, step : 5400, lr : 0.000566, loss : 1.569802
+epoch : 44, step : 5500, lr : 0.000560, loss : 1.497408
+epoch : 44, step : 5600, lr : 0.000554, loss : 1.432824
+epoch : 45, step : 5700, lr : 0.000549, loss : 1.445982
+epoch : 46, step : 5800, lr : 0.000543, loss : 1.662710
+epoch : 47, step : 5900, lr : 0.000537, loss : 1.507547
+epoch : 48, step : 6000, lr : 0.000531, loss : 1.659260
+epoch : 48, step : 6100, lr : 0.000526, loss : 1.411248
+epoch : 49, step : 6200, lr : 0.000520, loss : 1.617249
+epoch : 50, step : 6300, lr : 0.000515, loss : 1.627475
+epoch : 51, step : 6400, lr : 0.000509, loss : 1.624037
+epoch : 52, step : 6500, lr : 0.000504, loss : 1.612262
+epoch : 52, step : 6600, lr : 0.000499, loss : 1.669230
+epoch : 53, step : 6700, lr : 0.000494, loss : 1.741507
+epoch : 54, step : 6800, lr : 0.000488, loss : 1.700278
+epoch : 55, step : 6900, lr : 0.000483, loss : 1.663139
+epoch : 56, step : 7000, lr : 0.000478, loss : 1.535892
+epoch : 56, step : 7100, lr : 0.000473, loss : 1.546509
+epoch : 57, step : 7200, lr : 0.000468, loss : 1.537238
+epoch : 58, step : 7300, lr : 0.000463, loss : 1.744381
+epoch : 59, step : 7400, lr : 0.000459, loss : 1.558789
+epoch : 60, step : 7500, lr : 0.000454, loss : 1.526691
+epoch : 60, step : 7600, lr : 0.000449, loss : 1.713695
+epoch : 61, step : 7700, lr : 0.000444, loss : 1.633393
+epoch : 62, step : 7800, lr : 0.000440, loss : 1.536634
+epoch : 63, step : 7900, lr : 0.000435, loss : 1.672319
+epoch : 64, step : 8000, lr : 0.000430, loss : 1.598551
+epoch : 64, step : 8100, lr : 0.000426, loss : 1.716510
+epoch : 65, step : 8200, lr : 0.000421, loss : 1.670095
+epoch : 66, step : 8300, lr : 0.000417, loss : 1.611612
+epoch : 67, step : 8400, lr : 0.000413, loss : 1.649519
+epoch : 68, step : 8500, lr : 0.000408, loss : 1.480199
+epoch : 68, step : 8600, lr : 0.000404, loss : 1.496211
+epoch : 69, step : 8700, lr : 0.000400, loss : 1.481883
+epoch : 70, step : 8800, lr : 0.000396, loss : 1.677906
+epoch : 71, step : 8900, lr : 0.000392, loss : 1.544970
+epoch : 72, step : 9000, lr : 0.000387, loss : 1.425202
+epoch : 72, step : 9100, lr : 0.000383, loss : 1.689265
+epoch : 73, step : 9200, lr : 0.000379, loss : 1.587966
+epoch : 74, step : 9300, lr : 0.000375, loss : 1.529775
+epoch : 75, step : 9400, lr : 0.000371, loss : 1.466677
+epoch : 76, step : 9500, lr : 0.000368, loss : 1.601548
+epoch : 76, step : 9600, lr : 0.000364, loss : 1.496939
+epoch : 77, step : 9700, lr : 0.000360, loss : 1.633261
+epoch : 78, step : 9800, lr : 0.000356, loss : 1.365006
+epoch : 79, step : 9900, lr : 0.000352, loss : 1.580775
+epoch : 80, step : 10000, lr : 0.000349, loss : 1.627435
+epoch : 80, step : 10100, lr : 0.000345, loss : 1.721848
+epoch : 81, step : 10200, lr : 0.000341, loss : 1.659843
+epoch : 82, step : 10300, lr : 0.000338, loss : 1.552703
+epoch : 83, step : 10400, lr : 0.000334, loss : 1.669534
+epoch : 84, step : 10500, lr : 0.000331, loss : 1.633437
+epoch : 84, step : 10600, lr : 0.000327, loss : 1.640000
+epoch : 85, step : 10700, lr : 0.000324, loss : 1.600908
+epoch : 86, step : 10800, lr : 0.000320, loss : 1.615178
+epoch : 87, step : 10900, lr : 0.000317, loss : 1.608553
+epoch : 88, step : 11000, lr : 0.000314, loss : 1.670922
+epoch : 88, step : 11100, lr : 0.000310, loss : 1.620822
+epoch : 89, step : 11200, lr : 0.000307, loss : 1.472062
+epoch : 90, step : 11300, lr : 0.000304, loss : 1.460572
+epoch : 91, step : 11400, lr : 0.000301, loss : 1.511709
+epoch : 92, step : 11500, lr : 0.000298, loss : 1.635684
+epoch : 92, step : 11600, lr : 0.000295, loss : 1.658509
+epoch : 93, step : 11700, lr : 0.000291, loss : 1.600959
+epoch : 94, step : 11800, lr : 0.000288, loss : 1.460229
+epoch : 95, step : 11900, lr : 0.000285, loss : 1.449631
+epoch : 96, step : 12000, lr : 0.000282, loss : 1.610594
+epoch : 96, step : 12100, lr : 0.000279, loss : 1.535344
+epoch : 97, step : 12200, lr : 0.000277, loss : 1.546146
+epoch : 98, step : 12300, lr : 0.000274, loss : 1.520228
+epoch : 99, step : 12400, lr : 0.000271, loss : 1.460748
+epoch : 100, step : 12500, lr : 0.000268, loss : 1.519424
+epoch : 100, step : 12600, lr : 0.000265, loss : 1.417019
+epoch : 101, step : 12700, lr : 0.000262, loss : 1.389223
+epoch : 102, step : 12800, lr : 0.000260, loss : 1.369947
+epoch : 103, step : 12900, lr : 0.000257, loss : 1.447036
+epoch : 104, step : 13000, lr : 0.000254, loss : 1.556983
+epoch : 104, step : 13100, lr : 0.000251, loss : 1.459492
+epoch : 105, step : 13200, lr : 0.000249, loss : 1.535818
+epoch : 106, step : 13300, lr : 0.000246, loss : 1.520089
+epoch : 107, step : 13400, lr : 0.000244, loss : 1.456461
+epoch : 108, step : 13500, lr : 0.000241, loss : 1.348934
+epoch : 108, step : 13600, lr : 0.000239, loss : 1.546376
+epoch : 109, step : 13700, lr : 0.000236, loss : 1.535582
+epoch : 110, step : 13800, lr : 0.000234, loss : 1.505976
+epoch : 111, step : 13900, lr : 0.000231, loss : 1.679098
+epoch : 112, step : 14000, lr : 0.000229, loss : 1.665553
+epoch : 112, step : 14100, lr : 0.000226, loss : 1.567299
+epoch : 113, step : 14200, lr : 0.000224, loss : 1.395960
+epoch : 114, step : 14300, lr : 0.000222, loss : 1.520269
+epoch : 115, step : 14400, lr : 0.000219, loss : 1.261701
+epoch : 116, step : 14500, lr : 0.000217, loss : 1.225235
+epoch : 116, step : 14600, lr : 0.000215, loss : 1.480886
+epoch : 117, step : 14700, lr : 0.000213, loss : 1.407497
+epoch : 118, step : 14800, lr : 0.000210, loss : 1.287286
+epoch : 119, step : 14900, lr : 0.000208, loss : 1.401285
+epoch : 120, step : 15000, lr : 0.000206, loss : 1.441753
+epoch : 120, step : 15100, lr : 0.000204, loss : 1.626537
+epoch : 121, step : 15200, lr : 0.000202, loss : 1.435476
+epoch : 122, step : 15300, lr : 0.000199, loss : 1.319579
+epoch : 123, step : 15400, lr : 0.000197, loss : 1.215680
+epoch : 124, step : 15500, lr : 0.000195, loss : 1.482676
+epoch : 124, step : 15600, lr : 0.000193, loss : 1.305658
+epoch : 125, step : 15700, lr : 0.000191, loss : 1.360618
+epoch : 126, step : 15800, lr : 0.000189, loss : 1.237313
+epoch : 127, step : 15900, lr : 0.000187, loss : 1.426446
+epoch : 128, step : 16000, lr : 0.000185, loss : 1.314562
+epoch : 128, step : 16100, lr : 0.000183, loss : 1.330538
+epoch : 129, step : 16200, lr : 0.000181, loss : 1.197769
+epoch : 130, step : 16300, lr : 0.000180, loss : 1.365082
+epoch : 131, step : 16400, lr : 0.000178, loss : 1.277192
+epoch : 132, step : 16500, lr : 0.000176, loss : 1.530024
+epoch : 132, step : 16600, lr : 0.000174, loss : 1.376974
+epoch : 133, step : 16700, lr : 0.000172, loss : 1.295849
+epoch : 134, step : 16800, lr : 0.000170, loss : 1.259434
+epoch : 135, step : 16900, lr : 0.000169, loss : 1.415311
+epoch : 136, step : 17000, lr : 0.000167, loss : 1.387973
+epoch : 136, step : 17100, lr : 0.000165, loss : 1.263236
+epoch : 137, step : 17200, lr : 0.000163, loss : 1.224835
+epoch : 138, step : 17300, lr : 0.000162, loss : 1.178500
+epoch : 139, step : 17400, lr : 0.000160, loss : 1.400596
+epoch : 140, step : 17500, lr : 0.000158, loss : 1.355143
+epoch : 140, step : 17600, lr : 0.000157, loss : 1.338882
+epoch : 141, step : 17700, lr : 0.000155, loss : 1.431558
+epoch : 142, step : 17800, lr : 0.000153, loss : 1.434870
+epoch : 143, step : 17900, lr : 0.000152, loss : 1.382023
+epoch : 144, step : 18000, lr : 0.000150, loss : 1.391836
+epoch : 144, step : 18100, lr : 0.000149, loss : 1.328825
+epoch : 145, step : 18200, lr : 0.000147, loss : 1.277102
+epoch : 146, step : 18300, lr : 0.000145, loss : 1.431163
+epoch : 147, step : 18400, lr : 0.000144, loss : 1.157194
+epoch : 148, step : 18500, lr : 0.000142, loss : 1.386544
+epoch : 148, step : 18600, lr : 0.000141, loss : 1.227106
+epoch : 149, step : 18700, lr : 0.000139, loss : 1.285118
+epoch : 150, step : 18800, lr : 0.000138, loss : 1.175030
+epoch : 151, step : 18900, lr : 0.000137, loss : 1.215021
+epoch : 152, step : 19000, lr : 0.000135, loss : 1.159763
+epoch : 152, step : 19100, lr : 0.000134, loss : 1.246846
+epoch : 153, step : 19200, lr : 0.000132, loss : 1.364241
+epoch : 154, step : 19300, lr : 0.000131, loss : 1.201839
+epoch : 155, step : 19400, lr : 0.000129, loss : 1.229718
+epoch : 156, step : 19500, lr : 0.000128, loss : 1.098628
+epoch : 156, step : 19600, lr : 0.000127, loss : 1.028624
+epoch : 157, step : 19700, lr : 0.000125, loss : 1.292797
+epoch : 158, step : 19800, lr : 0.000124, loss : 1.464168
+epoch : 159, step : 19900, lr : 0.000123, loss : 1.507337
+epoch : 160, step : 20000, lr : 0.000122, loss : 1.152986

@@ -25,16 +25,19 @@
 
 from .unsupervised import UnsupervisedTrainer
 from .supervised import SupervisedTrainer
+from .semisupervised import SemiSupervisedTrainer
 
 trainer_dict = {
     'unsupervised' : UnsupervisedTrainer,
     'supervised' : SupervisedTrainer,
+    'semi-supervised' : SemiSupervisedTrainer
 }
 
 
-def get_trainer(name, config):
+def get_trainer(name, config, model):
     if name in trainer_dict:
-        return trainer_dict[name](config)
+        return trainer_dict[name](config, model)
     else:
         raise Exception('None trainer named ' + name)
+
 

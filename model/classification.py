@@ -69,7 +69,7 @@ class Classification(BaseModel):
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
 		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
 
-		self.x_test = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
+		self.test_x = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
 		
 		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], 
 					 self.config, self.is_training)
@@ -79,7 +79,7 @@ class Classification(BaseModel):
 		self.y = tf.nn.softmax(self.logits)
 		self.loss = get_loss('classification', self.config['classification loss'], {'logits' : self.logits, 'labels' : self.label})
 
-		logits, end_points = self.classifier(self.x_test, reuse=True)
+		logits, end_points = self.classifier(self.test_x, reuse=True)
 		self.y_test = tf.nn.softmax(logits)
 
 		self.acc = get_metric('accuracy', 'top1', {'logits': self.logits, 'labels':self.label})
@@ -95,7 +95,6 @@ class Classification(BaseModel):
 
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.vars + [self.global_step,])
-		
 		
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		feed_dict = {

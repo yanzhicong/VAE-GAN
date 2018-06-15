@@ -1,7 +1,4 @@
 
-
-
-
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -45,4 +42,7 @@ class HiddenVariableValidator(object):
 			plt.figure(figsize=(10, 10))
 			plt.imshow(figure, cmap='Greys_r')
 			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
+
+		return None
+
 

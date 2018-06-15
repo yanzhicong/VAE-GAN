@@ -22,14 +22,13 @@
 # SOFTWARE.
 # ==============================================================================
 
-
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
 
 def get_optimizer(name, params, target, variables):
-    if name == 'rmsprop':
+    if name == 'rmsprop':       
         return tf.train.RMSPropOptimizer(**params).minimize(target, var_list=variables)
     elif name == 'sgd':
         return tf.train.GradientDescentOptimizer(**params).minimize(target, var_list=variables)

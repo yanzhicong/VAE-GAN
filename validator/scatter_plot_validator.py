@@ -28,31 +28,28 @@ class ScatterPlotValidator(object):
 		label_array = []
 
 		for ind, batch_x, batch_y in dataset.iter_test_images():
-			
-
 			if self.watch_variable == 'pred':
 				y_pred = model.predict(sess, batch_y)
 
 				x_pos_array.append(y_pred[:, self.x_dim])
 				y_pos_array.append(y_pred[:, self.y_dim])
-				label_array.append(batch_y)
+				label_array.append(np.argmax(batch_y, axis=1))
 
 			elif self.watch_variable == 'hidden dist':
-				z_mean, z_log_var = model.hidden_distribution(sess, batch_x)
+				z_mean, z_log_var = model.hidden_variable_distribution(sess, batch_x)
+
+				# print(batch_y.shape)
+				# print(np.argmax(batch_y, axis=1).shape)
 
 				x_pos_array.append(
-					np.concatenate([
-											z_mean[:, self.x_dim:self.x_dim+1], 
-									np.exp(z_log_var[:, self.x_dim:self.x_dim+1])
-									], axis=1)
+					np.concatenate([	z_mean[:, self.x_dim:self.x_dim+1], 
+										np.exp(z_log_var[:, self.x_dim:self.x_dim+1]) ], axis=1)
 				)
 				y_pos_array.append(
-					np.concatenate([
-											z_mean[:, self.y_dim:self.y_dim+1], 
-										np.exp(z_log_var[:, self.y_dim:self.y_dim+1])
-									], axis=1)
+					np.concatenate([	z_mean[:, self.y_dim:self.y_dim+1], 
+										np.exp(z_log_var[:, self.y_dim:self.y_dim+1]) ], axis=1)
 				)
-				label_array.append(batch_y)
+				label_array.append(np.argmax(batch_y, axis=1))
 			else:
 				raise Exception("None watch variable named " + self.watch_variable)
 
@@ -74,5 +71,6 @@ class ScatterPlotValidator(object):
 			plt.colorbar()
 			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
 
+		return None
 
 

@@ -39,10 +39,19 @@ def _assign_moving_average(variable, value, decay):
         return tf.assign_sub(variable, update_delta, name=scope)
 
 
-def accuracy_top_1(logits, labels, decay=0.01):
-    acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1))
-    var = tf.Variable(0.0, name='acc_top_1')
-    return _assign_moving_average(var, acc, decay)
+def accuracy_top_1(labels,logits=None, probs=None, decay=0.01):
+    if probs is not None:
+        acc = tcm.accuracy(predictions=tf.argmax(probs, axis=-1), labels=tf.argmax(labels, axis=-1))
+    elif logits is not None:
+        acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1)) 
+    else:
+        raise Exception('in metric accuracy, the probability vector cannot be None')
+
+    if decay == 1.0:
+        return acc
+    else:
+        var = tf.Variable(0.0, name='acc_top_1')
+        return _assign_moving_average(var, acc, decay)
 
 
 metric_dict = {

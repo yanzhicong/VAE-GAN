@@ -63,7 +63,8 @@
                 "validator" : "hidden_variable_validator",
                 "validate steps" : 1000,
                 "validator params" : {
-                    "z_dim" : 2
+                    "z_dim" : 2,
+                    "num_samples" : 15                    
                 }
             },
             {

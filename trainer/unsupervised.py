@@ -43,7 +43,7 @@ class UnsupervisedTrainer(BaseTrainer):
 		self.config = config
 		self.model = model
 
-		super(UnsupervisedTrainer, self).__init__(model)
+		super(UnsupervisedTrainer, self).__init__(config, model)
 
 		# self.summary_dir = os.path.join(self.config['assets dir'], self.config.get('summary dir', 'log'))
 		# self.checkpoint_dir = os.path.join(self.config['assets dir'], self.config.get('checkpoint dir', 'checkpoint'))
@@ -85,9 +85,9 @@ class UnsupervisedTrainer(BaseTrainer):
 		epoch = 0
 
 		while True:
-			for index, batch_x in dataset.iter_train_images():
+			for index, batch_x in dataset.iter_train_images_unsupervised():
 
-				self.train_inner_step(epoch, sess, model, dataset, batch_x)
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
 
 				# if self.summary_steps != 0 and step % self.summary_steps == 0:
 				# 	summary = model.summary(sess)

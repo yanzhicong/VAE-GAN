@@ -109,46 +109,45 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
 
+		###########################################################################
+		# for supervised training:
 
-		# for supervised:
+		hxl = self.x_encoder(self.xl, reuse=False)
 
-		hx = self.x_encoder(self.xl, reuse=False)
-
-		yl_logits, end_points = self.hx_classifier(hx, reuse=False)
+		yl_logits, end_points = self.hx_classifier(hxl, reuse=False)
 		yl_probs = tf.nn.softmax(yl_logits)
 
-		hx_yl = tf.concat([hx, self.yl], axis=1)
+		hx_yl = tf.concat([hxl, self.yl], axis=1)
 
 		mean_z, log_var_z = self.hx_y_encoder(hx_yl, reuse=False)
 
-		z_sample = mean_z + tf.exp(log_var_z / 2) * self.eps
+		z_sample_l = mean_z + tf.exp(log_var_z / 2) * self.eps
 
-		x_decode = self.decoder(z_sample, reuse=False)
+		x_decode = self.decoder(z_sample_l, reuse=False)
 
 
 
-		self.su_loss_kl_z = get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z})
-		self.su_loss_kl_z *= self.config.get('loss kl z prod', 1.0)
-		self.su_loss_recon = get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode})
-		self.su_loss_recon *= self.config.get('loss recon prod', 1.0)
-		self.su_loss_cls = get_loss('classification', 'cross entropy', {'logits' : yl_logits, 'labels' : self.yl})
-		self.su_loss_cls *= self.config.get('loss cls prod', 1.0)
-
+		self.su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z})
+								* self.config.get('loss kl z prod', 1.0))
+		self.su_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode})
+								* self.config.get('loss recon prod', 1.0))
+		self.su_loss_cls = (get_loss('classification', 'cross entropy', {'logits' : yl_logits, 'labels' : self.yl})
+								* self.config.get('loss cls prod', 1.0))
 		self.su_loss = self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls
 
+		# sel
 
-		# for unsupervised:
 
-		hx = self.x_encoder(self.xu, reuse=True)
+		###########################################################################
+		# for unsupervised training:
 
-		yu_logits, end_points = self.hx_classifier(hx, reuse=True)
+		hxu = self.x_encoder(self.xu, reuse=True)
+		yu_logits, end_points = self.hx_classifier(hxu, reuse=True)
 		yu_probs = tf.nn.softmax(yu_logits)
-
 		yu_logprobs = tf.log(yu_probs)
-
-
+		
 		self.unsu_loss_kl_y = get_loss('kl', 'bernoulli', {'probs' : yu_probs})
-		self.unsu_loss_kl_y *= self.config.get('loss kl y unsupervised prod', 1.0)
+		self.unsu_loss_kl_y *= self.config.get('loss kl y prod', 1.0)
 
 		unsu_loss_kl_z_list = []
 		unsu_loss_recon_list = []
@@ -156,32 +155,40 @@ class SemiDeepGenerativeModel(BaseModel):
 		for i in range(self.nb_classes):
 			y_fake = tf.ones([tf.shape(self.xu)[0], ], dtype=tf.int32) * i
 			y_fake = tf.one_hot(y_fake, depth=self.nb_classes)
-			hx_yf = tf.concat([hx, y_fake], axis=1)
+			hx_yf = tf.concat([hxu, y_fake], axis=1)
 
 			mean_z, log_var_z = self.hx_y_encoder(hx_yf, reuse=True)
 
-			z_sample = mean_z = tf.exp(log_var_z / 2) * self.eps2[:, :, i]
+			z_sample_u = mean_z = tf.exp(log_var_z / 2) * self.eps2[:, :, i]
 
-			x_decode = self.decoder(z_sample, reuse=True)
+			x_decode_u = self.decoder(z_sample_u, reuse=True)
 
 			unsu_loss_kl_z_list.append(
 				get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z}) * yu_probs[:, i]
 			)
 			unsu_loss_recon_list.append(
-				get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode}) * yu_probs[:, i]
+				get_loss('reconstruction', 'mse', {'x' : self.xu, 'y' : x_decode_u}) * yu_probs[:, i]
 			)
 
 		self.unsu_loss_kl_z = tf.reduce_sum(unsu_loss_kl_z_list)
-		self.unsu_loss_kl_z *= self.config.get('loss kl z unsupervised prod', 1.0)
+		self.unsu_loss_kl_z *= self.config.get('loss kl z prod', 1.0)
 		self.unsu_loss_recon = tf.reduce_sum(unsu_loss_recon_list)
 		self.unsu_loss_recon *= self.config.get('loss recon unsupervised prod', 1.0)
 
 		self.unsu_loss = self.unsu_loss_kl_y + self.unsu_loss_kl_z + self.unsu_loss_recon
 
-		hx = self.x_encoder(self.xtest, reuse=True)
-		ylogits, endpoints = self.hx_classifier(hx, reuse=True)
+
+		###########################################################################
+		# for test models
+
+		hxtest = self.x_encoder(self.xtest, reuse=True)
+		ylogits, endpoints = self.hx_classifier(hxtest, reuse=True)
 		self.ytest = tf.nn.softmax(ylogits)
 
+		hxtest_ytest = tf.concat([hxtest, self.ytest], axis=1)
+		self.mean_z_test, self.log_var_z_test = self.hx_y_encoder(hxtest_ytest, reuse=True)
+
+		###########################################################################
 		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
 		if 'lr' in self.config:
@@ -199,12 +206,15 @@ class SemiDeepGenerativeModel(BaseModel):
 		self.supervised_train_update = tf.group([self.supervised_optimizer, self.global_step_update])
 		self.unsupervised_train_update = tf.group([self.unsupervised_optimizer, self.global_step_update])
 
+		###########################################################################
 		# model saver
 		self.saver = tf.train.Saver(self.vars + [self.global_step,])
 		
+
 	@property
 	def vars(self):
 		return self.x_encoder.vars + self.hx_y_encoder.vars + self.hx_classifier.vars + self.decoder.vars
+
 
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		feed_dict = {
@@ -232,12 +242,27 @@ class SemiDeepGenerativeModel(BaseModel):
 
 
 	def predict(self, sess, x_batch):
+		'''
+			p(y | x)s
+		'''
 		feed_dict = {
 			self.xtest : x_batch,
 			self.is_training : False
 		}
-		y_pred = sess.run([self.ytest], feed_dict = feed_dict)
+		y_pred = sess.run([self.ytest], feed_dict = feed_dict)[0]
 		return y_pred
+
+
+	def hidden_variable_distribution(self, sess, x_batch):
+		'''
+			p(z | x)
+		'''
+		feed_dict = {
+			self.xtest : x_batch,
+			self.is_training : False
+		}
+		mean_z, log_var_z = sess.run([self.mean_z_test, self.log_var_z_test], feed_dict=feed_dict)
+		return mean_z, log_var_z
 
 
 	def summary(self, sess):

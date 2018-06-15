@@ -53,6 +53,8 @@ class BaseTrainer(object):
 		self.summary_steps = int(self.config.get('summary steps', 0))
 		self.log_steps = int(self.config.get('log steps', 0))
 		self.save_steps = int(self.config.get('save checkpoint steps', 0))
+		self.batch_size = int(self.config.get('batch_size', 16))
+
 
 		self.validator_list = []
 		for validator_config in self.config.get('validators', []):
@@ -68,6 +70,27 @@ class BaseTrainer(object):
 			validator_steps = int(validator_config['validate steps'])
 			self.validator_list.append((validator_steps, validator))
 
+		if self.config.get('print info', False):
+			self.print_info()
+
+	def print_info(self):
+		print('Trainer Parameters :')
+		print('\tsummary_dir : ', self.summary_dir)
+		print('\tcheckpoint_dir : ', self.checkpoint_dir)
+		print('\tsummary_steps : ', self.summary_steps)
+		print('\tlog_steps : ', self.log_steps)
+		print('\tsave_steps : ', self.save_steps)
+		print('\tbatch_size : ', self.batch_size)
+
+
+	def train_initialize(self, sess, model):
+		sess.run(tf.global_variables_initializer())
+		if self.config.get('continue train', False):
+			if model.checkpoint_load(sess, self.checkpoint_dir):
+				print("Continue Train...")
+			else:
+				print("Load Checkpoint Failed")
+
 
 	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None):
 		'''
@@ -80,7 +103,6 @@ class BaseTrainer(object):
 			return :
 				the current train step
 		'''
-
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
 		else:
@@ -115,20 +137,18 @@ class BaseTrainer(object):
 		for example:
 
 	'''
-
 	def read_data_inner_loop(self, 
 				coord, dataset, data_inner_queue, 
 				indices, t_ind, nb_threads,
 				epoch, method='supervised'):
 		'''
 			a inner read data loop thread, only be create or joined by read_data_loop.
-			read data and put into self.train_data_inner_queue in loop
+			read data and put into @param.data_inner_queue in loop
 		'''
 		if method == 'supervised':
 			for i, ind in enumerate(indices):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
-
 						# read img and label by its index
 						img, label = dataset.read_image_by_index_supervised(ind)
 						if img is not None:
@@ -139,7 +159,7 @@ class BaseTrainer(object):
 			for i, ind in enumerate(indices):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
-						# read img and label by its index
+						# read img by its index
 						img = dataset.read_image_by_index_unsupervised(ind)
 						if img is not None:
 							data_inner_queue.put((epoch, img))
@@ -151,7 +171,7 @@ class BaseTrainer(object):
 
 	def read_data_loop(self, coord, dataset, data_inner_queue, method='supervised', nb_threads=4):
 		'''
-
+			create multiple threads to read data into @param.data_inner_queue
 		'''
 		epoch = 0
 		while not coord.should_stop():
@@ -173,6 +193,7 @@ class BaseTrainer(object):
 
 	def read_data_transport_loop(self, coord, data_inner_queue, data_queue, method='supervised'):
 		'''
+			transport data from @param.data_inner_queue to @param.data_queue in batch manner
 		'''
 		epoch_list = []
 		batch_x = []
@@ -193,8 +214,14 @@ class BaseTrainer(object):
 					epoch_list = []
 					batch_x = []
 					batch_y = []
+					
+			# clear the data inner queue to free the (read_data_inner_loop) thread
+			while not data_inner_queue.empty():
+				epoch, img, label = data_inner_queue.get()
+
 
 		elif method == 'unsupervised':
+			while not coord.should_stop():			
 				epoch, img = data_inner_queue.get()
 				epoch_list.append(epoch)
 				batch_x.append(img)
@@ -205,9 +232,10 @@ class BaseTrainer(object):
 					data_queue.put((epoch, batch_x))
 					epoch_list = []
 					batch_x = []
+
+			# clear the data inner queue to free the (read_data_inner_loop) thread
+			while not data_inner_queue.empty():
+				epoch, img = data_inner_queue.get()
 		else:
 			raise Exception("wrong method of " + method)
 
-		# clear the data inner queue to free the (read_data_inner_loop) thread
-		while not data_inner_queue.empty():
-			img, label = data_inner_queue.get()

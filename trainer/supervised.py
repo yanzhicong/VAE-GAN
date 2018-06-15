@@ -46,7 +46,7 @@ class SupervisedTrainer(object):
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
-			self.batch_size = int(self.config.get('batch_size', 8))
+			# self.batch_size = int(self.config.get('batch size', 8))
 			self.train_data_queue = queue.Queue(maxsize=5)
 			self.train_data_inner_queue = queue.Queue(maxsize = self.batch_size * 3)
 
@@ -57,7 +57,6 @@ class SupervisedTrainer(object):
 	def train(self, sess, dataset, model):
 
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		sess.run(tf.global_variables_initializer())
 
 		# if in multi thread model, start threads for read data
 		if self.multi_thread:

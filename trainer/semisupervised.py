@@ -62,6 +62,7 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		sess.run(tf.global_variables_initializer())
 
+		self.train_initialize(sess, model)
 
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
@@ -77,36 +78,30 @@ class SemiSupervisedTrainer(BaseTrainer):
 			t.start()
 
 
-		if self.config.get('continue train', False):
-			if model.checkpoint_load(sess, self.checkpoint_dir):
-				print("Continue Train...")
-			else:
-				print("Load Checkpoint Failed")
-			step = -1
-		else:
-			step = 0
-
 		while True:
-
+			# print('supervised')
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
 				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y)
 				if step > int(self.config['train steps']):
 					break
 
+			# print('unsupervised')
 			for i in range(self.unsupervised_step):
 				epoch, batch_x = self.unsupervised_image_queue.get()
 				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
+
 				if step > int(self.config['train steps']):
 					break
 
 			if step > int(self.config['train steps']):
-				return
+				break
 
 		self.coord.request_stop()
 		while not self.supervised_image_queue.empty():
 			epoch, batch_x, batch_y = self.supervised_image_queue.get()
 		while not self.unsupervised_image_queue.empty():
 			epoch, batch_x = self.unsupervised_image_queue.get()
+
 		self.coord.join(threads)
 

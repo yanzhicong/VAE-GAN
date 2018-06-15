@@ -33,6 +33,7 @@ import tensorflow as tf
 
 from validator.validator import get_validator
 
+<<<<<<< HEAD
 
 from .basetrainer import BaseTrainer
 
@@ -45,6 +46,41 @@ class UnsupervisedTrainer(BaseTrainer):
 
 		super(UnsupervisedTrainer, self).__init__(model)
 
+=======
+
+from .basetrainer import BaseTrainer
+
+
+
+class UnsupervisedTrainer(BaseTrainer):
+	def __init__(self, config, model):
+		self.config = config
+		self.model = model
+
+		super(UnsupervisedTrainer, self).__init__(model)
+
+		# self.summary_dir = os.path.join(self.config['assets dir'], self.config.get('summary dir', 'log'))
+		# self.checkpoint_dir = os.path.join(self.config['assets dir'], self.config.get('checkpoint dir', 'checkpoint'))
+
+		# if not os.path.exists(self.summary_dir):
+		# 	os.mkdir(self.summary_dir)
+		# if not os.path.exists(self.checkpoint_dir):
+		# 	os.mkdir(self.checkpoint_dir)
+
+		# self.summary_steps = int(self.config.get('summary steps', 0))
+		# self.log_steps = int(self.config.get('log steps', 0))
+		# self.save_steps = int(self.config.get('save checkpoint steps', 0))
+
+		# self.validator_list = []
+		# for validator_config in self.config.get('validators', []):
+			
+		# 	validator_params = validator_config.get('validator params', {})
+		# 	validator_params['assets dir'] = self.config['assets dir']
+
+		# 	validator = get_validator(validator_config['validator'], validator_params)
+		# 	validator_steps = int(validator_config['validate steps'])
+		# 	self.validator_list.append((validator_steps, validator))
+>>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
 
 
 	def train(self, sess, dataset, model):
@@ -65,8 +101,33 @@ class UnsupervisedTrainer(BaseTrainer):
 
 		while True:
 			for index, batch_x in dataset.iter_train_images():
+<<<<<<< HEAD
 
 				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
+=======
+
+				self.train_inner_step(epoch, sess, model, dataset, batch_x)
+
+				# if self.summary_steps != 0 and step % self.summary_steps == 0:
+				# 	summary = model.summary(sess)
+				# 	if summary:
+				# 		self.summary_writer.add_summary(summary, step)
+
+				# step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
+
+				# if summary:
+				# 	self.summary_writer.add_summary(summary, step)
+
+				# if self.log_steps != 0 and step % self.log_steps == 0:
+				# 	print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step, lr, loss))
+
+				# if self.save_steps != 0 and step % self.save_steps == 0:
+				# 	model.checkpoint_save(sess, self.checkpoint_dir, step)
+
+				# for validator_steps, validator in self.validator_list:
+				# 	if validator_steps != 0 and step % validator_steps == 0:
+				# 		validator.validate(model, dataset, sess, step)
+>>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
 
 				if step > int(self.config['train steps']):
 					return

@@ -23,7 +23,6 @@
 # ==============================================================================
 
 
-
 def get_validator(name, config):
     
     if name == 'hidden_variable_validator':

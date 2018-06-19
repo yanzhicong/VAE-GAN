@@ -41,17 +41,21 @@ class MNIST(BaseDataset):
 	def __init__(self, config):
 		
 		super(MNIST, self).__init__(config)
+		self.config = config
 
-		self._dataset_dir = 'D:\Data\MNIST'
+		self._dataset_dir = 'D:/Data/MNIST'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = 'C:/Data/MNIST'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/MNIST'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
+		if not os.path.exists(self._dataset_dir):
+			raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 
-		self.config = config
 		self.name = 'mnist'
-
-		self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
 		self.input_shape = config.get('input_shape', [28, 28, 1])
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10

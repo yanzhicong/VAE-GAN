@@ -92,7 +92,7 @@ class BaseTrainer(object):
 				print("Load Checkpoint Failed")
 
 
-	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None):
+	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None, log_disp=True):
 		'''
 			the inner function for train a batch of images,
 			input :
@@ -105,13 +105,19 @@ class BaseTrainer(object):
 		'''
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
+			self.unsu_step = step
+			self.unsu_lr = lr
+			self.unsu_loss = loss
 		else:
 			step, lr, loss, summary = model.train_on_batch_supervised(sess, batch_x, batch_y)
+			self.su_step = step
+			self.su_lr = lr
+			self.su_loss = loss
 
 		if summary:
 			self.summary_writer.add_summary(summary, step-1)
 
-		if self.log_steps != 0 and step % self.log_steps == 1:
+		if log_disp and self.log_steps != 0 and step % self.log_steps == 1:
 			print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step-1, lr, loss))
 
 		if self.summary_steps != 0 and step % self.summary_steps == 1:

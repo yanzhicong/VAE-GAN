@@ -41,16 +41,12 @@ from validator.validator import get_validator
 class SupervisedTrainer(object):
 	def __init__(self, config, model):
 		self.config = config
-
 		super(SupervisedTrainer, self).__init__(config, model)
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
-			# self.batch_size = int(self.config.get('batch size', 8))
 			self.train_data_queue = queue.Queue(maxsize=5)
 			self.train_data_inner_queue = queue.Queue(maxsize = self.batch_size * 3)
-
-
 
 
 

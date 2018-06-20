@@ -58,7 +58,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 
 	def train(self, sess, dataset, model):
-
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		sess.run(tf.global_variables_initializer())
 
@@ -79,18 +78,19 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 
 		while True:
-			# print('supervised')
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y)
+				self.su_epoch = epoch
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y, log_disp=False)
+				self.log(step)
 				if step > int(self.config['train steps']):
 					break
 
-			# print('unsupervised')
 			for i in range(self.unsupervised_step):
 				epoch, batch_x = self.unsupervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
-
+				self.unsu_epoch = epoch
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, log_disp=False)
+				self.log(step)
 				if step > int(self.config['train steps']):
 					break
 
@@ -104,3 +104,10 @@ class SemiSupervisedTrainer(BaseTrainer):
 			epoch, batch_x = self.unsupervised_image_queue.get()
 		self.coord.join(threads)
 
+	def log(self, step):
+		if self.log_steps != 0 and step % self.log_steps == 0:
+			print("supervised : [epoch : %d, step : %d, lr : %f, loss : %f] \ unsupervised : [epoch : %d, step : %d, lr : %f, loss : %f]"%(
+					self.su_epoch, self.su_step, self.su_lr, self.su_loss, self.unsu_epoch, self.unsu_step, self.unsu_lr, self.unsu_loss))
+
+
+				

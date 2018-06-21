@@ -29,54 +29,73 @@ import tensorflow.contrib.layers as tcl
 
 
 
-def kl_gaussian_loss(mean, log_var):
-    return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1))
+def kl_gaussian_loss(mean, log_var, instance_weight=None):
+	if instance_weight is None:
+		return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1))
+	else:
+		return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1) * instance_weight)
+		
+
+def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None):
+	if logits is not None:
+		probs = tf.nn.softmax(logits)
 
 
-# def kl_bernoulli_loss(logits=None, probs=None):
-#     if logits is not None:
-#         probs = tf.nn.softmax(logits)
-#     logprobs = tf.log(probs)
-#     return -tf.reduce_mean(probs * logprobs)
+	if probs is None:
+		raise Exception("Probs can not be none")
+	
+	if instance_weight is None:
+		return -tf.reduce_mean(tf.square(probs - 0.5))
+	else:
+		return -tf.reduce_mean(tf.reduce_mean(tf.square(probs - 0.5), axis=-1) * instance_weight)
+	# return -tf.reduce_mean(probs * logprobs)
 
-def kl_bernoulli_loss(logits=None, probs=None):
-    if logits is not None:
-        probs = tf.nn.softmax(logits)
-    # logprobs = tf.log(probs)
+def l2_loss(x, y, instance_weight=None):
+	x = tcl.flatten(x)
+	y = tcl.flatten(y)
 
-    return -tf.reduce_mean(tf.square(probs - 0.5))
-    # return -tf.reduce_mean(probs * logprobs)
-
-def l2_loss(x, y):
-    x = tcl.flatten(x)
-    y = tcl.flatten(y)
-    return tf.reduce_mean(tf.reduce_mean(tf.square(x - y), axis=-1))
+	if instance_weight is None:
+		return tf.reduce_mean(tf.square(x - y))
+	else:
+		return tf.reduce_mean(tf.reduce_mean(tf.square(x-y), axis=-1) * instance_weight)
 
 
-def binary_cls_loss(logits, labels):
-    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
+def l1_loss(x, y, instance_weight=None):
+	x = tcl.flatten(x)
+	y = tcl.flatten(y)
+
+	if instance_weight is None:
+		return tf.reduce_mean(tf.abs(x - y))
+	else:
+		return tf.reduce_mean(tf.reduce_mean(tf.abs(x-y), axis=-1) * instance_weight)
+
+
+
+def binary_cls_loss(logits, labels, instance_weight=None):
+	return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
 
 
 
 loss_dict = {
-    'kl' : {
-        'gaussian' : kl_gaussian_loss,
-        'bernoulli' : kl_bernoulli_loss
-    },
-    'reconstruction' : {
-        'mse' : l2_loss,
-        'l2' : l2_loss
-    },
-    'classification' : {
-        'cross entropy' : binary_cls_loss
-    }
+	'kl' : {
+		'gaussian' : kl_gaussian_loss,
+		'bernoulli' : kl_bernoulli_loss
+	},
+	'reconstruction' : {
+		'mse' : l2_loss,
+		'l2' : l2_loss,
+		'l1' : l1_loss
+	},
+	'classification' : {
+		'cross entropy' : binary_cls_loss
+	}
 }
 
 
 def get_loss(loss_name, loss_type, loss_params):
-    if loss_name in loss_dict:
-        if loss_type in loss_dict[loss_name]:
-            return loss_dict[loss_name][loss_type](**loss_params)
-    raise Exception("None loss named " + loss_name + " " + loss_type)
+	if loss_name in loss_dict:
+		if loss_type in loss_dict[loss_name]:
+			return loss_dict[loss_name][loss_type](**loss_params)
+	raise Exception("None loss named " + loss_name + " " + loss_type)
 
 

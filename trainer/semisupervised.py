@@ -68,10 +68,7 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 	def train(self, sess, dataset, model):
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		sess.run(tf.global_variables_initializer())
-
 		self.train_initialize(sess, model)
-
 
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
@@ -87,7 +84,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 			t.start()
 
 
-
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.checkpoint_dir):
 				print("Continue Train...")
@@ -97,12 +93,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 		else:
 			step = 0
 
-
 		while True:
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
 				self.su_epoch = epoch
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y, log_disp=False)
+				step = self.train_inner_step(epoch, model, dataset, batch_x, batch_y, log_disp=False)
 				self.log(step)
 				if step > int(self.config['train steps']):
 					break
@@ -111,15 +106,13 @@ class SemiSupervisedTrainer(BaseTrainer):
 			for i in range(self.unsupervised_step):
 				epoch, batch_x = self.unsupervised_image_queue.get()
 				self.unsu_epoch = epoch
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, log_disp=False)
+				step = self.train_inner_step(epoch, model, dataset, batch_x, log_disp=False)
 				self.log(step)
 				if step > int(self.config['train steps']):
 					break
 
 			if step > int(self.config['train steps']):
-
 				break
-
 
 
 		self.coord.request_stop()

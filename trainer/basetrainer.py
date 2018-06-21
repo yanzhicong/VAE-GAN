@@ -84,6 +84,7 @@ class BaseTrainer(object):
 
 
 	def train_initialize(self, sess, model):
+		self.sess = sess
 		sess.run(tf.global_variables_initializer())
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.checkpoint_dir):
@@ -92,25 +93,24 @@ class BaseTrainer(object):
 				print("Load Checkpoint Failed")
 
 
-	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None, log_disp=True):
+	def train_inner_step(self, epoch, model, validate_dataset, batch_x, batch_y=None, log_disp=True):
 		'''
 			the inner function for train a batch of images,
 			input :
 				epoch, batch_x, batch_y : train batch,
-				sess : tensorflow run time Session
 				model : 
-				dataset :
+				dataset : 
 			return :
 				the current train step
 		'''
 
 		if batch_y is None:
-			step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
+			step, lr, loss, summary = model.train_on_batch_unsupervised(self.sess, batch_x)
 			self.unsu_step = step
 			self.unsu_lr = lr
 			self.unsu_loss = loss
 		else:
-			step, lr, loss, summary = model.train_on_batch_supervised(sess, batch_x, batch_y)
+			step, lr, loss, summary = model.train_on_batch_supervised(self.sess, batch_x, batch_y)
 			self.su_step = step
 			self.su_lr = lr
 			self.su_loss = loss
@@ -122,16 +122,16 @@ class BaseTrainer(object):
 			print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step-1, lr, loss))
 
 		if self.summary_steps != 0 and step % self.summary_steps == 1:
-			summary = model.summary(sess)
+			summary = model.summary(self.sess)
 			if summary:
 				self.summary_writer.add_summary(summary, step-1)
 
 		if self.save_steps != 0 and step % self.save_steps == 1:
-			model.checkpoint_save(sess, self.checkpoint_dir, step-1)
+			model.checkpoint_save(self.sess, self.checkpoint_dir, step-1)
 
 		for validator_steps, validator in self.validator_list:
 			if validator_steps != 0 and step % validator_steps == 1:
-				summary = validator.validate(model, dataset, sess, step-1)
+				summary = validator.validate(model, validate_dataset, self.sess, step-1)
 
 				if summary is not None:
 					self.summary_writer.add_summary(summary, step-1)

@@ -98,20 +98,29 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		self.xtest = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
 
+		###########################################################################
+		# network define
 
+		# x_encoder : x -> hx
 		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.config, self.is_training,
 					net_name='EncoderSimpleX')
-
+		# hx_y encoder : hx, y -> distribution(z)
 		self.hx_y_encoder = get_encoder(self.config['hx_y encoder'], self.config['hx_y encoder params'], self.config, self.is_training,
 					net_name='EncoderSimpleHXY')
-
+		# hx classifier : hx -> y
 		self.hx_classifier = get_classifier(self.config['hx classifier'], self.config['hx classifier params'], self.config, self.is_training)
 
+		# decoder : z -> x
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
 
 		###########################################################################
 		# for supervised training:
-
+		# 
+		# xl --> hxl --> yl ==> cross entropy loss
+		# 		  |		 |
+		#		[hxl,    yl] --> mean_zl, log_var_zl ==> kl loss
+		#					   		  |
+		# 					   		  sample_zl --> xl_decode ==> reconstruction loss
 		hxl = self.x_encoder(self.xl, reuse=False)
 
 		yl_logits, end_points = self.hx_classifier(hxl, reuse=False)
@@ -119,27 +128,36 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		hx_yl = tf.concat([hxl, self.yl], axis=1)
 
-		mean_z, log_var_z = self.hx_y_encoder(hx_yl, reuse=False)
+		mean_zl, log_var_zl = self.hx_y_encoder(hx_yl, reuse=False)
 
-		z_sample_l = mean_z + tf.exp(log_var_z / 2) * self.eps
+		sample_zl = mean_zl + tf.exp(log_var_zl / 2) * self.eps
 
-		x_decode = self.decoder(z_sample_l, reuse=False)
+		xl_decode = self.decoder(sample_zl, reuse=False)
 
 
-
-		self.su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z})
+		self.su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_zl, 'log_var' : log_var_zl})
 								* self.config.get('loss kl z prod', 1.0))
-		self.su_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : x_decode})
+		self.su_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : xl_decode})
 								* self.config.get('loss recon prod', 1.0))
 		self.su_loss_cls = (get_loss('classification', 'cross entropy', {'logits' : yl_logits, 'labels' : self.yl})
 								* self.config.get('loss cls prod', 1.0))
-		self.su_loss = self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls
 
-		# sel
+		self.su_loss = self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls
 
 
 		###########################################################################
 		# for unsupervised training:
+		#
+		# xu --> hxu --> yu
+		# 		  |       
+		#       [hxu,    y0] --> mean_zu0, log_var_zu0 ==> kl_loss * yu[0]
+		# 		  |						|
+		#		  |					sample_zu0 --> xu_decode0 ==> reconstruction loss * yu[0]
+		#		  |
+		#       [hxu,    y1] --> mean_zu1, log_var_zu1 ==> kl_loss * yu[1]
+		#		  |						|
+		#		  |					sample_zu1 --> xu_decode1 ==> reconstruction loss * yu[1]
+		#		.......
 
 		hxu = self.x_encoder(self.xu, reuse=True)
 		yu_logits, end_points = self.hx_classifier(hxu, reuse=True)
@@ -157,23 +175,27 @@ class SemiDeepGenerativeModel(BaseModel):
 			y_fake = tf.one_hot(y_fake, depth=self.nb_classes)
 			hx_yf = tf.concat([hxu, y_fake], axis=1)
 
-			mean_z, log_var_z = self.hx_y_encoder(hx_yf, reuse=True)
+			mean_zu, log_var_zu = self.hx_y_encoder(hx_yf, reuse=True)
 
-			z_sample_u = mean_z = tf.exp(log_var_z / 2) * self.eps2[:, :, i]
+			sample_zu = mean_zu = tf.exp(log_var_zu / 2) * self.eps2[:, :, i]
 
-			x_decode_u = self.decoder(z_sample_u, reuse=True)
+			xu_decode = self.decoder(sample_zu, reuse=True)
 
 			unsu_loss_kl_z_list.append(
-				get_loss('kl', 'gaussian', {'mean' : mean_z, 'log_var' : log_var_z}) * yu_probs[:, i]
+				get_loss('kl', 'gaussian', {'mean' : mean_zu, 
+											'log_var' : log_var_zu, 
+											'instance_weight' : yu_probs[:, i] })
 			)
 			unsu_loss_recon_list.append(
-				get_loss('reconstruction', 'mse', {'x' : self.xu, 'y' : x_decode_u}) * yu_probs[:, i]
+				get_loss('reconstruction', 'mse', {	'x' : self.xu, 
+													'y' : xu_decode,
+													'instance_weight' : yu_probs[:, i]})
 			)
 
-		self.unsu_loss_kl_z = tf.reduce_sum(unsu_loss_kl_z_list)
-		self.unsu_loss_kl_z *= self.config.get('loss kl z prod', 1.0)
-		self.unsu_loss_recon = tf.reduce_sum(unsu_loss_recon_list)
-		self.unsu_loss_recon *= self.config.get('loss recon unsupervised prod', 1.0)
+		self.unsu_loss_kl_z = (tf.reduce_sum(unsu_loss_kl_z_list)
+								* self.config.get('loss kl z prod', 1.0))
+		self.unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
+								* self.config.get('loss recon prod', 1.0))
 
 		self.unsu_loss = self.unsu_loss_kl_y + self.unsu_loss_kl_z + self.unsu_loss_recon
 

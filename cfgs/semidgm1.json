@@ -9,7 +9,7 @@
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm2/semidgm1",
+    "assets dir" : "assets/semidgm/semidgm1",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {

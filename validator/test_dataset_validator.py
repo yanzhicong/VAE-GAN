@@ -1,3 +1,27 @@
+# -*- coding: utf-8 -*-
+# MIT License
+# 
+# Copyright (c) 2018 ZhicongYan
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ==============================================================================
+
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,8 +46,6 @@ class ScatterPlotValidator(object):
 		self.watch_variable = config.get('watch_variable', 'pred')
 
 
-
-
 	def validate(self, model, dataset, sess, step):
 
 		x_pos_array = []
@@ -31,7 +53,6 @@ class ScatterPlotValidator(object):
 		label_array = []
 
 		for ind, batch_x, batch_y in dataset.iter_test_images():
-			
 
 			if self.watch_variable == 'pred':
 				y_pred = model.predict(sess, batch_y)
@@ -78,8 +99,6 @@ class ScatterPlotValidator(object):
 			plt.scatter(x_pos_array, y_pos_array, c=label_array)
 			plt.colorbar()
 			plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
-
-
 		pass
 
 

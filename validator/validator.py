@@ -24,7 +24,6 @@
 
 
 def get_validator(name, config):
-    
     if name == 'hidden_variable_validator':
         from .hidden_variable_validator import HiddenVariableValidator
         return HiddenVariableValidator(config)

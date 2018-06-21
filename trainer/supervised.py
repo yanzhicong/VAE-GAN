@@ -48,11 +48,11 @@ class SupervisedTrainer(object):
 			self.train_data_queue = queue.Queue(maxsize=5)
 			self.train_data_inner_queue = queue.Queue(maxsize = self.batch_size * 3)
 
-
-
 	def train(self, sess, dataset, model):
 
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		
+		self.train_initialize(sess, model)
 
 		# if in multi thread model, start threads for read data
 		if self.multi_thread:
@@ -63,12 +63,6 @@ class SupervisedTrainer(object):
 											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'supervised'))]
 			for t in threads:
 				t.start()
-
-		if self.config.get('continue train', False):
-			if model.checkpoint_load(sess, self.checkpoint_dir):
-				print("Continue Train...")
-			else:
-				print("Load Checkpoint Failed")
 
 
 		if self.multi_thread : 

@@ -33,9 +33,7 @@ import tensorflow as tf
 
 from validator.validator import get_validator
 
-
 from .basetrainer import BaseTrainer
-
 
 
 class UnsupervisedTrainer(BaseTrainer):
@@ -43,41 +41,20 @@ class UnsupervisedTrainer(BaseTrainer):
 		self.config = config
 		self.model = model
 
-		super(UnsupervisedTrainer, self).__init__(model)
-
-from .basetrainer import BaseTrainer
-
-
-
-class UnsupervisedTrainer(BaseTrainer):
-	def __init__(self, config, model):
-		self.config = config
-		self.model = model
-
-		super(UnsupervisedTrainer, self).__init__(model)
+		super(UnsupervisedTrainer, self).__init__(config, model)
 
 
 	def train(self, sess, dataset, model):
 
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		sess.run(tf.global_variables_initializer())
-
-		if self.config.get('continue train', False):
-			if model.checkpoint_load(sess, self.checkpoint_dir):
-				print("Continue Train...")
-			else:
-				print("Load Checkpoint Failed")
-			step = -1
-		else:
-			step = 0
+		
+		self.train_initialize(sess, model)
 
 		epoch = 0
 
 		while True:
 			for index, batch_x in dataset.iter_train_images_unsupervised():
-
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
-
+				step = self.train_inner_step(epoch, model, dataset, batch_x)
 				if step > int(self.config['train steps']):
 					return
 			epoch += 1

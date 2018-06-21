@@ -29,9 +29,7 @@ import gzip
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-
 from keras.utils import to_categorical
-
 
 from .basedataset import BaseDataset
 

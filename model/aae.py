@@ -33,9 +33,9 @@ import numpy as np
 
 from math import sin, cos, sqrt
 
-from utils.sample import get_sampler
-from utils.learning_rate import get_global_step
-from utils.loss import get_loss
+from netutils.sample import get_sampler
+from netutils.learning_rate import get_global_step
+from netutils.loss import get_loss
 
 from .base_model import BaseModel
 

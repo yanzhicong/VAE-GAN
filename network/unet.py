@@ -31,9 +31,9 @@ sys.path.append('../')
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-from utils.weightsinit import get_weightsinit
-from utils.activation import get_activation
-from utils.normalization import get_normalization
+from netutils.weightsinit import get_weightsinit
+from netutils.activation import get_activation
+from netutils.normalization import get_normalization
 
 from .base_network import BaseNetwork
 

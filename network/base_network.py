@@ -28,14 +28,18 @@ import sys
 sys.path.append('./')
 sys.path.append('../')
 
+from cfgs.networkconfig import get_config
+
 import tensorflow as tf
 from tensorflow import layers as tl
 import tensorflow.contrib.layers as tcl
 import numpy as np
+from tensorflow.python import pywrap_tensorflow
 
-from utils.weightsinit import get_weightsinit
-from utils.activation import get_activation
-from utils.normalization import get_normalization
+
+from netutils.weightsinit import get_weightsinit
+from netutils.activation import get_activation
+from netutils.normalization import get_normalization
 
 class BaseNetwork(object):
 	def __init__(self, config, is_training):
@@ -330,6 +334,8 @@ class BaseNetwork(object):
 			self.end_points[name] = x
 		return x
 
+	
+
 	def upsample2d(self, name, x, size):
 		# tf.resize_images
 		pass
@@ -410,4 +416,32 @@ class BaseNetwork(object):
 		return False
 
 
-	
+	def load_pretrained_model_weights(self, sess, cfg, network_name, only_bottom=True):
+		config_file = get_config(cfg)
+		asset_filepath = config_file['assets dir']
+		ckpt_path = os.path.join(asset_filepath, config_file["trainer params"].get("checkpoint dir", "checkpoint"))
+		ckpt_name = ''
+		with open(os.path.join(ckpt_path, 'checkpoint'), 'r') as infile:
+			for line in infile:
+				if line.startswith('model_checkpoint_path'):
+					ckpt_name = line[len("model_checkpoint_path: \""):-2]
+		checkpoint_path = os.path.join(ckpt_path, ckpt_name)
+
+		print("Load checkpoint : ", checkpoint_path)
+		reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
+		var_to_shape_map = reader.get_variable_to_shape_map()
+
+		assign_list = []
+		var_list = self.all_vars
+		var_dict = {var.name.split(':')[0] : var for var in var_list}
+
+		for key in var_to_shape_map:
+			if key.startswith(network_name):
+				if only_bottom and 'fc' in key:
+					continue
+				var_name = self.name + '/' + key[len(network_name)+1:]
+				assign_list.append(tf.assign(var_dict[var_name], reader.get_tensor(key)))
+
+		assign_op = tf.group(assign_list)
+		sess.run(assign_op)
+		return True

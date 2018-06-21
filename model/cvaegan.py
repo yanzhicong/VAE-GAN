@@ -34,7 +34,7 @@ from decoder.decoder import get_decoder
 from classifier.classifier import get_classifier
 from discriminator.discriminator import get_discriminator
 
-from utils.sample import get_sample
+from netutils.sample import get_sample
 
 from .base_model import BaseModel
 

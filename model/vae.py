@@ -39,12 +39,12 @@ from classifier.classifier import get_classifier
 from discriminator.discriminator import get_discriminator
 
 
-from utils.learning_rate import get_learning_rate
-from utils.learning_rate import get_global_step
-from utils.optimizer import get_optimizer
-from utils.optimizer import get_optimizer_by_config
-from utils.sample import get_sample
-from utils.loss import get_loss
+from netutils.learning_rate import get_learning_rate
+from netutils.learning_rate import get_global_step
+from netutils.optimizer import get_optimizer
+from netutils.optimizer import get_optimizer_by_config
+from netutils.sample import get_sample
+from netutils.loss import get_loss
 
 from .base_model import BaseModel
 

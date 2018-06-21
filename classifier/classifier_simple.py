@@ -31,9 +31,9 @@ import tensorflow.contrib.layers as tcl
 
 sys.path.append('../')
 
-from utils.weightsinit import get_weightsinit
-from utils.activation import get_activation
-from utils.normalization import get_normalization
+from netutils.weightsinit import get_weightsinit
+from netutils.activation import get_activation
+from netutils.normalization import get_normalization
 
 from network.base_network import BaseNetwork
 
@@ -48,6 +48,8 @@ class ClassifierSimple(BaseNetwork):
 		elif self.base_network == 'resnet':
 			from network.resnet import Resnet
 			self.network = Resnet(config, is_training)
+		else:
+			raise ValueError("no base network named " + self.base_network )
 		
 	def __call__(self, i):
 		x, end_points = self.network(i)
@@ -59,3 +61,4 @@ class ClassifierSimple(BaseNetwork):
 
 	def load_pretrained_weights(self, sess):
 		return self.network.load_pretrained_weights(sess)
+	

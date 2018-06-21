@@ -155,7 +155,7 @@ class VGG(BaseNetwork):
 
 
 	def __load_pretrained_h5py_weights(self, sess, weights_h5_fp):
-		var_list = self.vars
+		var_list = self.all_vars
 		var_dict = {var.name.split(':')[0] : var for var in var_list}
 		import h5py
 		f = h5py.File(weights_h5_fp, mode='r')
@@ -202,19 +202,28 @@ class VGG(BaseNetwork):
 
 	def load_pretrained_weights(self, sess):
 		pretrained_weights = self.config.get('load pretrained weights', '')
-		if pretrained_weights == 'vgg16':
-			weights_h5_fp = self.find_pretrained_weights_path('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5')
+
+		w_name = pretrained_weights.split(' ')[0]
+		print(w_name)
+
+		if w_name == 'vgg16':
+			weights_h5_fp = self.find_pretrained_weights_path('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5', throw_not_found_error=True)
 			if weights_h5_fp is not None:
 				self.__load_pretrained_h5py_weights(sess, weights_h5_fp)
 				return True
 			else:
 				return False
-		elif pretrained_weights == 'vgg19':
-			weights_h5_fp = self.find_pretrained_weights_path('vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5')
+		elif w_name == 'vgg19':
+			weights_h5_fp = self.find_pretrained_weights_path('vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5', throw_not_found_error=True)
 			if weights_h5_fp is not None:
 				self.__load_pretrained_h5py_weights(sess, weights_h5_fp)
 				return True
 			else:
 				return False
+
+		elif w_name == 'config':
+			config_path = pretrained_weights.split(' ')[1]
+			config_network_name = pretrained_weights.split(' ')[2]
+			return self.load_pretrained_model_weights(sess, config_path, config_network_name)
 		else:
 			return False

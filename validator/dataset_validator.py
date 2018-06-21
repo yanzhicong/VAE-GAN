@@ -36,7 +36,7 @@ sys.path.append('../')
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-from utils.metric import get_metric
+from netutils.metric import get_metric
 
 from .base_validator import BaseValidator
 

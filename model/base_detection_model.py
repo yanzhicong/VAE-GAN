@@ -31,8 +31,8 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-from utils.learning_rate import get_global_step
-from utils.loss import get_loss
+from netutils.learning_rate import get_global_step
+from netutils.loss import get_loss
 
 from .base_model import BaseModel
 

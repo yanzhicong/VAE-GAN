@@ -90,6 +90,12 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		self.val_imagelist_fp = os.path.join(self.extra_fp, 'val_' + self.stage + '.csv')
 		self.test_imagelist_fp = os.path.join(self.extra_fp, 'test_' + self.stage + '.csv')
 
+		self.round1_train1_dir = "guangdong_round1_train1_20180903"
+		self.round1_train2_dir = "guangdong_round1_train2_20180916"
+		self.round1_crop1_dir = "guangdong_round1_crop1"
+		if not os.path.exists(os.path.join(self._dataset_dir, self.round1_crop1_dir)):
+			os.mkdir(os.path.join(self._dataset_dir, self.round1_crop1_dir))
+
 		if not os.path.exists(self.train_imagelist_fp) or not os.path.exists(self.val_imagelist_fp):
 			self.__build_train_csv_files(self.stage)
 		if not os.path.exists(self.test_imagelist_fp):
@@ -108,12 +114,13 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		if not self.mil:
 			if method == 'supervised':
 				image, image_label = super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
-				if self.one_hot:
-					normal = int(1 - np.max(image_label))
-					image_label = [normal, ] + [int(i) for i in image_label]
-					image_label = np.array(image_label)
-				else:
-					image_label = np.array(image_label)
+				if image_label is not None:
+					if self.one_hot:
+						normal = int(1 - np.max(image_label))
+						image_label = [normal, ] + [int(i) for i in image_label]
+						image_label = np.array(image_label)
+					else:
+						image_label = np.array(image_label)
 				return image, image_label
 			else:
 				return super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
@@ -135,8 +142,10 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		if img is None:
 			return None, None if method == 'supervised' else None
 
-		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
-		area_img = self.crop_and_reshape_image_area(img, area, fixed_height=self.area_height)
+		# area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
+		# area_img = self.crop_and_reshape_image_area(img, area, fixed_height=self.area_height)
+
+		area_img = self.flexible_scale(img, min_h=self.area_height, min_w=self.area_height)
 
 		area_img = area_img.astype(np.float32) / 255.0
 		self.scale_output(area_img)
@@ -319,25 +328,25 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 				data['val_image_list'] += [img_list[i] for i in val_indices]
 				data['val_label_list'] += [lbl_list[i] for i in val_indices]
 
-			normal_image_list = os.listdir(os.path.join(self._dataset_dir, 'guangdong_round1_train2_20180916', '无瑕疵样本'))
-			normal_image_list = [os.path.join('guangdong_round1_train2_20180916', '无瑕疵样本', fn) for fn in normal_image_list if '.jpg' in fn]
+			normal_image_list = os.listdir(os.path.join(self._dataset_dir, self.round1_train2_dir, '无瑕疵样本'))
+			normal_image_list = [os.path.join(self.round1_train2_dir, '无瑕疵样本', fn) for fn in normal_image_list if '.jpg' in fn]
 			normal_label_list = [0 for img in normal_image_list]
 			split(normal_image_list, normal_label_list, data, train_val_split)
 
 			for i in range(1, 11):
-				image_path = os.path.join(self._dataset_dir, 'guangdong_round1_train2_20180916', '瑕疵样本', self.class_id2name[i])
+				image_path = os.path.join(self._dataset_dir, self.round1_train2_dir, '瑕疵样本', self.class_id2name[i])
 				abnormal_image_list = os.listdir(image_path)
-				abnormal_image_list = [os.path.join('guangdong_round1_train2_20180916', '瑕疵样本', self.class_id2name[i], fn) for fn in abnormal_image_list if '.jpg' in fn]
+				abnormal_image_list = [os.path.join(self.round1_train2_dir, '瑕疵样本', self.class_id2name[i], fn) for fn in abnormal_image_list if '.jpg' in fn]
 				abnormal_label_list = [i for img in abnormal_image_list]
 				split(abnormal_image_list, abnormal_label_list, data, train_val_split)
 
 	
-			others_image_path = os.path.join(self._dataset_dir, 'guangdong_round1_train2_20180916', '瑕疵样本', self.class_id2name[11])
+			others_image_path = os.path.join(self._dataset_dir, self.round1_train2_dir, '瑕疵样本', self.class_id2name[11])
 			others_image_list = []
 			others_label_list = []
 			for other_cls in os.listdir(others_image_path):
 				if os.path.isdir(os.path.join(others_image_path, other_cls)):
-					image_path = os.path.join(self._dataset_dir, 'guangdong_round1_train2_20180916', '瑕疵样本', self.class_id2name[11], other_cls)
+					image_path = os.path.join(self._dataset_dir, self.round1_train2_dir, '瑕疵样本', self.class_id2name[11], other_cls)
 					image_list = os.listdir(image_path)
 					image_list = [os.path.join('guangdong_round1_train2_20180916', '瑕疵样本', self.class_id2name[11], other_cls, fn) for fn in image_list if '.jpg' in fn]
 					others_image_list += image_list
@@ -407,3 +416,19 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 						outfile.write(img_fp + ',defect%d\n'%max_class_id)
 					else:
 						outfile.write(img_fp + ',norm\n')
+
+
+
+	@property
+	def dataset_dir(self):
+		return self._dataset_dir
+
+	def class_dir(self, stage, class_id):
+		if stage == 'round1_train2':
+			if class_id == 0:
+				return os.path.join(self._dataset_dir, self.round1_train2_dir, "无瑕疵样本")
+			else:
+				return os.path.join(self._dataset_dir, self.round1_train2_dir, "瑕疵样本", self.class_id2name[class_id])
+
+		elif stage == 'round1_crop1':
+			return os.path.join(self._dataset_dir, self.round1_crop1_dir, self.class_id2name[class_id])

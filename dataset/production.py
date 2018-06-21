@@ -199,7 +199,7 @@ class ChipProduction(BaseDataset):
 		'''
 		create new subapp = normal(log(sub0 + 1) - log(sub1+1), 0, 255.99)
 		'''
-		# from utils.utils import normal
+		# from netutils.netutils import normal
 		composed_image = self.normal(np.log(sub0.astype(np.float32) + 1) - np.log(sub1.astype(np.float32) + 1),
 								0, 255.99)
 		return composed_image

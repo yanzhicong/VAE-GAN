@@ -83,6 +83,11 @@ class ImageNet(BaseDataset):
 		pickle.dump(self.index2classid_dict, open(os.path.join(self.extra_file_path, 'index2classid_dict.pkl'), 'wb'))
 
 
+	def __build_csv_files(self, imageset_file_name, train_val_split=0.1):
+
+		if self.task == 'classification':
+			pass
+
 	def load_classification_train_set(self, phase, imageset_file_name):
 		x_pickle_filepath = os.path.join(self.extra_file_path, self.task + '_' + imageset_file_name + '_x.pkl')
 		y_pickle_filepath = os.path.join(self.extra_file_path, self.task + '_' + imageset_file_name + '_y.pkl')
@@ -169,14 +174,16 @@ class ImageNet(BaseDataset):
 				batch_y = []
 
 
-	def get_train_indices(self):
-		file_index = np.arange(len(self.x_train))
-		if self.shuffle_train:
-			np.random.shuffle(file_index)
-		return file_index
+	def get_image_indices(self, phase='train', method='supervised'):
+		if phase in ['train']:
+			file_index = np.arange(len(self.x_train))
+			if self.shuffle_train:
+				np.random.shuffle(file_index)
+			return file_index
+		# elif phase in ['val']:
 
 
-	def read_train_image_by_index(self, index):
+	def read_image_by_index(self, ind, ):
 			train_image_filepath = os.path.join(self.data_dir, self.x_train[index])
 			train_image_label = np.zeros((self.nb_classes,))
 			train_image_label[self.y_train[index]] = 1

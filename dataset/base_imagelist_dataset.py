@@ -27,7 +27,7 @@ import os
 import numpy as np
 from skimage import io
 import cv2
-
+from time import *
 from .base_dataset import BaseDataset
 
 
@@ -37,7 +37,7 @@ class BaseImageListDataset(BaseDataset):
 	this dataset class is just for classification
 
 	Optional params in @params.config:
-		'flexible scaling' : if set to True, the image will be resize to just fit the output shape, while keeping w/h ratio the same
+		"flexible scale" : if set to True, the image will be resize to just fit the output shape, while keeping w/h ratio the same
 		"random scale" : if set to True, the image will be randomly resized after flexible scaling
 		"random mirror" : 
 		"random crop" : 
@@ -51,13 +51,13 @@ class BaseImageListDataset(BaseDataset):
 
 		assert('output shape' in config)
 
-		self.is_flexible_scaling = self.config.get('flexible scaling', True)
+		self.is_flexible_scaling = self.config.get("flexible scale", True)
 		self.is_random_scaling = self.config.get("random scale", True)
 		self.is_random_mirroring = self.config.get("random mirror", True)
 		self.is_random_cropping = self.config.get("random crop", True)
 		self.is_random_rotate = self.config.get("random rotate", True)
-		self.scaling_range = self.config.get('scaling range', [1.0, 1.5])
-		self.crop_range = self.config.get('crop range', [0.4, 0.6])
+		self.scaling_range = self.config.get('scaling range', [1.0, 2.0])
+		self.crop_range = self.config.get('crop range', [0.0, 1.0])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
 		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
 
@@ -70,6 +70,9 @@ class BaseImageListDataset(BaseDataset):
 		# self.multiple_classes = self.config.get('multiple classes', False)
 
 		self.show_warning = self.config.get('show warning', False)
+		self.use_cache = self.config.get("use cache", False)
+
+		self.image_cache_dict = dict()
 		assert(self.output_c in [1, 3])
 
 		# please fill the following field in the drived dataset class
@@ -89,6 +92,15 @@ class BaseImageListDataset(BaseDataset):
 											# line 4 : image3.jpg,0  ->  the class_index
 		self.nb_classes = None
 		self.multiple_categories = False
+
+
+		####################################################
+		# self.time1 = 0.0
+		# self.time2 = 0.0
+		# self.time3 = 0.0
+		# self.time4 = 0.0
+		# self.count = 0
+		####################################################
 
 
 	def build_dataset(self):
@@ -167,7 +179,7 @@ class BaseImageListDataset(BaseDataset):
 				np.random.shuffle(indices)
 			return indices
 
-	def _get_image_path_and_label(self, ind, phase='train', method='supervised'):
+	def get_image_path_and_label(self, ind, phase='train', method='supervised'):
 		# get image path and label
 		if phase == 'train':
 			image_fp = os.path.join(self._dataset_dir, self.train_images[ind])
@@ -177,6 +189,7 @@ class BaseImageListDataset(BaseDataset):
 			image_fp = os.path.join(self._dataset_dir, self.val_images[ind])
 			if method == 'supervised':
 				image_label = self.val_labels[ind]
+			print(image_fp)
 		elif phase == 'trainval':
 			if ind < len(self.train_images):
 				image_fp = os.path.join(self._dataset_dir, self.train_images[ind])
@@ -186,15 +199,31 @@ class BaseImageListDataset(BaseDataset):
 				image_fp = os.path.join(self._dataset_dir, self.val_images[ind - len(self.train_images)])
 				if method == 'supervised':
 					image_label = self.val_labels[ind - len(self.train_images)]
+			
 		elif phase == 'test':
 			assert method == 'unsupervised'
 			assert self.test_images != None
 			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
+			# print(image_fp)
 
 		if method=='supervised':
 			return image_fp, image_label  
 		else:
 			return image_fp
+
+	def _read_image(self, image_fp):
+
+		if self.use_cache:
+			if image_fp in self.image_cache_dict:
+				return self.image_cache_dict[image_fp]
+			else:
+				img = io.imread(image_fp)
+				if img is not None:
+					self.image_cache_dict[image_fp] = img
+				return img
+		else:
+			img = io.imread(image_fp)
+			return img
 
 
 	def _image_correct(self, img, image_fp):
@@ -237,22 +266,36 @@ class BaseImageListDataset(BaseDataset):
 		assert(phase in ['train', 'test', 'val', 'trainval'])
 		assert(method in ['supervised', 'unsupervised'])
 
+		# self.count += 1
+
 		if method == 'supervised':
-			image_fp, image_label = self._get_image_path_and_label(ind, phase, method)
+			image_fp, image_label = self.get_image_path_and_label(ind, phase, method)
 		else:
-			image_fp = self._get_image_path_and_label(ind, phase, method)
+			image_fp = self.get_image_path_and_label(ind, phase, method)
 		
 		# read image
+		# start = clock()
 		try:
-			img = io.imread(image_fp)
+			img = self._read_image(image_fp)
 			img = self._image_correct(img, image_fp)
 		except Exception as e:
 			if self.show_warning:
 				print('Warning : read image error : ' + str(e))
-			return None, None if method == 'supervised' else None
+			if method == 'supervised':
+				return None, None  
+			else:
+				return None
 
 		if img is None:
-			return None, None if method == 'supervised' else None
+			if method == 'supervised':
+				return None, None 
+			else:
+				return None
+
+		# end = clock()
+		# self.time1 += end - start
+		# print("time1 : ", self.time1 / self.count)
+
 
 		# preeprocess image and label
 		if phase in ['train', 'trainval']:
@@ -275,11 +318,14 @@ class BaseImageListDataset(BaseDataset):
 		if not self.multiple_categories:
 			image_label = self.to_categorical(int(image_label), self.nb_classes)
 
-		if phase in ['train', 'trainval']:
+		if phase in ['train', 'trainval'] and self.is_random_cropping:
 			img = self.random_crop_and_pad_image(img, size=self.output_shape, in_boundary=True, center_range=self.crop_range)
-		elif phase in ['val', 'test']:
+		elif phase in ['val', 'test'] and self.is_random_cropping:
 			img = self.random_crop_and_pad_image(img, size=self.output_shape, in_boundary=True, center_range=[0.5,0.5])
-
+	
 		img = self.scale_output(img)
 
-		return img, image_label if method == 'supervised' else img
+		if method == 'supervised':
+			return img, image_label 
+		else:
+			return img

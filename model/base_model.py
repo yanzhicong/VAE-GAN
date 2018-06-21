@@ -15,8 +15,8 @@ from generator.generator import get_generator
 from discriminator.discriminator import get_discriminator
 
 
-from utils.optimizer import get_optimizer_by_config
-from utils.learning_rate import get_global_step
+from netutils.optimizer import get_optimizer_by_config
+from netutils.learning_rate import get_global_step
 
 class BaseModel(object):
 
@@ -57,7 +57,7 @@ class BaseModel(object):
 
 
 	def load_pretrained_weights(self, sess):
-		pass
+		return False
 
 
 	#
@@ -132,7 +132,7 @@ class BaseModel(object):
 
 
 	#
-	#	utils functions for building model
+	#	netutils functions for building model
 	#
 	def _build_encoder(self, name, params=None):
 		net_config = self.config[name + ' params'].copy()

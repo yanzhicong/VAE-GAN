@@ -34,8 +34,8 @@ import tensorflow.contrib.layers as tcl
 # from classifier.classifier import get_classifier
 # from discriminator.discriminator import get_discriminator
 
-# from utils.sample import get_sample
-# from utils.loss import get_loss
+# from netutils.sample import get_sample
+# from netutils.loss import get_loss
 
 from .base_model import BaseModel
 

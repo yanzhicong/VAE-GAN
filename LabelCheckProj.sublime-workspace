@@ -320,18 +320,10 @@
 	},
 	"expanded_folders":
 	[
-		"/C/Documents/GAN/Projects/CVAEGAN",
-		"/C/Documents/GAN/Projects/CVAEGAN/network"
+		"/C/Documents/LabelCheckProj"
 	],
 	"file_history":
 	[
-		"/C/Documents/GAN/Projects/CVAEGAN/encoder/encoder_googlenet.py",
-		"/C/Documents/GAN/Projects/CVAEGAN/sftp-config.json",
-		"/C/Documents/GAN/Projects/CVAEGAN/network/base_network.py",
-		"/C/Documents/GAN/Projects/CVAEGAN/train.py",
-		"/C/Documents/GAN/Projects/CVAEGAN/netutils/optimizer.py",
-		"/C/Documents/GAN/Projects/CVAEGAN/netutils/learning_rate.py",
-		"/C/Documents/GAN/Projects/CVAEGAN/network/inception_v3.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/network/resnet.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/validator/embedding_validator.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/network/basenetwork.py",
@@ -397,6 +389,7 @@
 		"/C/Documents/GAN/Projects/CVAEGAN/network/inception_block.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/utils/metric.py",
 		"/C/Documents/GAN/Projects/ssl_bad_gan/pixelcnn.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/sftp-config.json",
 		"/C/Documents/GAN/Projects/CVAEGAN/validator/validator.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/utils/weightsinit.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/validator/dataset_validator.py",
@@ -415,6 +408,7 @@
 		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm1.json",
 		"/C/Documents/GAN/Projects/CVAEGAN/model/semi_dgm2.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/test/test_cifar10.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/train.py",
 		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm4/test_dataset_accuracy_top1.csv",
 		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm3.json",
 		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm10/test_dataset_accuracy_top1.csv",
@@ -452,11 +446,16 @@
 		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm4/test_dataset_accuracy_top1.csv",
 		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm3/test_dataset_accuracy_top1.csv",
 		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm5/config_file.json",
-		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm5/test_dataset_accuracy_top1.csv"
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm5/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm6/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm5/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm2/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm6/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm1/test_dataset_accuracy_top1.csv"
 	],
 	"find":
 	{
-		"height": 53.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -494,7 +493,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 53.0
+		"height": 22.0
 	},
 	"input":
 	{
@@ -532,10 +531,10 @@
 		"height": 116.0
 	},
 	"pinned_build_system": "",
-	"project": "VAE-GAN.sublime-project",
+	"project": "LabelCheckProj.sublime-project",
 	"replace":
 	{
-		"height": 102.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":

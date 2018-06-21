@@ -28,6 +28,7 @@ import sys
 sys.path.append('./')
 sys.path.append('../')
 
+import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 from .base_network import BaseNetwork
@@ -55,20 +56,21 @@ class Resnet(BaseNetwork):
 		"""
 		nb_filter1, nb_filter2, nb_filter3 = filters
 		conv_name_base = 'res' + str(stage) + block + '_branch'
+		normalization = self.config.get("normalization", "batch_norm")
 
 		x = self.conv2d(conv_name_base+'2a', input_tensor, 
 						nb_filter1, 1, stride=1, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='relu', disp=self.debug)
 
 		x = self.conv2d(conv_name_base+'2b', x, 
 						nb_filter2, kernel_size, stride=1, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='relu', disp=self.debug)
 		
 		x = self.conv2d(conv_name_base+'2c', x, 
-						nb_filter3, kernel_size, stride=1, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						nb_filter3, 1, stride=1, 
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='none', disp=self.debug)
 				
 		x = tf.add(x, input_tensor)
@@ -92,24 +94,26 @@ class Resnet(BaseNetwork):
 		nb_filter1, nb_filter2, nb_filter3 = filters
 		conv_name_base = 'res' + str(stage) + block + '_branch'
 
+		normalization = self.config.get("normalization", "batch_norm")
+
 		x = self.conv2d(conv_name_base+'2a', input_tensor, 
 						nb_filter1, 1, stride=stride, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='relu', disp=self.debug)
 
 		x = self.conv2d(conv_name_base+'2b', x, 
 						nb_filter2, kernel_size, stride=1, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='relu', disp=self.debug)
 		
 		x = self.conv2d(conv_name_base+'2c', x, 
-						nb_filter3, kernel_size, stride=1, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						nb_filter3, 1, stride=1, 
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='none', disp=self.debug)
 
 		shortcut = self.conv2d(conv_name_base+'1', input_tensor, 
 						nb_filter3, 1, stride=stride, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='none', disp=self.debug)
 				
 		x = tf.add(x, shortcut)
@@ -121,7 +125,9 @@ class Resnet(BaseNetwork):
 
 		# fully connected parameters
 		including_top = self.config.get("including top", True)
-		fc_nb_nodes = self.config.get("fc nb nodes", [1024, 1024])
+		fc_nb_nodes = self.config.get("fc nb nodes",[])
+
+		normalization = self.config.get("normalization", "batch_norm")
 
 		# output stage parameters
 		output_dims = self.config.get("output dims", 0)  # zero for no output layer
@@ -140,7 +146,7 @@ class Resnet(BaseNetwork):
 
 			# Stage 1
 			x = self.conv2d('conv1', x, 64, 7, stride=2, 
-						norm_fn='fused_batch_norm', norm_params=self.norm_params,
+						norm_fn=normalization, norm_params=self.norm_params,
 						act_fn='relu', disp=self.debug)
 			x = self.maxpool2d('pool1', x, 3, stride=2, disp=self.debug)
 
@@ -179,6 +185,7 @@ class Resnet(BaseNetwork):
 
 			# construct top fully connected layer
 			if including_top: 
+				x = tf.reduce_mean(x, axis=[1, 2])
 				x = tcl.flatten(x)
 				for ind, nb_nodes in enumerate(fc_nb_nodes):
 					x = self.fc('fc%d'%(ind+1), x, nb_nodes, **self.fc_args, disp=self.debug)
@@ -197,3 +204,95 @@ class Resnet(BaseNetwork):
 					x = self.conv2d('conv_out', x, output_dims, 1, stride=1, **self.out_fc_args, disp=self.debug)
 
 			return x, self.end_points
+
+
+	def __load_pretrained_h5py_weights(self, sess, weights_h5_fp):
+		var_list = self.all_vars
+		var_dict = {var.name.split(':')[0] : var for var in var_list}
+		import h5py
+		f = h5py.File(weights_h5_fp, mode='r')
+		if 'layer_names' not in f.attrs and 'model_weights' in f:
+			f = f['model_weights']
+		assign_list = []
+		for key, value in f.items():
+			if 'conv' in key and 'bn' in key:
+				bn_conv_ind = int(key[len('bn_conv'):])
+
+				for key2, value2 in value.items():
+					if 'beta' in key2:
+						var_name = self.name + '/conv' + str(bn_conv_ind) + '/BatchNorm/beta'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'gamma' in key2:
+						var_name = self.name + '/conv' + str(bn_conv_ind) + '/BatchNorm/gamma'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'running_mean' in key2:
+						var_name = self.name + '/conv' + str(bn_conv_ind) + '/BatchNorm/moving_mean'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'running_std' in key2:
+						var_name = self.name + '/conv' + str(bn_conv_ind) + '/BatchNorm/moving_variance'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+
+			elif 'conv' in key:
+				conv_ind = int(key[len('conv'):])
+				for key2, value2 in value.items():
+					if '_W_' in key2:
+						var_name = self.name + '/conv' + str(conv_ind) + '/kernel'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif '_b_' in key2:
+						var_name = self.name + '/conv' + str(conv_ind) + '/bias'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+
+			elif 'res' in key and 'branch' in key:
+				res_ind = ''
+				branch_ind = ''
+				for split in key.split('_'):
+					if 'res' in split:
+						res_ind = split[len('res'):]
+					if 'branch' in split:
+						branch_ind = split[len('branch'):]
+				for key2, value2 in value.items():
+					if '_W_' in key2:
+						var_name = self.name + '/res' + str(res_ind) + '_branch' + str(branch_ind) + '/kernel'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif '_b_' in key2:
+						var_name = self.name + '/res' + str(res_ind) + '_branch' + str(branch_ind) + '/bias'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+				
+			elif 'bn' in key and 'branch' in key:
+				bn_ind = ''
+				branch_ind = ''
+				for split in key.split('_'):
+					if 'bn' in split:
+						bn_ind = split[len('bn'):]
+					if 'branch' in split:
+						branch_ind = split[len('branch'):]
+
+				for key2, value2 in value.items():
+					if 'beta' in key2:
+						var_name = self.name + '/res' + str(bn_ind) + '_branch' + branch_ind + '/BatchNorm/beta'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'gamma' in key2:
+						var_name = self.name + '/res' + str(bn_ind) + '_branch' + branch_ind + '/BatchNorm/gamma'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'running_mean' in key2:
+						var_name = self.name + '/res' + str(bn_ind) + '_branch' + branch_ind + '/BatchNorm/moving_mean'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+					elif 'running_std' in key2:
+						var_name = self.name + '/res' + str(bn_ind) + '_branch' + branch_ind + '/BatchNorm/moving_variance'
+						assign_list.append(tf.assign(var_dict[var_name], np.array(value2)))
+
+		assign_op = tf.group(assign_list)
+		sess.run(assign_op)
+
+	def load_pretrained_weights(self, sess):
+		pretrained_weights = self.config.get('load pretrained weights', '')
+		if pretrained_weights == "resnet50":
+			weights_h5_fp = self.find_pretrained_weights_path('resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5')
+			if weights_h5_fp is not None:
+				self.__load_pretrained_h5py_weights(sess, weights_h5_fp)
+				return True
+			else:
+				return False
+		else:
+			return False
+

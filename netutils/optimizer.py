@@ -114,7 +114,7 @@ def get_optimizer_by_config(name, config, target, variables,
         optimize_op = tf.train.MomentumOptimizer(
                 learning_rate,
                 config['momentum'],
-                use_nesterov=config.get('use_nesterov', False)
+                use_nesterov=config.get('use_nesterov', True)
             ).minimize(target, var_list=variables)
 
     elif name == 'sgd':

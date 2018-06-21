@@ -44,8 +44,8 @@ class BaseMILDataset(BaseDataset):
 		output_h, output_w = output_shape[0:2]
 		image_h, image_w = img.shape[0:2]
 
-		nb_col = int(np.floor(image_w / output_w))
-		nb_row = int(np.floor(image_h / output_h))
+		nb_col = int(np.ceil(image_w / output_w))
+		nb_row = int(np.ceil(image_h / output_h))
 
 		step_h = float(image_h) / float(nb_row)
 		step_w = float(image_w) / float(nb_col)

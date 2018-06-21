@@ -27,8 +27,6 @@ import os
 import struct
 import gzip
 import numpy as np
-# import matplotlib.pyplot as plt
-# import pickle
 
 from .base_dataset import BaseDataset
 from .base_simple_dataset import BaseSimpleDataset

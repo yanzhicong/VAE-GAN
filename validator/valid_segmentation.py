@@ -34,7 +34,7 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import matplotlib.pyplot as plt
 
-from utils.metric import get_metric
+from netutils.metric import get_metric
 
 from .base_validator import BaseValidator
 

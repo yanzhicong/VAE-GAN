@@ -306,8 +306,17 @@ class BaseDataset(object):
 		else:
 			combined = img
 
-		center_h = int(np.random.uniform(center_range[0], center_range[1]) * h)
-		center_w = int(np.random.uniform(center_range[0], center_range[1]) * w)
+		
+		if in_boundary and crop_h <= h and crop_w <= w:
+			center_h = int(np.random.uniform(
+				float(crop_h) / 2.0 / float(h), 1.0 - float(crop_h) / 2.0 / float(h)
+			) * h)
+			center_w = int(np.random.uniform(
+				float(crop_w) / 2.0 / float(w), 1.0 - float(crop_w) / 2.0 / float(w)
+			) * w)
+		else:
+			center_h = int(np.random.uniform(center_range[0], center_range[1]) * h)
+			center_w = int(np.random.uniform(center_range[0], center_range[1]) * w)
 
 		x1 = int(center_w - crop_w / 2.0)
 		y1 = int(center_h - crop_h / 2.0)

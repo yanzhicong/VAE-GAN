@@ -31,8 +31,8 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-from utils.loss import get_loss
-from utils.metric import get_metric
+from netutils.loss import get_loss
+from netutils.metric import get_metric
 
 from .base_model import BaseModel
 
@@ -73,14 +73,6 @@ class Classification(BaseModel):
 
 		# for testing
 		self.probs = tf.nn.softmax(self.logits)
-		
-		# print('vars')
-		# for var in self.classifier.vars:
-		# 	print(var.name, ' --> ', var.get_shape())
-
-		# print('store_vars')
-		# for var in self.classifier.store_vars:
-		# 	print(var.name, ' --> ', var.get_shape())
 
 		self.global_step, self.global_step_update = self._build_step_var('global_step')
 	
@@ -110,6 +102,10 @@ class Classification(BaseModel):
 			self.endpoint_summary = tf.summary.merge(sum_list)
 		else:
 			self.endpoint_summary = None
+
+
+	def load_pretrained_weights(self, sess):
+		return self.classifier.load_pretrained_weights(sess)
 
 	'''
 		train operations

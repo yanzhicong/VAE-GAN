@@ -25,7 +25,7 @@
         "hx_dim" : 50,
 
         // optimizers config
-        // other optimizers are in utils/optimizer.py
+        // other optimizers are in netutils/optimizer.py
         "optimizer" : "rmsprop",
         "optimizer params" : {
             "lr" : 0.001,
@@ -37,7 +37,7 @@
         },
 
         // learning rate scheme
-        // other learning rate schemes are in utils/learning_rate.py
+        // other learning rate schemes are in netutils/learning_rate.py
 
         "summary" : true,
         "debug" : true,

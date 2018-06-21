@@ -15,9 +15,6 @@ if __name__ == '__main__':
 		"show warning" : True,
 	}
 
-
-
-
 	dataset = MSCOCO(config)
 	indices = dataset.get_image_indices('trainval')
 
@@ -28,6 +25,5 @@ if __name__ == '__main__':
 			plt.figure(0)
 			plt.clf()
 			dataset.show_image_and_anno(plt, img, anno)
-			# plt.imshow(img)
 			plt.pause(3)
 

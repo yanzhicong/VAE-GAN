@@ -35,10 +35,10 @@ import numpy as np
 from classifier.classifier import get_classifier
 
 
-from utils.optimizer import get_optimizer
-from utils.optimizer import get_optimizer_by_config
-from utils.loss import get_loss
-from utils.metric import get_metric
+from netutils.optimizer import get_optimizer
+from netutils.optimizer import get_optimizer_by_config
+from netutils.loss import get_loss
+from netutils.metric import get_metric
 
 from .base_model import BaseModel
 

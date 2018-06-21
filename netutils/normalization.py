@@ -33,7 +33,7 @@ from tensorflow.python.training import moving_averages
 def batch_norm(inputs,
 					decay=0.99,
 					center=True,
-					scale=False,
+					scale=True,
 					epsilon=0.001,
 					is_training=True,
 					moving_vars_collection=None,

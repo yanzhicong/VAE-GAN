@@ -10,14 +10,27 @@ from network.vgg import VGG
 
 if __name__ == '__main__':
 	config = {
-		"output dims" : 10,
+
+		"normalization" : "fused_batch_norm",
+
+		"including conv" : True,
+		"conv nb blocks" : 6,
+		"conv nb layers" : [2, 2, 3, 3, 3, 0],
+		"conv nb filters" : [64, 128, 256, 512, 512],
+		"conv ksize" : [3, 3, 3, 3, 3],
+
+		"including top" : True,
+		"fc nb nodes" : [1024, 1024],
+
+		"output dims" : 12,
 		'name' : 'VGG16',
-		'normalization' : 'fused_batch_norm',
-		'load pretrained weight' : 'vgg16'
+
+
+		'load pretrained weights' : 'config tianchi/guangdong3 classifier'
 	}
 
 	model = VGG(config, True)
-	x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
+	x = tf.placeholder(tf.float32, shape=(None, 256, 256, 3), name='input')
 	y, end_points = model(x)
 
 
@@ -27,13 +40,12 @@ if __name__ == '__main__':
 	for var in model.vars:
 		print(var.name, ' --> ', var.get_shape())
 
-	
-
-	
 	tfconfig = tf.ConfigProto()
 	tfconfig.gpu_options.allow_growth = True
 
 	with tf.Session(config=tfconfig) as sess:
-		model.load_pretrained_weights(sess)
+		ret = model.load_pretrained_weights(sess)
+
+		print(ret)
 
 

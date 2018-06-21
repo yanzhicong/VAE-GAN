@@ -3,38 +3,39 @@
 
     "dataset" : "tianchi guangdong defect",
     "dataset params" : {
-        "output shape" : [128, 128, 3],
-        "area height" : 384,
+        "output shape" : [256, 256, 3],
+        "area height" : 768,
         "one hot" : false,
-        "show warning" : false
+        "show warning" : false,
+        "use cache" : true
     },
 
-    "assets dir" : "assets/tianchi_guangdong/result3",
+    "assets dir" : "assets/tianchi_guangdong/result7",
 
     "model" : "attention_mil",
     "model params" : {
         "name" : "mnist",
 
-        "input shape" : [128, 128, 3],
+        "input shape" : [256, 256, 3],
         "z dims" : 500,
         "nb classes" : 11,
 
-        // "finetune steps": 10000,
+        "finetune steps": 10000,
 
-        // "finetune optimizer" : "sgd",
-        // "finetune optimizer params" : {
-        //     "lr" : 0.0001,
-        //     "lr scheme" : "exponential",
-        //     "lr params" : {
-        //         "decay_steps" : 70000,
-        //         "decay_rate" : 0.1
-        //     }
-        // },
+        "finetune optimizer" : "adam",
+        "finetune optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 70000,
+                "decay_rate" : 0.1
+            }
+        },
 
 
         "optimizer" : "adam",
         "optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.00001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 70000,
@@ -49,15 +50,15 @@
             "normalization" : "fused_batch_norm",
 
             "including conv" : true,
-            "conv nb blocks" : 5,
-            "conv nb layers" : [2, 2, 3, 3, 3],
+            "conv nb blocks" : 6,
+            "conv nb layers" : [2, 2, 3, 3, 3, 0],
             "conv nb filters" : [64, 128, 256, 512, 512],
             "conv ksize" : [3, 3, 3, 3, 3],
 
             "including top" : true,
             "fc nb nodes" : [1024, 1024],
 
-            "load pretrained weights" : "vgg16",
+            "load pretrained weights" : "config tianchi/guangdong3 classifier",
 
             "debug" : true
         },
@@ -86,10 +87,9 @@
             "including conv" : false,
 
             "including top" : true,
-            "fc nb nodes" : [600],
+            "fc nb nodes" : [],
 
             "has bias": false,
-
             "debug" : true
         }
     },

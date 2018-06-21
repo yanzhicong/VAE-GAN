@@ -1,50 +1,75 @@
+
 {
-    "config name" : "imagenet_inception_v3",
+    "config name" : "imagenet_resnet50",
 
     "dataset" : "imagenet",
     "dataset params" : {
-        "output shape" : [299, 299, 3]
+        "output shape" : [224, 224, 3]
     },
 
-    "assets dir" : "assets/imagenet/inception_v3",
+    "assets dir" : "assets/imagenet/resnet50",
 
     "model" : "classification",
     "model params" : {
-        "name" : "inception",
+        "name" : "imagenet",
 
-        "input shape" : [299, 299, 3],
-        "nb classes" : 1000,
+        "input shape" : [224, 224, 3],
+        "nb classes" : 12,
 
-        "optimizer" : "sgd",
+        "optimizer" : "adam",
         "optimizer params" : {
-            "lr" : 0.2,
-            "lr_scheme" : "exponential",
-            "lr_params" : {
-                "decay_steps" : 300000,
-                "decay_rate" : 0.5
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 70000,
+                "decay_rate" : 0.1
             }
         },
 
-        "classification loss" : "crossentropy",
+        "classification loss" : "cross entropy",
 
         "summary" : true,
- 
-        "classifier" : "GoogleNet",
+
+        "classifier" : "classifier",
         "classifier params" : {
-            "output dims" : 1000
+            "base network" : "resnet",
+
+            "architecture" : "resnet50",
+
+            "load pretrained weight" : "resnet50",
+            "debug" : true
         }
 
     },
 
     "trainer" : "supervised",
     "trainer params" : {
-        "continue train" : true,
+        "summary hyperparams string" : "lr_0_0001_adam",
+
         "multi thread" : true,
-        "batch_size" : 8,
-        "train steps" : 1000000,
-        "summary steps" : 30000,
-        "log steps" : 2000,
-        "save checkpoint steps" : 30000
+        "buffer depth" : 100,
+        "nb threads" : 16,
+        "batch_size" : 16,
+
+        "train steps" : 150000,
+        "summary steps" : 1000,
+        "log steps" : 500,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 2000,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "top1",
+                    "nb samples" : 200,
+                    "batch_size" : 8,
+                    "mil" : false
+                }
+            }
+        ]
     }
 }
+
 

@@ -58,18 +58,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 
 	def train(self, sess, dataset, model):
-
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		sess.run(tf.global_variables_initializer())
 
-<<<<<<< HEAD
 		self.train_initialize(sess, model)
-=======
-<<<<<<< HEAD
-		self.train_initialize(sess, model)
-=======
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
+
 
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
@@ -85,14 +78,7 @@ class SemiSupervisedTrainer(BaseTrainer):
 			t.start()
 
 
-<<<<<<< HEAD
-		while True:
-			# print('supervised')
-=======
-<<<<<<< HEAD
-		while True:
-			# print('supervised')
-=======
+
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.checkpoint_dir):
 				print("Continue Train...")
@@ -102,61 +88,40 @@ class SemiSupervisedTrainer(BaseTrainer):
 		else:
 			step = 0
 
-		while True:
 
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
+		while True:
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y)
+				self.su_epoch = epoch
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, batch_y, log_disp=False)
+				self.log(step)
 				if step > int(self.config['train steps']):
 					break
 
-<<<<<<< HEAD
-			# print('unsupervised')
-			for i in range(self.unsupervised_step):
-				epoch, batch_x = self.unsupervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
 
-=======
-<<<<<<< HEAD
-			# print('unsupervised')
 			for i in range(self.unsupervised_step):
 				epoch, batch_x = self.unsupervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
-
-=======
-			for i in range(self.unsupervised_step):
-				epoch, batch_x = self.unsupervised_image_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
+				self.unsu_epoch = epoch
+				step = self.train_inner_step(epoch, sess, model, dataset, batch_x, log_disp=False)
+				self.log(step)
 				if step > int(self.config['train steps']):
 					break
 
 			if step > int(self.config['train steps']):
-<<<<<<< HEAD
+
 				break
-=======
-<<<<<<< HEAD
-				break
-=======
-				return
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
+
+
 
 		self.coord.request_stop()
 		while not self.supervised_image_queue.empty():
 			epoch, batch_x, batch_y = self.supervised_image_queue.get()
 		while not self.unsupervised_image_queue.empty():
 			epoch, batch_x = self.unsupervised_image_queue.get()
-<<<<<<< HEAD
-
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		self.coord.join(threads)
+
+	def log(self, step):
+		if self.log_steps != 0 and step % self.log_steps == 0:
+			print("supervised : [epoch : %d, step : %d, lr : %f, loss : %f] \ unsupervised : [epoch : %d, step : %d, lr : %f, loss : %f]"%(
+					self.su_epoch, self.su_step, self.su_lr, self.su_loss, self.unsu_epoch, self.unsu_step, self.unsu_lr, self.unsu_loss))
 

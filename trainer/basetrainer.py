@@ -53,16 +53,8 @@ class BaseTrainer(object):
 		self.summary_steps = int(self.config.get('summary steps', 0))
 		self.log_steps = int(self.config.get('log steps', 0))
 		self.save_steps = int(self.config.get('save checkpoint steps', 0))
-<<<<<<< HEAD
 		self.batch_size = int(self.config.get('batch_size', 16))
 
-=======
-<<<<<<< HEAD
-		self.batch_size = int(self.config.get('batch_size', 16))
-
-=======
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 
 		self.validator_list = []
 		for validator_config in self.config.get('validators', []):
@@ -78,10 +70,6 @@ class BaseTrainer(object):
 			validator_steps = int(validator_config['validate steps'])
 			self.validator_list.append((validator_steps, validator))
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		if self.config.get('print info', False):
 			self.print_info()
 
@@ -103,13 +91,8 @@ class BaseTrainer(object):
 			else:
 				print("Load Checkpoint Failed")
 
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 
-	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None):
+	def train_inner_step(self, epoch, sess, model, dataset, batch_x, batch_y=None, log_disp=True):
 		'''
 			the inner function for train a batch of images,
 			input :
@@ -120,22 +103,22 @@ class BaseTrainer(object):
 			return :
 				the current train step
 		'''
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
+			self.unsu_step = step
+			self.unsu_lr = lr
+			self.unsu_loss = loss
 		else:
 			step, lr, loss, summary = model.train_on_batch_supervised(sess, batch_x, batch_y)
+			self.su_step = step
+			self.su_lr = lr
+			self.su_loss = loss
 
 		if summary:
 			self.summary_writer.add_summary(summary, step-1)
 
-		if self.log_steps != 0 and step % self.log_steps == 1:
+		if log_disp and self.log_steps != 0 and step % self.log_steps == 1:
 			print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step-1, lr, loss))
 
 		if self.summary_steps != 0 and step % self.summary_steps == 1:
@@ -161,40 +144,18 @@ class BaseTrainer(object):
 		for example:
 
 	'''
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 	def read_data_inner_loop(self, 
 				coord, dataset, data_inner_queue, 
 				indices, t_ind, nb_threads,
 				epoch, method='supervised'):
 		'''
 			a inner read data loop thread, only be create or joined by read_data_loop.
-<<<<<<< HEAD
 			read data and put into @param.data_inner_queue in loop
-=======
-<<<<<<< HEAD
-			read data and put into @param.data_inner_queue in loop
-=======
-			read data and put into self.train_data_inner_queue in loop
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		'''
 		if method == 'supervised':
 			for i, ind in enumerate(indices):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 						# read img and label by its index
 						img, label = dataset.read_image_by_index_supervised(ind)
 						if img is not None:
@@ -205,15 +166,8 @@ class BaseTrainer(object):
 			for i, ind in enumerate(indices):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
-<<<<<<< HEAD
 						# read img by its index
-=======
-<<<<<<< HEAD
-						# read img by its index
-=======
-						# read img and label by its index
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
+
 						img = dataset.read_image_by_index_unsupervised(ind)
 						if img is not None:
 							data_inner_queue.put((epoch, img))
@@ -225,15 +179,7 @@ class BaseTrainer(object):
 
 	def read_data_loop(self, coord, dataset, data_inner_queue, method='supervised', nb_threads=4):
 		'''
-<<<<<<< HEAD
 			create multiple threads to read data into @param.data_inner_queue
-=======
-<<<<<<< HEAD
-			create multiple threads to read data into @param.data_inner_queue
-=======
-
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		'''
 		epoch = 0
 		while not coord.should_stop():
@@ -255,14 +201,7 @@ class BaseTrainer(object):
 
 	def read_data_transport_loop(self, coord, data_inner_queue, data_queue, method='supervised'):
 		'''
-<<<<<<< HEAD
 			transport data from @param.data_inner_queue to @param.data_queue in batch manner
-=======
-<<<<<<< HEAD
-			transport data from @param.data_inner_queue to @param.data_queue in batch manner
-=======
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 		'''
 		epoch_list = []
 		batch_x = []
@@ -283,10 +222,6 @@ class BaseTrainer(object):
 					epoch_list = []
 					batch_x = []
 					batch_y = []
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 					
 			# clear the data inner queue to free the (read_data_inner_loop) thread
 			while not data_inner_queue.empty():
@@ -295,13 +230,6 @@ class BaseTrainer(object):
 
 		elif method == 'unsupervised':
 			while not coord.should_stop():			
-<<<<<<< HEAD
-=======
-=======
-
-		elif method == 'unsupervised':
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 				epoch, img = data_inner_queue.get()
 				epoch_list.append(epoch)
 				batch_x.append(img)
@@ -312,28 +240,12 @@ class BaseTrainer(object):
 					data_queue.put((epoch, batch_x))
 					epoch_list = []
 					batch_x = []
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734
 
 			# clear the data inner queue to free the (read_data_inner_loop) thread
 			while not data_inner_queue.empty():
 				epoch, img = data_inner_queue.get()
-<<<<<<< HEAD
+
 		else:
 			raise Exception("wrong method of " + method)
 
-=======
-		else:
-			raise Exception("wrong method of " + method)
 
-=======
-		else:
-			raise Exception("wrong method of " + method)
-
-		# clear the data inner queue to free the (read_data_inner_loop) thread
-		while not data_inner_queue.empty():
-			img, label = data_inner_queue.get()
->>>>>>> 2282cc26ef1f45414cb1b313771973457884af17
->>>>>>> 99e16f29cc5f3bb2fbfc86a30f95e2bea1955734

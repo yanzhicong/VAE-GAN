@@ -81,7 +81,7 @@ class VAE(BaseModel):
 		self.config['encoder params']['output_dims'] = self.z_dim
 		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training)
+		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training, net_name='vae_encoder')
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
 
 		# build encoder
@@ -99,7 +99,7 @@ class VAE(BaseModel):
 		self.x_test = self.decoder(self.z_test, reuse=True)
 
 		# loss function
-		self.kl_loss = get_loss('kl', self.config['kl loss'], {'z_mean' : self.z_mean, 'z_log_var' : self.z_log_var})
+		self.kl_loss = get_loss('kl', self.config['kl loss'], {'mean' : self.z_mean, 'log_var' : self.z_log_var})
 		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
 		self.kl_loss = tf.reduce_mean(self.kl_loss * self.config.get('kl loss prod', 1.0))
 		self.xent_loss = tf.reduce_mean(self.xent_loss * self.config.get('reconstruction loss prod', 1.0))
@@ -114,7 +114,7 @@ class VAE(BaseModel):
 		else:
 			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.decoder.vars + self.encoder.vars)
 
-		self.train_update = tf.group([self.optimizer, self.global_step_update])
+		self.train_op = tf.group([self.optimizer, self.global_step_update])
 
 		# model saver
 		self.saver = tf.train.Saver(self.encoder.vars + self.decoder.vars + [self.global_step,])

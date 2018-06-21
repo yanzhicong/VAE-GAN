@@ -9,7 +9,7 @@
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm/semidgm1",
+    "assets dir" : "assets/semidgm/semidgm3",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {
@@ -72,7 +72,7 @@
         "train steps" : 20000,
         "summary steps" : 100,
         "log steps" : 100,
-        "supervised step" : 0,
+        "supervised step" : 1,
         "unsupervised step" : 5,
         "batch_size" : 64,
         "print info" : true,

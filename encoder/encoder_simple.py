@@ -44,15 +44,13 @@ from network.vgg import VGG16
 
 class EncoderSimple(object):
 
-	def __init__(self, config, model_config, is_training, name="EncoderSimple"):
+	def __init__(self, config, is_training, name="EncoderSimple"):
 		self.name = name
 		self.config = config
-		self.model_config = model_config
-
 
 		network_config = config.copy()
 		network_config['output_dims'] = 0
-		self.network = VGG16(network_config, model_config, is_training, name=self.name)
+		self.network = VGG16(network_config, None, is_training, name=self.name)
 		self.output_distribution = self.config.get('output_distribution', 'gaussian')
 		
 	def __call__(self, i, reuse=False):
@@ -67,7 +65,6 @@ class EncoderSimple(object):
 
 		output_dims = self.config.get('output_dims', 3)
 
-	
 		x, end_points = self.network(i, reuse=reuse)
 
 		with tf.variable_scope(self.name):
@@ -78,15 +75,15 @@ class EncoderSimple(object):
 
 
 			if self.output_distribution == 'gaussian':
-				z_mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
+				mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
 							weights_initializer=winit_fn, scope='efc_mean')
-				z_log_var = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
+				log_var = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
 							weights_initializer=winit_fn, scope='efc_log_var')
-				return z_mean, z_log_var
+				return mean, log_var
 			elif self.output_distribution == 'mean':
-				z_mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
+				mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
 							weights_initializer=winit_fn, scope='efc_mean')
-				return z_mean
+				return mean
 			else:
 				raise Exception("None output distribution named " + self.output_distribution)
 

@@ -74,11 +74,16 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		super(SemiDeepGenerativeModel, self).__init__(config, **kwargs)
 
+		# parameters must be configured
 		self.input_shape = config['input_shape']
 		self.z_dim = config['z_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config
 
+		# optional params
+		self.debug = config.get('debug', True)
+
+		# build model
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
 
 		self.build_model()
@@ -100,15 +105,18 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		###########################################################################
 		# network define
-
+		# 
 		# x_encoder : x -> hx
-		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.config, self.is_training,
-					net_name='EncoderSimpleX')
+		self.x_encoder = get_encoder(self.config['x encoder'], 
+									self.config['x encoder params'], self.is_training,
+									net_name='EncoderSimpleX')
 		# hx_y encoder : hx, y -> distribution(z)
-		self.hx_y_encoder = get_encoder(self.config['hx_y encoder'], self.config['hx_y encoder params'], self.config, self.is_training,
-					net_name='EncoderSimpleHXY')
+		self.hx_y_encoder = get_encoder(self.config['hx_y encoder'], 
+										self.config['hx_y encoder params'], self.is_training,
+										net_name='EncoderSimpleHXY')
 		# hx classifier : hx -> y
-		self.hx_classifier = get_classifier(self.config['hx classifier'], self.config['hx classifier params'], self.config, self.is_training)
+		self.hx_classifier = get_classifier(self.config['hx classifier'], 
+											self.config['hx classifier params'], self.config, self.is_training)
 
 		# decoder : z -> x
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
@@ -134,7 +142,6 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		xl_decode = self.decoder(sample_zl, reuse=False)
 
-
 		self.su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_zl, 'log_var' : log_var_zl})
 								* self.config.get('loss kl z prod', 1.0))
 		self.su_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xl, 'y' : xl_decode})
@@ -143,6 +150,17 @@ class SemiDeepGenerativeModel(BaseModel):
 								* self.config.get('loss cls prod', 1.0))
 
 		self.su_loss = self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls
+
+
+		if self.debug:
+			print('supervised network')
+			print('\thxl : ', hxl.get_shape())
+			print('\tyl_logits : ', yl_logits.get_shape())
+			print('\thx_yl : ', hx_yl.get_shape())
+			print('\tmean_zl : ', mean_zl.get_shape())
+			print('\tlog_var_zl : ', log_var_zl.get_shape())
+			print('\tsample_zl : ', sample_zl.get_shape())
+			print('\txl_decode : ', xl_decode.get_shape())
 
 
 		###########################################################################
@@ -202,13 +220,15 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		###########################################################################
 		# for test models
-
+		# 
+		# xtest --> hxtest --> ytest_logits --> ytest
+		# 			   |			|
+		#		   [hxtest,    ytest_logits] --> mean_ztest, log_var_ztest 
 		hxtest = self.x_encoder(self.xtest, reuse=True)
-		ylogits, endpoints = self.hx_classifier(hxtest, reuse=True)
-		self.ytest = tf.nn.softmax(ylogits)
-
+		ytest_logits, endpoints = self.hx_classifier(hxtest, reuse=True)
+		self.ytest = tf.nn.softmax(ytest_logits)
 		hxtest_ytest = tf.concat([hxtest, self.ytest], axis=1)
-		self.mean_z_test, self.log_var_z_test = self.hx_y_encoder(hxtest_ytest, reuse=True)
+		self.mean_ztest, self.log_var_ztest = self.hx_y_encoder(hxtest_ytest, reuse=True)
 
 		###########################################################################
 		# optimizer configure
@@ -283,7 +303,7 @@ class SemiDeepGenerativeModel(BaseModel):
 			self.xtest : x_batch,
 			self.is_training : False
 		}
-		mean_z, log_var_z = sess.run([self.mean_z_test, self.log_var_z_test], feed_dict=feed_dict)
+		mean_z, log_var_z = sess.run([self.mean_ztest, self.log_var_ztest], feed_dict=feed_dict)
 		return mean_z, log_var_z
 
 

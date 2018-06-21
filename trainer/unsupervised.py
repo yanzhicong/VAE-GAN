@@ -45,6 +45,16 @@ class UnsupervisedTrainer(BaseTrainer):
 
 		super(UnsupervisedTrainer, self).__init__(model)
 
+from .basetrainer import BaseTrainer
+
+
+
+class UnsupervisedTrainer(BaseTrainer):
+	def __init__(self, config, model):
+		self.config = config
+		self.model = model
+
+		super(UnsupervisedTrainer, self).__init__(model)
 
 
 	def train(self, sess, dataset, model):
@@ -67,7 +77,6 @@ class UnsupervisedTrainer(BaseTrainer):
 			for index, batch_x in dataset.iter_train_images_unsupervised():
 
 				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
-
 
 				if step > int(self.config['train steps']):
 					return

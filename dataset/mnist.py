@@ -61,12 +61,12 @@ class MNIST(BaseDataset):
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
 
-		self.y_train, self.x_train = self.read_data(
+		self.y_train, self.x_train = self._read_data(
 			os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
 			os.path.join(self._dataset_dir, 'train-images-idx3-ubyte.gz')
 		)
 
-		self.y_test, self.x_test = self.read_data(
+		self.y_test, self.x_test = self._read_data(
 			os.path.join(self._dataset_dir, 't10k-labels-idx1-ubyte.gz'),
 			os.path.join(self._dataset_dir, 't10k-images-idx3-ubyte.gz')
 		)
@@ -83,7 +83,7 @@ class MNIST(BaseDataset):
 				os.mkdir(self.extra_file_path)
 
 			self.nb_labelled_images_per_classes = self.config.get('nb_labelled_images_per_classes', 100)
-			self.labelled_image_indices = self.get_labelled_image_indices(self.nb_labelled_images_per_classes)
+			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_classes)
 
 			self.x_train_u = self.x_train
 			
@@ -94,7 +94,7 @@ class MNIST(BaseDataset):
 			self.y_train_l = self.y_train
 
 
-	def get_labelled_image_indices(self, nb_images_per_classes):
+	def _get_labelled_image_indices(self, nb_images_per_classes):
 		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_classes)
 		if os.path.exists(pickle_filepath):
 			return pickle.load(open(pickle_filepath, 'rb'))
@@ -112,7 +112,7 @@ class MNIST(BaseDataset):
 			return train_indices
 
 	
-	def read_data(self, label_url, image_url):
+	def _read_data(self, label_url, image_url):
 		with gzip.open(label_url) as flbl:
 			magic, num = struct.unpack(">II",flbl.read(8))
 			label = np.fromstring(flbl.read(),dtype=np.int8)

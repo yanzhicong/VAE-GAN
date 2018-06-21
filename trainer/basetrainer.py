@@ -103,6 +103,7 @@ class BaseTrainer(object):
 			return :
 				the current train step
 		'''
+
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(sess, batch_x)
 			self.unsu_step = step
@@ -166,6 +167,7 @@ class BaseTrainer(object):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
 						# read img by its index
+
 						img = dataset.read_image_by_index_unsupervised(ind)
 						if img is not None:
 							data_inner_queue.put((epoch, img))
@@ -242,6 +244,8 @@ class BaseTrainer(object):
 			# clear the data inner queue to free the (read_data_inner_loop) thread
 			while not data_inner_queue.empty():
 				epoch, img = data_inner_queue.get()
+
 		else:
 			raise Exception("wrong method of " + method)
+
 

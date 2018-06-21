@@ -12,21 +12,22 @@ sys.path.append('../')
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
 from utils.metric import get_metric
 
 class DatasetValidator(object):
 	def __init__(self, config):
+
 		self.config = config
 		self.nb_samples = config.get('num_samples', 30)
 		self.metric = config.get('metric', 'accuracy')
 		self.metric_type = config.get('metric type', 'top1')
-
 		self.assets_dir = config['assets dir']
+
 
 
 	def build_summary(self, model):
 		if self.metric == 'accuracy':
+
 			self.label = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
 							name='test_label')
 			self.predict = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
@@ -45,7 +46,11 @@ class DatasetValidator(object):
 		self.summary = tf.summary.merge(self.summary_list)
 
 
+
+
 	def validate(self, model, dataset, sess, step):
+		
+
 		label_list = []
 		pred_list = []
 		for ind, batch_x, batch_y in dataset.iter_test_images():
@@ -60,10 +65,12 @@ class DatasetValidator(object):
 				self.label : label_list,
 				self.predict : pred_list,
 			}
-			acc, summary = sess.run([self.accuracy, self.summary], feed_dict=feed_dict)
 
+			acc, summary = sess.run([self.accuracy, self.summary], feed_dict=feed_dict)
 			with open(self.log_filepath, 'a') as logfile:
 				logfile.write('%d,%f\n'%(step, acc))
+
+			summary = sess.run([self.summary], feed_dict=feed_dict)[0]
 
 		return summary
 

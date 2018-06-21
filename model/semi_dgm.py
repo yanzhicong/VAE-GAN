@@ -81,7 +81,7 @@ class SemiDeepGenerativeModel(BaseModel):
 		self.config = config
 
 		# optional params
-		self.debug = config.get('debug', True)
+		self.debug = config.get('debug', False)
 
 		# build model
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
@@ -182,8 +182,8 @@ class SemiDeepGenerativeModel(BaseModel):
 		yu_probs = tf.nn.softmax(yu_logits)
 		yu_logprobs = tf.log(yu_probs)
 		
-		self.unsu_loss_kl_y = get_loss('kl', 'bernoulli', {'probs' : yu_probs})
-		self.unsu_loss_kl_y *= self.config.get('loss kl y prod', 1.0)
+		self.unsu_loss_kl_y = (get_loss('kl', 'bernoulli', {'probs' : yu_probs})
+									* self.config.get('loss kl y prod', 1.0))
 
 		unsu_loss_kl_z_list = []
 		unsu_loss_recon_list = []
@@ -217,6 +217,13 @@ class SemiDeepGenerativeModel(BaseModel):
 
 		self.unsu_loss = self.unsu_loss_kl_y + self.unsu_loss_kl_z + self.unsu_loss_recon
 
+		if self.debug:
+			print('unsupervised network')
+			print('\thxu : ', hxu.get_shape())
+			print('\tyu_logits : ', yu_logits.get_shape())
+			print('\tyu_probs : ', yu_probs.get_shape())
+			print('\tmean_zu : ', mean_zu.get_shape())
+			print('\tlog_var_zu : ', log_var_zu.get_shape())
 
 		###########################################################################
 		# for test models

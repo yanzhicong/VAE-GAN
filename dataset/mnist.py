@@ -32,6 +32,7 @@ import pickle
 
 from keras.utils import to_categorical
 
+
 from .basedataset import BaseDataset
 
 
@@ -109,8 +110,6 @@ class MNIST(BaseDataset):
 			train_indices = np.array(train_indices)
 			pickle.dump(train_indices, open(pickle_filepath, 'wb'))
 			return train_indices
-
-
 
 	
 	def read_data(self, label_url, image_url):

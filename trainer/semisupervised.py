@@ -56,6 +56,15 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsupervised_image_queue = queue.Queue(maxsize=5)
 		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*3)
 
+		self.su_epoch = 0
+		self.su_step = 0
+		self.su_lr = 0
+		self.su_loss = 0
+		self.unsu_epoch = 0
+		self.unsu_step = 0
+		self.unsu_lr = 0
+		self.unsu_loss = 0
+
 
 	def train(self, sess, dataset, model):
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)

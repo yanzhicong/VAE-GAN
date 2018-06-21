@@ -9,7 +9,7 @@
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm2/semidgm7",
+    "assets dir" : "assets/semidgm2/semidgm1",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {
@@ -27,7 +27,6 @@
             "decay_steps" : 1000,
             "decay_rate" : 0.9
         },
-
 
         "loss kl z prod" : 0.001,
         "loss kl y prod" : 0.001,
@@ -73,7 +72,7 @@
         "train steps" : 20000,
         "summary steps" : 100,
         "log steps" : 100,
-        "supervised step" : 1,
+        "supervised step" : 0,
         "unsupervised step" : 5,
         "batch_size" : 64,
         "print info" : true,

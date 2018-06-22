@@ -21,4 +21,3 @@ if __name__ == '__main__':
 
 	for name, value in end_points.items():
 		print(name, '  --> ', value.get_shape())
-

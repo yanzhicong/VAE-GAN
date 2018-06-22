@@ -9,7 +9,7 @@
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm/semidgm3",
+    "assets dir" : "assets/semidgm/semidgm6",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {
@@ -21,15 +21,15 @@
         "z_dim" : 2,
 
         "optimizer" : "rmsprop",       
-        "lr" : 0.001,
+        "lr" : 0.0001,
         "lr_scheme" : "exponential",
         "lr_params" : {
             "decay_steps" : 1000,
             "decay_rate" : 0.9
         },
 
-        "loss kl z prod" : 0.001,
-        "loss kl y prod" : 0.001,
+        "loss kl z prod" : 0.0001,
+        "loss kl y prod" : 0.0001,
 
         "summary" : true,
         "debug" : true,
@@ -75,7 +75,7 @@
         "log steps" : 100,
         "supervised step" : 1,
         "unsupervised step" : 5,
-        "batch_size" : 64,
+        "batch_size" : 128,
         "print info" : true,
         "validators" : [
             {

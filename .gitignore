@@ -3,3 +3,4 @@ assets*
 dataset/dataset_extra_files*
 *.pyc
 .vscode*
+sftp-config.json

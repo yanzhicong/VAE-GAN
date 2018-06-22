@@ -9,7 +9,7 @@
         "nb_labelled_images_per_class" : 300
     },
 
-    "assets dir" : "assets/semidgm/semidgm6",
+    "assets dir" : "assets/semidgm/semidgm7",
 
     "ganmodel" : "semidgm",
     "ganmodel params" : {
@@ -21,7 +21,7 @@
         "z_dim" : 2,
 
         "optimizer" : "rmsprop",       
-        "lr" : 0.0001,
+        "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
             "decay_steps" : 1000,
@@ -38,9 +38,9 @@
         "x encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [256],
+            "nb_fc_nodes" : [600, 600],
             "output_distribution": "mean",
-            "output_dims" : 6
+            "output_dims" : 50
         },
 
         "hx_y encoder" : "EncoderSimple",
@@ -62,6 +62,7 @@
         
         "decoder" : "DecoderSimple",
         "decoder params" : {
+            "nb_fc_nodes" : [600, 600],
             "output_dims" : 784,
             "output_activation" : "sigmoid"
         }
@@ -73,6 +74,8 @@
         "train steps" : 20000,
         "summary steps" : 100,
         "log steps" : 100,
+
+        "pretrain supervised step" : 2000,
         "supervised step" : 1,
         "unsupervised step" : 5,
         "batch_size" : 128,

@@ -194,9 +194,7 @@ class SemiDeepGenerativeModel(BaseModel):
 			hx_yf = tf.concat([hxu, y_fake], axis=1)
 
 			mean_zu, log_var_zu = self.hx_y_encoder(hx_yf, reuse=True)
-
 			sample_zu = mean_zu = tf.exp(log_var_zu / 2) * self.eps2[:, :, i]
-
 			xu_decode = self.decoder(sample_zu, reuse=True)
 
 			unsu_loss_kl_z_list.append(
@@ -214,7 +212,6 @@ class SemiDeepGenerativeModel(BaseModel):
 								* self.config.get('loss kl z prod', 1.0))
 		self.unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
 								* self.config.get('loss recon prod', 1.0))
-
 		self.unsu_loss = self.unsu_loss_kl_y + self.unsu_loss_kl_z + self.unsu_loss_recon
 
 		if self.debug:

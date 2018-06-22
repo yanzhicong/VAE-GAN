@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+	# -*- coding: utf-8 -*-
 # MIT License
 # 
 # Copyright (c) 2018 ZhicongYan
@@ -47,6 +47,9 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		super(SemiSupervisedTrainer, self).__init__(config, model)
 
+		self.pretrain_supervised_step = self.config.get('pretrain supervised step', 0)
+		self.pretrain_unsupervised_step = self.config.get('pretrain unsupervised step', 0)
+
 		self.supervised_step = self.config.get('supervised step', 1)
 		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
@@ -64,7 +67,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsu_step = 0
 		self.unsu_lr = 0
 		self.unsu_loss = 0
-
 
 	def train(self, sess, dataset, model):
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
@@ -93,7 +95,25 @@ class SemiSupervisedTrainer(BaseTrainer):
 		else:
 			step = 0
 
+
+		for i in range(self.pretrain_supervised_step):
+			epoch, batch_x, batch_y = self.supervised_image_queue.get()
+			self.su_epoch = epoch
+			step = self.train_inner_step(epoch, model, dataset, batch_x, batch_y, log_disp=False)
+			self.log(step)
+
+
+		for i in range(self.pretrain_unsupervised_step):
+			epoch, batch_x = self.unsupervised_image_queue.get()
+			self.unsu_epoch = epoch
+			step = self.train_inner_step(epoch, model, dataset, batch_x, log_disp=False)
+			self.log(step)
+
+
 		while True:
+			if step > int(self.config['train steps']):
+					break
+
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
 				self.su_epoch = epoch
@@ -101,7 +121,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 				self.log(step)
 				if step > int(self.config['train steps']):
 					break
-
 
 			for i in range(self.unsupervised_step):
 				epoch, batch_x = self.unsupervised_image_queue.get()
@@ -113,7 +132,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 			if step > int(self.config['train steps']):
 				break
-
 
 		self.coord.request_stop()
 		while not self.supervised_image_queue.empty():

@@ -44,11 +44,8 @@ class DatasetValidator(object):
 		self.metric_type = config.get('metric type', 'top1')
 		self.assets_dir = config['assets dir']
 
-
-
 	def build_summary(self, model):
 		if self.metric == 'accuracy':
-
 			self.label = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
 							name='test_label')
 			self.predict = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
@@ -62,13 +59,11 @@ class DatasetValidator(object):
 			self.log_filepath = os.path.join(self.assets_dir, 'test_dataset_' + self.metric + "_" + self.metric_type + '.csv')
 
 			with open(self.log_filepath, 'w') as logfile:
-				logfile.write('step,'+self.metric_type+'\n')
+				logfile.write('step,' + self.metric_type + '\n')
 
 		self.summary = tf.summary.merge(self.summary_list)
 
 	def validate(self, model, dataset, sess, step):
-		
-
 		label_list = []
 		pred_list = []
 		for ind, batch_x, batch_y in dataset.iter_test_images():

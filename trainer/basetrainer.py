@@ -29,7 +29,6 @@ import queue
 import threading
 import numpy as np
 
-
 sys.path.append('.')
 sys.path.append('../')
 
@@ -44,7 +43,18 @@ class BaseTrainer(object):
 		including the validator support, multi-thread data reading
 
 		optional parameters including:
+			path parameters:
 			'summary dir'
+			'checkpoint dir'
+
+			step parameters:
+			'log steps':
+			'save steps':
+			'summary steps':
+
+			other parameters:
+			'batch_size':
+
 	'''
 	def __init__(self, config, model):
 		self.config = config
@@ -89,7 +99,6 @@ class BaseTrainer(object):
 		print('\tlog_steps : ', self.log_steps)
 		print('\tsave_steps : ', self.save_steps)
 		print('\tbatch_size : ', self.batch_size)
-
 
 	def train_initialize(self, sess, model):
 		self.sess = sess
@@ -147,12 +156,6 @@ class BaseTrainer(object):
 					self.summary_writer.add_summary(summary, step-1)
 
 		return step
-
-
-	def draw_sample( self, mean, log_var ):
-		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
-		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
-		return sample
 
 	'''
 		multi thread util functions
@@ -240,7 +243,6 @@ class BaseTrainer(object):
 			# clear the data inner queue to free the (read_data_inner_loop) thread
 			while not data_inner_queue.empty():
 				epoch, img, label = data_inner_queue.get()
-
 
 		elif method == 'unsupervised':
 			while not coord.should_stop():			

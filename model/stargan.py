@@ -64,16 +64,14 @@ class StarGAN(BaseModel):
 
 
 	def build_model(self):
-		self.generator = get_encoder(self.config['generator'], self.config['generator params'], self.config, self.is_trainings)
-		self.discriminator = get_decoder(self.config['discriminator'], self.config['discriminator params'], self.config, self.is_training)
-
-
 		self.real_img = tf.placeholder(tf.float32, shape=[None, ] + self.input_shape, name='real_img')
 		self.real_img_attr = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='real_img_attr')
 
-
 		self.fake_img_attr = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='fake_img_attr')
 		self.epsilon = tf.placeholder(tf.float32, [None, 1, 1, 1], name = 'gp_random_num')
+	
+		self.generator = get_encoder(self.config['generator'], self.config['generator params'], self.config, self.is_trainings)
+		self.discriminator = get_decoder(self.config['discriminator'], self.config['discriminator params'], self.config, self.is_training)
 
 
 		real_img_with_fake_attr = tf.concat(
@@ -128,20 +126,7 @@ class StarGAN(BaseModel):
 		self.d_loss = self.d_adv_loss + self.d_cls_loss
 
 
-		
-	
-
-
-		# z_params = self.encoder([self.x_real, self.label_real])
-
-		# z_avg = z_params[:, :self.z_dim]
-		# z_log_var = z_params[:, self.z_dim:]
-
-		# z = get_sample(self.config['sample_func'], (z_avg, z_log_var))
-
-
 		self.x_fake = self.decoder(tf.concat([z, self.label_real], axis=1))
-
 
 		z_possible = tf.placeholder(tf.float32, shape=(None, self.z_dim))
 		c_possible = tf.placeholder(tf.float32, shape=(None, self.nb_classes))
@@ -155,9 +140,6 @@ class StarGAN(BaseModel):
 		c_real, feature_clas_real = self.classifier(self.x_real)
 		c_fake, feature_clas_fake = self.classifier(self.x_fake)
 		c_possible, feature_clas_possible = self.classifier(self.x_possible)
-
-
-		pass
 
 
 	# def get_kl_loss(self, )

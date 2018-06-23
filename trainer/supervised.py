@@ -22,8 +22,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-
-
 import os
 import sys
 import queue
@@ -34,22 +32,26 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
-from keras.utils import to_categorical
 
 from validator.validator import get_validator
 
-class SupervisedTrainer(object):
+from .basetrainer import BaseTrainer 
+
+class SupervisedTrainer(BaseTrainer):
+	'''
+		
+	'''
 	def __init__(self, config, model):
 		self.config = config
+		self.model = model
 		super(SupervisedTrainer, self).__init__(config, model)
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
-			self.train_data_queue = queue.Queue(maxsize=5)
-			self.train_data_inner_queue = queue.Queue(maxsize = self.batch_size * 3)
+			self.train_data_queue = queue.Queue(maxsize=50)
+			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*30)
 
 	def train(self, sess, dataset, model):
-
 		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		
 		self.train_initialize(sess, model)
@@ -63,7 +65,6 @@ class SupervisedTrainer(object):
 											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'supervised'))]
 			for t in threads:
 				t.start()
-
 
 		if self.multi_thread : 
 			# in multi thread model, the image data were read in by dataset.get_train_indices()
@@ -90,4 +91,3 @@ class SupervisedTrainer(object):
 		self.train_data_inner_queue.task_done()
 		self.train_data_queue.task_done()
 		self.coord.join(threads)
-

@@ -38,6 +38,14 @@ import tensorflow as tf
 from validator.validator import get_validator
 
 class BaseTrainer(object):
+	'''
+		the base trainer for SupervisedTrainer, UnsupervisedTrainer. SemisupervisedTrainer
+		implemention of several util functions for training.
+		including the validator support, multi-thread data reading
+
+		optional parameters including:
+			'summary dir'
+	'''
 	def __init__(self, config, model):
 		self.config = config
 		self.model = model
@@ -92,6 +100,8 @@ class BaseTrainer(object):
 			else:
 				print("Load Checkpoint Failed")
 
+	def train(self, sess, dataset, model):
+		raise NotImplementedError
 
 	def train_inner_step(self, epoch, model, validate_dataset, batch_x, batch_y=None, log_disp=True):
 		'''
@@ -139,6 +149,11 @@ class BaseTrainer(object):
 		return step
 
 
+	def draw_sample( self, mean, log_var ):
+		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
+		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
+		return sample
+
 	'''
 		multi thread util functions
 		for example:
@@ -175,7 +190,6 @@ class BaseTrainer(object):
 					break		
 		else:
 			raise Exception("wrong method of " + method)
-
 
 	def read_data_loop(self, coord, dataset, data_inner_queue, method='supervised', nb_threads=4):
 		'''

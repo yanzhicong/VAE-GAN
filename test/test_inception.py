@@ -1,4 +1,3 @@
-# from __future__ import absolute_import
 
 import os
 import sys
@@ -17,10 +16,8 @@ if __name__ == '__main__':
 		'output_dims' : 1000,
 		'output_activation' : 'softmax'
 	}
-	model_config = {
-	}
 
-	inception_model = InceptionV3(config, model_config, False)
+	inception_model = InceptionV3(config, False)
 
 	x = tf.placeholder(tf.float32, shape=(None, 299, 299, 3), name='input')
 

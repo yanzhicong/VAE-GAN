@@ -1,4 +1,3 @@
-# from __future__ import absolute_import
 
 import os
 import sys
@@ -8,22 +7,16 @@ sys.path.append('../')
 
 import tensorflow as tf
 
-# from network import inception_v3
-# from network.inception_v3 import InceptionV3
-
 from network import vgg
-from network.vgg import VGG16
-
+from network.vgg import VGG
 
 if __name__ == '__main__':
 	config = {
 		'output_classes' : 10
-	}
-	model_config = {
-		'is_training' : True
+		'name' : 'VGG16'
 	}
 
-	model = VGG16(config, model_config, True)
+	model = VGG(config, True)
 
 	x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
 

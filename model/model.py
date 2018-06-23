@@ -48,6 +48,3 @@ def get_model(model_name, model_params):
         return SemiDeepGenerativeModel2(model_params)
     else:
         raise Exception("None model named " + model_name)
-
-
-

@@ -130,3 +130,8 @@ class BaseModel(object, metaclass=ABCMeta):
 		else:
 			_, s, lr, l = sess.run([update_op, step, learning_rate, loss],	feed_dict = feed_dict)
 			return s, lr, l, None
+
+	def draw_sample( self, mean, log_var ):
+		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
+		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
+		return sample

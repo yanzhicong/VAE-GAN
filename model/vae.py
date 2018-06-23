@@ -65,46 +65,43 @@ class VAE(BaseModel):
 		self.build_model()
 
 		if self.is_summary:
-			self.get_summary()
-
+			self.build_summary()
 
 
 	def build_model(self):
 
-		if self.config.get('flatten', False):
-			self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
-			self.encoder_input_shape = int(np.product(self.input_shape))
-		else:
-			self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-			self.encoder_input_shape = list(self.input_shape)
+		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+		self.encoder_input_shape = list(self.input_shape)
 
+		self.config['encoder params']['name'] = 'encoder'
 		self.config['encoder params']['output_dims'] = self.z_dim
+		self.config['decoder params']['name'] = 'decoder'
 		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.config, self.is_training, net_name='vae_encoder')
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.config, self.is_training)
+		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.is_training)
+		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)
 
 		# build encoder
 		self.z_mean, self.z_log_var = self.encoder(self.x_real)
 
 		# sample z from z_mean and z_log_var
-		self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-		self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
+		self.z_sample = self.draw_sample(self.z_mean, self.z_log_var)
 
 		# build decoder
 		self.x_decode = self.decoder(self.z_sample)
 
 		# build test decoder
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
-		self.x_test = self.decoder(self.z_test, reuse=True)
+		self.x_test = self.decoder(self.z_test)
 
 		# loss function
-		self.kl_loss = get_loss('kl', self.config['kl loss'], {'mean' : self.z_mean, 'log_var' : self.z_log_var})
-		self.xent_loss = get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
-		self.kl_loss = tf.reduce_mean(self.kl_loss * self.config.get('kl loss prod', 1.0))
-		self.xent_loss = tf.reduce_mean(self.xent_loss * self.config.get('reconstruction loss prod', 1.0))
-		self.loss = self.kl_loss + self.xent_loss
+		self.kl_loss = (get_loss('kl', self.config['kl loss'], {'mean' : self.z_mean, 'log_var' : self.z_log_var})
+							* self.config.get('kl loss prod', 1.0))
 
+		self.recon_loss = (get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
+							 * self.config.get('reconstruction loss prod', 1.0))
+
+		self.loss = self.kl_loss + self.recon_loss
 
 		# optimizer configure
 		self.global_step, self.global_step_update = get_global_step()
@@ -120,22 +117,38 @@ class VAE(BaseModel):
 		self.saver = tf.train.Saver(self.encoder.vars + self.decoder.vars + [self.global_step,])
 
 
+	def build_summary(self):
+		# summary scalars are logged per step
+		sum_list = []
+		sum_list.append(tf.summary.scalar('encoder/kl_loss', self.kl_loss))
+		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
+		sum_list.append(tf.summary.scalar('decoder/reconstruction_loss', self.recon_loss))
+		sum_list.append(tf.summary.scalar('loss', self.loss))
+		self.sum_scalar = tf.summary.merge(sum_list)
 
+		# summary hists are logged by calling self.summary()
+		sum_list = []
+		sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
+		sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
+		self.sum_hist = tf.summary.merge(sum_list)
+
+	'''
+		train operations
+	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		raise NotImplementedError
 
-
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		if self.config.get('flatten', False):
-			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 		feed_dict = {
 			self.x_real : x_batch,
-			self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
+			# self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
 		return self.train(sess, feed_dict)
 
-
+	'''
+		test operation
+	'''
 	def predict(self, sess, z_batch):
 		feed_dict = {
 			self.z_test : z_batch,
@@ -144,7 +157,7 @@ class VAE(BaseModel):
 		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
 		return x_batch
 
-	def hidden_distribution(self, sess, x_batch):
+	def hidden_variable_distribution(self, sess, x_batch):
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 		feed_dict = {
@@ -154,6 +167,9 @@ class VAE(BaseModel):
 		z_mean, z_log_var = sess.run([self.z_mean, self.z_log_var], feed_dict=feed_dict)
 		return z_mean, z_log_var
 
+	'''
+		summary operation
+	'''
 
 	def summary(self, sess):
 		if self.is_summary:
@@ -161,17 +177,3 @@ class VAE(BaseModel):
 			return sum
 		else:
 			return None
-
-
-	def get_summary(self):
-		# summary scalars are logged per step
-		sum_1 = tf.summary.scalar('encoder/kl_loss', self.kl_loss)
-		sum_2 = tf.summary.scalar('lr', self.learning_rate)
-		sum_3 = tf.summary.scalar('decoder/reconstruction_loss', self.xent_loss)
-		sum_4 = tf.summary.scalar('loss', self.loss)
-		self.sum_scalar = tf.summary.merge([sum_1, sum_2, sum_3, sum_4])
-
-		# summary hists are logged by calling self.summary()
-		hist_sum_d_list = [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
-		hist_sum_g_list = [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-		self.sum_hist = tf.summary.merge(hist_sum_g_list + hist_sum_d_list)

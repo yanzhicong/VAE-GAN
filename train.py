@@ -22,23 +22,20 @@
 # SOFTWARE.
 # ==============================================================================
 
-
 import os
 import sys
-import tensorflow as tf
-
-
+import argparse
 from shutil import copyfile
+
+import tensorflow as tf
 
 from cfgs.networkconfig import get_config
 from dataset.dataset import get_dataset
 from model.model import get_model
 from trainer.trainer import get_trainer
 
-import argparse
-
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('--gpu_number',     type=str,   default='1')
+parser.add_argument('--gpu_number',     type=str,   default='0')
 parser.add_argument('--config_file',    type=str,   default='cvae1')
 
 args = parser.parse_args()

@@ -52,7 +52,6 @@ class Classification(BaseModel):
 	def __init__(self, config,
 		**kwargs
 	):
-
 		super(Classification, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input_shape']
@@ -63,27 +62,28 @@ class Classification(BaseModel):
 		if self.is_summary:
 			self.build_summary()
 
-
-
 	def build_model(self):
+
+		self.config['classifier params']['name'] = 'classifier'
+		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.is_training)
+
+		# for training
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
 		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
 
+		self.logits = self.classifier(self.x)
+		self.loss = get_loss('classification', self.config['classification loss'], 
+						{'logits' : self.logits, 'labels' : self.label})
+		self.train_acc = get_metric('accuracy', 'top1', 
+						{'logits': self.logits, 'labels':self.label})
+
+		# for testing
 		self.test_x = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
-		
-		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], 
-					 self.config, self.is_training)
 
-		# build encoder
-		self.logits, end_points = self.classifier(self.x, reuse=False)
-		self.y = tf.nn.softmax(self.logits)
-		self.loss = get_loss('classification', self.config['classification loss'], {'logits' : self.logits, 'labels' : self.label})
+		ylogits = self.classifier(self.test_x)
+		self.test_y = tf.nn.softmax(ylogits)
 
-		logits, end_points = self.classifier(self.test_x, reuse=True)
-		self.y_test = tf.nn.softmax(logits)
-
-		self.acc = get_metric('accuracy', 'top1', {'logits': self.logits, 'labels':self.label})
-
+		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
 		if 'lr' in self.config:
 			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
@@ -96,6 +96,21 @@ class Classification(BaseModel):
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.vars + [self.global_step,])
 		
+	def build_summary(self):
+		# summary scalars are logged per step
+		sum_list = []
+		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
+		sum_list.append(tf.summary.scalar('train loss', self.loss))
+		sum_list.append(tf.summary.scalar('train acc', self.train_acc))
+		self.sum_scalar = tf.summary.merge(sum_list)
+
+		# summary hists are logged by calling self.summary()
+		sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars]
+		self.sum_hist = tf.summary.merge(sum_list)
+
+	'''
+		train operations
+	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		feed_dict = {
 			self.x : x_batch,
@@ -104,37 +119,26 @@ class Classification(BaseModel):
 		}
 		return self.train(sess, feed_dict)
 
-
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		raise NotImplementedError
 
+	'''
+		test operations
+	'''
 	def predict(self, sess, x_batch):
 		feed_dict = {
-			self.x_test : x_batch,
+			self.test_y : x_batch,
 			self.is_training : False
 		}
-		y = sess.run([self.y_test], feed_dict = feed_dict)
+		y = sess.run([self.test_y], feed_dict = feed_dict)
 		return y
 
+	'''
+		summary operations
+	'''
 	def summary(self, sess):
 		if self.is_summary:
 			sum = sess.run(self.sum_hist)
 			return sum
 		else:
 			return None
-
-	def help(self):
-		pass
-
-
-	def build_summary(self):
-		# summary scalars are logged per step
-		sum_list = []
-		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-		sum_list.append(tf.summary.scalar('train loss', self.loss))
-		sum_list.append(tf.summary.scalar('train acc', self.acc))
-		self.sum_scalar = tf.summary.merge(sum_list)
-
-		# summary hists are logged by calling self.summary()
-		hist_sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars]
-		self.sum_hist = tf.summary.merge(hist_sum_list)

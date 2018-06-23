@@ -42,52 +42,18 @@ from network.normalization import get_normalization
 from network.vgg import VGG
 
 
-class EncoderSimple(object):
+class ClassifierSimple(object):
 
 	def __init__(self, config, is_training):
-		self.name = config.get('name', 'EncoderSimple')
+		self.name = config.get('name', 'ClassifierSimple')
 		self.config = config
 
 		network_config = config.copy()
-		network_config['output_dims'] = 0
-
 		self.network = VGG(network_config, is_training)
-		self.output_distribution = self.config.get('output_distribution', 'gaussian')
-		self.reuse=False
 		
 	def __call__(self, i):
-
-		output_act_fn = get_activation(
-						self.config.get('output_activation', 'none'),
-						self.config.get('output_activation_params', ''))
-
-		winit_fn = get_weightsinit(
-						self.config.get('weightsinit', 'normal'), 
-						self.config.get('weightsinit_params', '0.00 0.02'))
-
-		output_dims = self.config.get('output_dims', 3)
-
 		x, end_points = self.network(i)
-
-		with tf.variable_scope(self.name):
-			if self.reuse:
-				tf.get_variable_scope().reuse_variables()
-			else:
-				assert tf.get_variable_scope().reuse is False
-				self.reuse=True
-
-			if self.output_distribution == 'gaussian':
-				mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
-							weights_initializer=winit_fn, scope='efc_mean')
-				log_var = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
-							weights_initializer=winit_fn, scope='efc_log_var')
-				return mean, log_var
-			elif self.output_distribution == 'mean':
-				mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
-							weights_initializer=winit_fn, scope='efc_mean')
-				return mean
-			else:
-				raise Exception("None output distribution named " + self.output_distribution)
+		return x
 
 	@property
 	def vars(self):

@@ -40,7 +40,6 @@ def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None):
 	if logits is not None:
 		probs = tf.nn.softmax(logits)
 
-
 	if probs is None:
 		raise Exception("Probs can not be none")
 	
@@ -53,7 +52,6 @@ def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None):
 def l2_loss(x, y, instance_weight=None):
 	x = tcl.flatten(x)
 	y = tcl.flatten(y)
-
 	if instance_weight is None:
 		return tf.reduce_mean(tf.square(x - y))
 	else:
@@ -68,8 +66,6 @@ def l1_loss(x, y, instance_weight=None):
 		return tf.reduce_mean(tf.abs(x - y))
 	else:
 		return tf.reduce_mean(tf.reduce_mean(tf.abs(x-y), axis=-1) * instance_weight)
-
-
 
 def binary_cls_loss(logits, labels, instance_weight=None):
 	return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))

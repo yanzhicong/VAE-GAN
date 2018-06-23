@@ -26,17 +26,12 @@
 import os
 import sys
 
-# from .encoder_pixel import EncoderPixel
-from .encoder_simple import EncoderSimple
-
-encoder_dict = {
-    "EncoderSimple" : EncoderSimple
-}
 
 
-def get_encoder(name, config, is_training, net_name):
-    if name in encoder_dict: 
-        return encoder_dict[name](config, is_training, net_name)
-    else:
-        raise Exception("None encoder named " + name)
+def get_encoder(name, config, is_training):
+	if name == 'EncoderSimple': 
+		from .encoder_simple import EncoderSimple
+		return EncoderSimple(config, is_training)
+	else:
+		raise Exception("None encoder named " + name)
 

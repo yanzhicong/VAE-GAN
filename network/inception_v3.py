@@ -31,13 +31,12 @@ sys.path.append('.')
 sys.path.append('../')
 
 
-
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-from .weightsinit import get_weightsinit
-from .activation import get_activation
-from .normalization import get_normalization
+from utils.weightsinit import get_weightsinit
+from utils.activation import get_activation
+from utils.normalization import get_normalization
 
 from .inception_block import inception_v3_figure4
 from .inception_block import inception_v3_figure5

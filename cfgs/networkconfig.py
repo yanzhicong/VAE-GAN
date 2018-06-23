@@ -27,20 +27,22 @@ import os
 import sys
 import json
 import yaml
-
+import re
 
 def get_config(name):
-    with open(os.path.join('cfgs', name + '.json'), 'r') as config_file:
-        config_json = json.loads(config_file.read())
-    return config_json
+	with open(os.path.join('cfgs', name + '.json'), 'r') as config_file:
+
+		# remove the comment in json file
+		jsonstring = ""
+		for line in config_file:
+			pure_line = re.sub('([^:]//.*"?$)|(/\*(.*?)\*/)','',line)
+			jsonstring += pure_line
+
+		config_json = json.loads(jsonstring)
+	return config_json
 
 
 def print_config(name):
-    pass
-
-
-
-
-
+	pass
 
 

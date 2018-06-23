@@ -94,7 +94,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		if self.is_summary:
 			self.get_summary()
 
-
 	def _draw_sample( self, mean, log_var ):
 		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
 		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
@@ -129,7 +128,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		self.m1_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hxu, 'log_var' : log_var_hxu})
 								* self.config.get('loss kl z weight', 1.0))
 		self.m1_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xu, 'y' : xu_decode})
-								* self.config.get('loss recon weight', 1.0))
+								* self.config.get('loss m1 reconstruction weight', 1.0))
 		self.m1_loss = self.m1_loss_kl_z + self.m1_loss_recon
 
 
@@ -174,10 +173,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 								* self.config.get('loss kl z weight', 1.0))
 		self.m2_su_loss_recon = (get_loss('reconstruction', 'mse', {	'x' : sample_hxl, 
 																		'y' : decode_hxl})
-								* self.config.get('reconstruction loss weight', 1.0))
+								* self.config.get('loss m2 reconstruction weight', 1.0))
 		self.m2_su_loss_cls = (get_loss('classification', 'cross entropy', {'logits' : yllogits, 
 																			'labels' : self.yl})
-								* self.config.get('classiciation loss weight', 1.0))
+								* self.config.get('loss classiciation weight', 1.0))
 		self.m2_su_loss = self.m2_su_loss_kl_z + self.m2_su_loss_recon + self.m2_su_loss_cls
 
 
@@ -228,7 +227,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		self.m2_unsu_loss_kl_z = (tf.reduce_sum(unsu_loss_kl_z_list)
 								* self.config.get('loss kl z weight', 1.0))
 		self.m2_unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
-								* self.config.get('loss recon weight', 1.0))
+								* self.config.get('loss m2 reconstruction weight', 1.0))
 
 		self.m2_unsu_loss = self.m2_unsu_loss_kl_z + self.m2_unsu_loss_recon  #+ self.m2_unsu_loss_kl_y 
 
@@ -299,7 +298,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 			self.is_training : True
 		}
 
-		if step < 5000:
+		if step < self.m1_train_steps:
 			return step, 0, 0, None
 		else:
 			return self.train(sess, feed_dict, update_op = self.m2_supervised_train_op,
@@ -313,12 +312,12 @@ class SemiDeepGenerativeModel2(BaseModel):
 			self.is_training : True
 		}
 
-		if step < 5000:
+		if step < self.m1_train_steps:
 			return self.train(sess, feed_dict, update_op = self.m1_train_op,
 									loss = self.m1_loss, summary=self.m1_summary)
 		else:
 			return self.train(sess, feed_dict, update_op = self.m2_unsupervised_train_op,
-									loss = self.m2_unsu_loss, summary = self.m2_supervised_summary)
+									loss = self.m2_unsu_loss, summary = self.m2_unsupervised_summary)
 
 
 	def predict(self, sess, x_batch):
@@ -326,10 +325,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 			p(y | x)
 		'''
 		feed_dict = {
-			self.xtest : x_batch,
+			self.xt : x_batch,
 			self.is_training : False
 		}
-		y_pred = sess.run([self.ytest], feed_dict = feed_dict)[0]
+		y_pred = sess.run([self.ytprobs], feed_dict = feed_dict)[0]
 		return y_pred
 
 
@@ -338,11 +337,11 @@ class SemiDeepGenerativeModel2(BaseModel):
 			p(z | x)
 		'''
 		feed_dict = {
-			self.xtest : x_batch,
+			self.xt : x_batch,
 			self.is_training : False
 		}
-		mean_z, log_var_z = sess.run([self.mean_ztest, self.log_var_ztest], feed_dict=feed_dict)
-		return mean_z, log_var_z
+		mean_hz, log_var_hz = sess.run([self.mean_hzt, self.log_var_hzt], feed_dict=feed_dict)
+		return mean_hz, log_var_hz
 
 
 	def summary(self, sess):

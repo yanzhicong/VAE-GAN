@@ -80,8 +80,8 @@ class MNIST(BaseDataset):
 			if not os.path.exists(self.extra_file_path):
 				os.mkdir(self.extra_file_path)
 
-			self.nb_labelled_images_per_classes = self.config.get('nb_labelled_images_per_classes', 100)
-			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_classes)
+			self.nb_labelled_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
+			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_class)
 
 			self.x_train_u = self.x_train
 			
@@ -92,18 +92,15 @@ class MNIST(BaseDataset):
 			self.y_train_l = self.y_train
 
 
-	def _get_labelled_image_indices(self, nb_images_per_classes):
-		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_classes)
+	def _get_labelled_image_indices(self, nb_images_per_class):
+		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
 		if os.path.exists(pickle_filepath):
 			return pickle.load(open(pickle_filepath, 'rb'))
 		else:
+			
 			train_indices = []
 			for i in range(self.nb_classes):
-
-				print(self.y_train.shape)
-				print(np.where(self.y_train == i)[0].shape)
-				indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_classes).tolist()
-				print(len(indices))
+				indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_class).tolist()
 				train_indices += indices
 			train_indices = np.array(train_indices)
 			pickle.dump(train_indices, open(pickle_filepath, 'wb'))

@@ -53,11 +53,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.supervised_step = self.config.get('supervised step', 1)
 		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
-		self.supervised_image_queue = queue.Queue(maxsize=5)
-		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 3)
+		self.supervised_image_queue = queue.Queue(maxsize=50)
+		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 30)
 
-		self.unsupervised_image_queue = queue.Queue(maxsize=5)
-		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*3)
+		self.unsupervised_image_queue = queue.Queue(maxsize=50)
+		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 30)
 
 		self.su_epoch = 0
 		self.su_step = 0
@@ -142,6 +142,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 	def log(self, step):
 		if self.log_steps != 0 and step % self.log_steps == 0:
-			print("supervised : [epoch : %d, step : %d, lr : %f, loss : %f] \ unsupervised : [epoch : %d, step : %d, lr : %f, loss : %f]"%(
+			print("supervised : [epoch : %d, step : %d, lr : %f, loss : %f] \\ unsupervised : [epoch : %d, step : %d, lr : %f, loss : %f]"%(
 					self.su_epoch, self.su_step, self.su_lr, self.su_loss, self.unsu_epoch, self.unsu_step, self.unsu_lr, self.unsu_loss))
 

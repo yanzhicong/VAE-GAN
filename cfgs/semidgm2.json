@@ -5,13 +5,13 @@
     "dataset params" : {
         "semi-supervised" : true,               //
         "input_shape" : [28, 28, 1],            //
-        "nb_labelled_images_per_class" : 300    //
+        "nb_labelled_images_per_class" : 100    //
     },
 
 
     // the validator output, tensorboard output and tensorflow checkpoint will be
     // saved under this directory
-    "assets dir" : "assets/semidgm2/semidgm1",
+    "assets dir" : "assets/semidgm2/semidgm8",
 
 
     // "semi-supervised learning with deep generative models"
@@ -39,13 +39,16 @@
             "decay_rate" : 0.9
         },
 
+        "m1_train_steps" : 10000,
+
         "summary" : true,
         "debug" : true,
 
         // the weight of different losses
         // default loss weight is 1.0
-        "loss kl z weight" : 0.0001,
-        "loss kl y weight" : 0.0001,
+        "loss kl z weight" : 0.000,
+        "loss kl y weight" : 0.000,
+        "loss m2 reconstruction weight" : 0.0,
  
         // network define
         "x encoder" : "EncoderSimple",
@@ -105,7 +108,7 @@
         "summary steps" : 100,
         "log steps" : 100,
         "supervised step" : 1,
-        "unsupervised step" : 5,
+        "unsupervised step" : 9,
         "batch_size" : 128,
         "print info" : true,
         "validators" : [

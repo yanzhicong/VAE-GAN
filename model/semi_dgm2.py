@@ -90,14 +90,8 @@ class SemiDeepGenerativeModel2(BaseModel):
 		self.build_model_m1()
 		self.build_model_m2()
 		self.build_model()
+		self.build_summary()
 
-		if self.is_summary:
-			self.get_summary()
-
-	def _draw_sample( self, mean, log_var ):
-		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
-		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
-		return sample
 
 
 	def build_model_m1(self):
@@ -122,7 +116,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#					|
 		# 			   sample_hxu --> xu_decode ==> reconstruction loss
 		mean_hxu, log_var_hxu = self.x_encoder(self.xu)
-		sample_hxu = self._draw_sample(mean_hxu, log_var_hxu)
+		sample_hxu = self.draw_sample(mean_hxu, log_var_hxu)
 		xu_decode = self.hx_decoder(sample_hxu)
 
 		self.m1_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hxu, 'log_var' : log_var_hxu})
@@ -161,10 +155,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				          |               |
 		# 	  			        [yl,	   	   sample_hzl] --> xl_decode ==> reconstruction loss
 		mean_hxl, log_var_hxl = self.x_encoder(self.xl)
-		sample_hxl = self._draw_sample(mean_hxl, log_var_hxl)
+		sample_hxl = self.draw_sample(mean_hxl, log_var_hxl)
 		yllogits = self.hx_classifier(sample_hxl)
 		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([sample_hxl, self.yl], axis=1))
-		sample_hzl = self._draw_sample(mean_hzl, log_var_hzl)
+		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
 		decode_hxl = self.hz_y_decoder(tf.concat([sample_hzl, self.yl], axis=1))
 
 
@@ -196,7 +190,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				  |			[y1,           sample_hzu1] --> decode_hxu1 ==> reconstruction loss * yuprobs[1]
 		#		.......
 		mean_hxu, log_var_hxu = self.x_encoder(self.xu)
-		sample_hxu = self._draw_sample(mean_hxu, log_var_hxu)
+		sample_hxu = self.draw_sample(mean_hxu, log_var_hxu)
 		yulogits = self.hx_classifier(sample_hxu)
 
 		yuprobs = tf.nn.softmax(yulogits)
@@ -209,7 +203,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 			yu_fake = tf.one_hot(yu_fake, depth=self.nb_classes)
 
 			mean_hzu, log_var_hzu = self.hx_y_encoder(tf.concat([sample_hxu, yu_fake], axis=1))
-			sample_hzu = self._draw_sample(mean_hzu, log_var_hzu)
+			sample_hzu = self.draw_sample(mean_hzu, log_var_hzu)
 			decode_hxu = self.hz_y_decoder(tf.concat([sample_hzu, yu_fake], axis=1))
 
 			unsu_loss_kl_z_list.append(
@@ -244,7 +238,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# 			   |			    			 |
 		#		     [sample_hxt,    			  ytprobs] --> mean_hzt, log_var_hzt
 		mean_hxt, log_var_hxt = self.x_encoder(self.xt)
-		sample_hxt = self._draw_sample(mean_hxt, log_var_hxt)
+		sample_hxt = self.draw_sample(mean_hxt, log_var_hxt)
 		ytlogits = self.hx_classifier(sample_hxt)
 		self.ytprobs = tf.nn.softmax(ytlogits)
 		self.mean_hzt, self.log_var_hzt = self.hx_y_encoder(tf.concat([sample_hxt, self.ytprobs], axis=1))
@@ -274,6 +268,38 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# model saver
 		self.saver = tf.train.Saver(self.vars + [self.global_step,])
 
+	def build_summary(self):
+
+		if self.is_summary:
+			# summary scalars are logged per step
+			sum_list = []
+			sum_list.append(tf.summary.scalar('m1/kl_z_loss', self.m1_loss_kl_z))
+			sum_list.append(tf.summary.scalar('m1/reconstruction_loss', self.m1_loss_recon))
+			sum_list.append(tf.summary.scalar('m1/loss', self.m1_loss))
+			self.m1_summary = tf.summary.merge(sum_list)
+
+			sum_list = []
+			sum_list.append(tf.summary.scalar('m2/supervised_kl_z_loss', self.m2_su_loss_kl_z))
+			sum_list.append(tf.summary.scalar('m2/supervised_reconstruction_loss', self.m2_su_loss_recon))
+			sum_list.append(tf.summary.scalar('m2/supervised_clasification_loss', self.m2_su_loss_cls))
+			sum_list.append(tf.summary.scalar('m2/supervised_loss', self.m2_su_loss))
+			self.m2_supervised_summary = tf.summary.merge(sum_list)
+
+			sum_list = []
+			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_z_loss', self.m2_unsu_loss_kl_z))
+			sum_list.append(tf.summary.scalar('m2/unsupervised_reconstruction_loss', self.m2_unsu_loss_recon))
+			sum_list.append(tf.summary.scalar('m2/unsupervised_loss', self.m2_unsu_loss))
+			self.m2_unsupervised_summary = tf.summary.merge(sum_list)
+			
+			# summary hists are logged by calling self.summary()
+			sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
+			self.histogram_summary = tf.summary.merge(sum_list)
+		else:
+			self.m1_summary = None
+			self.m2_supervised_summary = None
+			self.m2_unsupervised_summary = None
+			self.histogram_summary = None
+
 
 	@property
 	def m1_vars(self):
@@ -288,6 +314,9 @@ class SemiDeepGenerativeModel2(BaseModel):
 		return self.x_encoder.vars + self.hx_decoder.vars + self.hx_y_encoder.vars + self.hx_classifier.vars + self.hz_y_decoder.vars
 
 
+	'''
+		train operations
+	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 
 		step = sess.run([self.global_step])[0]
@@ -320,6 +349,9 @@ class SemiDeepGenerativeModel2(BaseModel):
 									loss = self.m2_unsu_loss, summary = self.m2_unsupervised_summary)
 
 
+	'''
+		test operations
+	'''
 	def predict(self, sess, x_batch):
 		'''
 			p(y | x)
@@ -344,36 +376,14 @@ class SemiDeepGenerativeModel2(BaseModel):
 		return mean_hz, log_var_hz
 
 
+	'''
+		summary operations
+	'''
 	def summary(self, sess):
 		if self.is_summary:
-			sum = sess.run(self.sum_hist)
+			sum = sess.run(self.histogram_summary)
 			return sum
 		else:
 			return None
 
 
-	def get_summary(self):
-
-		# summary scalars are logged per step
-		sum_list = []
-		sum_list.append(tf.summary.scalar('m1/kl_z_loss', self.m1_loss_kl_z))
-		sum_list.append(tf.summary.scalar('m1/reconstruction_loss', self.m1_loss_recon))
-		sum_list.append(tf.summary.scalar('m1/loss', self.m1_loss))
-		self.m1_summary = tf.summary.merge(sum_list)
-
-		sum_list = []
-		sum_list.append(tf.summary.scalar('m2/supervised_kl_z_loss', self.m2_su_loss_kl_z))
-		sum_list.append(tf.summary.scalar('m2/supervised_reconstruction_loss', self.m2_su_loss_recon))
-		sum_list.append(tf.summary.scalar('m2/supervised_clasification_loss', self.m2_su_loss_cls))
-		sum_list.append(tf.summary.scalar('m2/supervised_loss', self.m2_su_loss))
-		self.m2_supervised_summary = tf.summary.merge(sum_list)
-
-		sum_list = []
-		sum_list.append(tf.summary.scalar('m2/unsupervised_kl_z_loss', self.m2_unsu_loss_kl_z))
-		sum_list.append(tf.summary.scalar('m2/unsupervised_reconstruction_loss', self.m2_unsu_loss_recon))
-		sum_list.append(tf.summary.scalar('m2/unsupervised_loss', self.m2_unsu_loss))
-		self.m2_unsupervised_summary = tf.summary.merge(sum_list)
-		
-		# summary hists are logged by calling self.summary()
-		sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
-		self.sum_hist = tf.summary.merge(sum_list)

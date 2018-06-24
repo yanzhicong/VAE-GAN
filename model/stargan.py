@@ -51,16 +51,12 @@ class StarGAN(BaseModel):
 
 		self.config = config
 		self.input_shape = config['input_shape']
-		# self.z_dim = config['z_dim']
-		# self.config = config
 
 		self.nb_classes = config['nb_classes']
 		self.adv_type = config.get('adv_type', 'wgan')
 
 		self.build_model()
-
-		if self.is_summary:
-			self.get_summary()
+		self.build_summary()
 
 
 	def build_model(self):
@@ -70,8 +66,8 @@ class StarGAN(BaseModel):
 		self.fake_img_attr = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='fake_img_attr')
 		self.epsilon = tf.placeholder(tf.float32, [None, 1, 1, 1], name = 'gp_random_num')
 	
-		self.generator = get_encoder(self.config['generator'], self.config['generator params'], self.config, self.is_trainings)
-		self.discriminator = get_decoder(self.config['discriminator'], self.config['discriminator params'], self.config, self.is_training)
+		self.generator = get_encoder(self.config['generator'], self.config['generator params'], self.is_trainings)
+		self.discriminator = get_decoder(self.config['discriminator'], self.config['discriminator params'], self.is_training)
 
 
 		real_img_with_fake_attr = tf.concat(
@@ -82,7 +78,7 @@ class StarGAN(BaseModel):
 			), axis=3
 		)
 
-		self.fake_img = self.generator(real_img_with_fake_attr, reuse=False)
+		self.fake_img = self.generator(real_img_with_fake_attr)
 		
 		fake_img_with_real_attr = tf.concat(
 			self.fake_img,
@@ -92,20 +88,18 @@ class StarGAN(BaseModel):
 			), axis=3			
 		)
 
-		self.recon_img = self.generator(fake_img_with_real_attr, reuse=True)
+		self.recon_img = self.generator(fake_img_with_real_attr)
 
-		self.dis_real_img, self.cls_real_img = self.discriminator(self.real_img, reuse=False)
-		self.dis_fake_img, self.cls_fake_img = self.discriminator(self.fake_img, reuse=True)
-
+		self.dis_real_img, self.cls_real_img = self.discriminator(self.real_img)
+		self.dis_fake_img, self.cls_fake_img = self.discriminator(self.fake_img)
 
 		# discriminator loss
 		if self.adv_type == 'wgan':
-			self.d_gp_loss = get_loss('gradient penalty', self.config.get('gradient penalty', 'l2'),
-						{})
-			self.d_gp_loss = self.d_gp_loss * self.config.get('gradient penalty prod', 1.0)
+			self.d_gp_loss = (get_loss('gradient penalty', self.config.get('gradient penalty', 'l2'),
+						{}) 
+						* self.config.get('gradient penalty loss weight', 1.0))
 
-			self.d_adv_loss = - tf.reduce_mean(self.dis_real_img)
-			self.d_adv_loss += tf.reduce_mean(self.dis_fake_img)
+			self.d_adv_loss = - tf.reduce_mean(self.dis_real_img) + tf.reduce_mean(self.dis_fake_img)
 			self.d_adv_loss += self.d_gp_loss
 
 		elif self.adv_type == 'gan':
@@ -113,36 +107,104 @@ class StarGAN(BaseModel):
 				'preds' : self.dis_real_img, 'labels': tf.ones_like(self.dis_real_img)
 			})
 			self.d_adv_loss += get_loss('classification', self.config.get('gan loss', 'cross entropy'), {
-				'preds' : self.dis_fake_img, 'labels': tf.ones_like(self.dis_fake_img)
+				'preds' : self.dis_fake_img, 'labels': tf.zeros_like(self.dis_fake_img)
 			})
 		else:
 			raise Exception('None adverserial type of ' + self.adv_type)
 
 		
-		self.d_cls_loss = get_loss('classification', self.config.get('cls loss', 'binary entropy'),
-			{'preds' : self.dis_fake_img, 'labels': tf.ones_like(self.dis_fake_img) }
-		)
-		self.d_cls_loss *= self.config.get('cls loss prod', 1.0)
+		self.d_cls_loss = (get_loss('classification', self.config.get('classification loss', 'cross entropy'),
+								{'preds' : self.dis_fake_img, 'labels': tf.ones_like(self.dis_fake_img) })
+								*= self.config.get('classification loss weight', 1.0))
+
 		self.d_loss = self.d_adv_loss + self.d_cls_loss
 
 
-		self.x_fake = self.decoder(tf.concat([z, self.label_real], axis=1))
 
-		z_possible = tf.placeholder(tf.float32, shape=(None, self.z_dim))
-		c_possible = tf.placeholder(tf.float32, shape=(None, self.nb_classes))
+		if self.adv_type == 'wgan':
+			self.g_adv_loss = -tf.reduce_mean(self.src_fake_img)
+		elif self.adv_type == 'gan'
+			self.g_adv_loss = get_loss('classification', self.config.get('gan loss', 'cross entropy'), 
+								{'preds' : self.dis_fake_img, 'labels' : self.ones_like(self.dis_fake_img)})
 
-		x_possible = self.decoder(tf.concat([z_possible, c_possible],axis=1), reuse=True)
+		self.g_recon_loss = (get_loss('reconstruction', self.config.get('reconstruction loss', 'mse'), 
+								{'x' : self.real_img, 'y' : self.recon_img})
+							* self.config.get('reconstruction loss weight', 1.0))
 
-		d_real, feature_disc_real = self.discriminator(self.x_real)
-		d_fake, feature_disc_fake = self.discriminator(self.x_fake, reuse=True)
-		d_possible, feature_disc_possible = self.discriminator(x_possible, reuse=True)
+		self.g_cls_loss = (get_loss('classification', self.config.get('classification loss', 'cross entropy'), 
+								{'preds' : self.cls_fake_img, 'labels' : self.fake_img_attr})
+							* self.config.get('classification loss weight', 1.0))
 
-		c_real, feature_clas_real = self.classifier(self.x_real)
-		c_fake, feature_clas_fake = self.classifier(self.x_fake)
-		c_possible, feature_clas_possible = self.classifier(self.x_possible)
+		self.g_loss = self.g_adv_loss + g_recon_loss + g_cls_loss
 
 
-	# def get_kl_loss(self, )
+		###########################################################################
+		# optimizer configure
+		self.global_step, self.global_step_update = get_global_step()
+
+		if 'lr' in self.config:
+			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
+			optimizer_params = {'learning_rate' : self.learning_rate}
+		else:
+			optimizer_params = {}
+
+		self.discriminator_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.d_loss, 
+						self.discrimintor_vars)
+		self.generator_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.g_loss, 
+						self.generator_vars)
+
+		self.discriminator_train_op = tf.group([self.discriminator_optimizer, self.global_step_update])
+		self.generator_train_op = tf.group([self.generator_optimizer, self.global_step_update])
+
+
+		###########################################################################
+		# model saver
+		self.saver = tf.train.Saver(self.vars + [self.global_step,])
+
+
+	@property
+	def discrimintor_vars(self):
+		return self.discriminator.vars
+
+	@property
+	def generator_vars(self):
+		return self.generator.vars
+
+	@property
+	def vars(self):
+		return self.discriminator.vars + self.generator_vars
+
+	def build_summary(self):
+
+		if self.is_summary:
+			sum_list = []
+			sum_list.append(tf.summary.scalar('discriminator/adv_loss', self.d_adv_loss))
+			sum_list.append(tf.summary.scalar('discriminator/cls_loss', self.d_cls_loss))
+			if self.adv_type == 'wgan':
+				sum_list.append(tf.summary.scalar('discriminator/gp_loss', self.d_gp_loss))
+			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
+
+			self.discriminator_summary = tf.summary.merge(sum_list)
+
+
+			sum_list = []
+			sum_list.append(tf.summary.scalar('generator/adv_loss', self.g_adv_loss))
+			sum_list.append(tf.summary.scalar('generator/cls_loss', self.g_cls_loss))
+			sum_list.append(tf.summary.scalar('generator/reconstruction_loss', self.g_recon_loss))
+			sum_list.append(tf.summary.scalar('generator/loss', self.g_loss))
+			self.generator_summary = tf.summary.merge(sum_list)
+
+
+			sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
+			self.histogram_summary = tf.summary.merge(sum_list)
+
+
+		else:
+			self.discriminator_summary = None
+			self.generator_summary = None
+
+
+		pass
 
 	def train_on_batch_supervised(self, x_batch, y_batch):
 		raise NotImplementedError
@@ -156,7 +218,13 @@ class StarGAN(BaseModel):
 		raise NotImplementedError
 
 
-	def get_summary(self):
-		pass
-
+	'''
+		summary operations
+	'''
+	def summary(self, sess):
+		if self.is_summary:
+			sum = sess.run(self.histogram_summary)
+			return sum
+		else:
+			return None
 

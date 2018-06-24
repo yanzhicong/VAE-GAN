@@ -78,9 +78,7 @@ class CVAEGAN(BaseModel):
         z = get_sample(self.config['sample_func'], (z_avg, z_log_var))
 
 
-
         self.x_fake = self.decoder(tf.concat([z, self.label_real], axis=1))
-
 
         z_possible = tf.placeholder(tf.float32, shape=(None, self.z_dim))
         c_possible = tf.placeholder(tf.float32, shape=(None, self.nb_classes))
@@ -98,8 +96,6 @@ class CVAEGAN(BaseModel):
         c_possible, feature_clas_possible = self.classifier(self.x_possible)
 
 
-
-        pass
 
 
     # def get_kl_loss(self, )

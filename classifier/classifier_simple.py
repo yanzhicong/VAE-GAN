@@ -60,3 +60,4 @@ class ClassifierSimple(object):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
 
+

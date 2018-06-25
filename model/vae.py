@@ -73,29 +73,29 @@ class VAE(BaseModel):
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 		self.encoder_input_shape = list(self.input_shape)
 
-		self.config['encoder params']['name'] = 'encoder'
+		self.config['encoder params']['name'] = 'Encoder'
 		self.config['encoder params']['output_dims'] = self.z_dim
-		self.config['decoder params']['name'] = 'decoder'
+		self.config['decoder params']['name'] = 'Decoder'
 		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
 		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.is_training)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)
 
 		# build encoder
-		self.z_mean, self.z_log_var = self.encoder(self.x_real)
+		self.mean_z, self.log_var_z = self.encoder(self.x_real)
 
-		# sample z from z_mean and z_log_var
-		self.z_sample = self.draw_sample(self.z_mean, self.z_log_var)
+		# sample z from mean_z and log_var_z
+		sample_z = self.draw_sample(self.mean_z, self.log_var_z)
 
 		# build decoder
-		self.x_decode = self.decoder(self.z_sample)
+		self.x_decode = self.decoder(sample_z)
 
 		# build test decoder
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
 		self.x_test = self.decoder(self.z_test)
 
 		# loss function
-		self.kl_loss = (get_loss('kl', self.config['kl loss'], {'mean' : self.z_mean, 'log_var' : self.z_log_var})
+		self.kl_loss = (get_loss('kl', self.config['kl loss'], {'mean' : self.mean_z, 'log_var' : self.log_var_z})
 							* self.config.get('kl loss prod', 1.0))
 
 		self.recon_loss = (get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
@@ -164,8 +164,8 @@ class VAE(BaseModel):
 			self.x_real : x_batch,
 			self.is_training : False
 		}
-		z_mean, z_log_var = sess.run([self.z_mean, self.z_log_var], feed_dict=feed_dict)
-		return z_mean, z_log_var
+		mean_z, log_var_z = sess.run([self.mean_z, self.log_var_z], feed_dict=feed_dict)
+		return mean_z, log_var_z
 
 	'''
 		summary operation

@@ -12,7 +12,6 @@ class BaseModel(object, metaclass=ABCMeta):
 		'''
 		Initialization
 		'''
-
 		self.name = config['name']
 		self.is_summary = config.get('summary', False)
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
@@ -52,7 +51,7 @@ class BaseModel(object, metaclass=ABCMeta):
 
 
 	def checkpoint_load(self, sess, log_dir):
-		print(" [*] Reading checkpoint...")
+		print(" [*] Reading checkpoint... : " + log_dir)
 		ckpt = tf.train.get_checkpoint_state(log_dir)      
 		if ckpt and ckpt.model_checkpoint_path:
 			ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
@@ -102,8 +101,6 @@ class BaseModel(object, metaclass=ABCMeta):
 				summary=None,
 				):
 
-		if update_op is None:
-			update_op = self.train_op
 		if step is None:
 			step = self.global_step
 		if learning_rate is None:
@@ -111,7 +108,10 @@ class BaseModel(object, metaclass=ABCMeta):
 		if loss is None:
 			loss = self.loss
 
-		if self.is_summary and summary is not None:
+		if update_op is None:
+			s, lr = sess.run([step, learning_rate])
+			return s, lr, 0, None
+		elif self.is_summary and summary is not None:
 			_, s, lr, l, s_sum = sess.run([update_op, step, learning_rate, loss, summary],	
 						feed_dict = feed_dict)
 			return s, lr, l, s_sum

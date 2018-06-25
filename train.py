@@ -37,6 +37,7 @@ from trainer.trainer import get_trainer
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--gpu_number',     type=str,   default='0')
 parser.add_argument('--config_file',    type=str,   default='cvae1')
+parser.add_argument('--disp_config',    type=bool,   default=False)
 
 args = parser.parse_args()
 
@@ -46,7 +47,7 @@ if __name__ == '__main__':
 	tf.reset_default_graph()
 
 	# load config file
-	config = get_config(args.config_file)
+	config = get_config(args.config_file, args.disp_config)
 
 	# make the assets directory and copy the config file to it
 	if not os.path.exists(config['assets dir']):

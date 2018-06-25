@@ -34,11 +34,11 @@ from .basedataset import BaseDataset
 
 
 
-class MNIST(BaseDataset):
+class CeleBA(BaseDataset):
 
 	def __init__(self, config):
 		
-		super(MNIST, self).__init__(config)
+		super(CeleBA, self).__init__(config)
 		self.config = config
 
 		self._dataset_dir = 'D:/Data/MNIST'
@@ -54,7 +54,7 @@ class MNIST(BaseDataset):
 			raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 
 		self.name = 'mnist'
-		self.output_shape = config.get('output_shape', [28, 28, 1])
+		self.input_shape = config.get('output_shape', [28, 28, 1])
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
 
@@ -71,25 +71,22 @@ class MNIST(BaseDataset):
 		self.x_train = self.x_train.astype(np.float32) / 255.0
 		self.x_test = self.x_test.astype(np.float32) / 255.0
 
-		# whether perpare semi-supervised datset or not
 		if self.config.get('semi-supervised', False):
-
-			self.extra_file_path = os.path.join('./dataset/extra_files', self.name)
+			self.extra_file_path = './dataset/extra_files'
 			if not os.path.exists(self.extra_file_path):
-				os.makedirs(self.extra_file_path)
+				os.mkdir(self.extra_file_path)
+			self.extra_file_path = os.path.join(self.extra_file_path, self.name)
+			if not os.path.exists(self.extra_file_path):
+				os.mkdir(self.extra_file_path)
 
-			# if semisupervised training, prepare labelled train set indices,
 			self.nb_labelled_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
 			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_class)
 
-			# unlabelled train set
 			self.x_train_u = self.x_train
 			
-			# labelled train set
 			self.x_train_l = self.x_train[self.labelled_image_indices]
 			self.y_train_l = self.y_train[self.labelled_image_indices]
 		else:
-			# else training in supervised manner
 			self.x_train_l = self.x_train
 			self.y_train_l = self.y_train
 
@@ -99,6 +96,7 @@ class MNIST(BaseDataset):
 		if os.path.exists(pickle_filepath):
 			return pickle.load(open(pickle_filepath, 'rb'))
 		else:
+			
 			train_indices = []
 			for i in range(self.nb_classes):
 				indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_class).tolist()
@@ -106,7 +104,7 @@ class MNIST(BaseDataset):
 			train_indices = np.array(train_indices)
 			pickle.dump(train_indices, open(pickle_filepath, 'wb'))
 			return train_indices
-	
+
 	def _read_data(self, label_url, image_url):
 		with gzip.open(label_url) as flbl:
 			magic, num = struct.unpack(">II",flbl.read(8))

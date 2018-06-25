@@ -28,7 +28,6 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
-
 def kl_gaussian_loss(mean, log_var, instance_weight=None):
 	if instance_weight is None:
 		return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1))

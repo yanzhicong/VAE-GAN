@@ -62,6 +62,8 @@ class BaseTrainer(object):
 
 		self.summary_dir = os.path.join(self.config['assets dir'], self.config.get('summary dir', 'log'))
 		self.checkpoint_dir = os.path.join(self.config['assets dir'], self.config.get('checkpoint dir', 'checkpoint'))
+		self.load_checkpoint_dir = os.path.join(self.config.get('load checkpoint assets dir', self.config['assets dir']),
+												self.config.get('checkpoint dir', 'checkpoint'))
 
 		if not os.path.exists(self.summary_dir):
 			os.mkdir(self.summary_dir)
@@ -70,7 +72,7 @@ class BaseTrainer(object):
 
 		self.summary_steps = int(self.config.get('summary steps', 0))
 		self.log_steps = int(self.config.get('log steps', 0))
-		self.save_steps = int(self.config.get('save checkpoint steps', 0))
+		self.save_checkpoint_steps = int(self.config.get('save checkpoint steps', 0))
 		self.batch_size = int(self.config.get('batch_size', 16))
 
 
@@ -88,23 +90,23 @@ class BaseTrainer(object):
 			validator_steps = int(validator_config['validate steps'])
 			self.validator_list.append((validator_steps, validator))
 
-		if self.config.get('print info', False):
-			self.print_info()
+		self.debug = self.config.get('debug', False)
+		if self.debug:
+			print('Trainer Parameters :')
+			print('\tsummary_dir : ', self.summary_dir)
+			print('\tcheckpoint_dir : ', self.checkpoint_dir)
+			print('\tload_checkpoint_dir : ', self.load_checkpoint_dir)
+			print('\tsummary_steps : ', self.summary_steps)
+			print('\tlog_steps : ', self.log_steps)
+			print('\tsave_checkpoint_steps : ', self.save_checkpoint_steps)
+			print('\tbatch_size : ', self.batch_size)
 
-	def print_info(self):
-		print('Trainer Parameters :')
-		print('\tsummary_dir : ', self.summary_dir)
-		print('\tcheckpoint_dir : ', self.checkpoint_dir)
-		print('\tsummary_steps : ', self.summary_steps)
-		print('\tlog_steps : ', self.log_steps)
-		print('\tsave_steps : ', self.save_steps)
-		print('\tbatch_size : ', self.batch_size)
 
 	def train_initialize(self, sess, model):
 		self.sess = sess
 		sess.run(tf.global_variables_initializer())
 		if self.config.get('continue train', False):
-			if model.checkpoint_load(sess, self.checkpoint_dir):
+			if model.checkpoint_load(sess, self.load_checkpoint_dir):
 				print("Continue Train...")
 			else:
 				print("Load Checkpoint Failed")
@@ -122,7 +124,6 @@ class BaseTrainer(object):
 			return :
 				the current train step
 		'''
-
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(self.sess, batch_x)
 			self.unsu_step = step
@@ -135,25 +136,25 @@ class BaseTrainer(object):
 			self.su_loss = loss
 
 		if summary:
-			self.summary_writer.add_summary(summary, step-1)
+			self.summary_writer.add_summary(summary, step)
 
-		if log_disp and self.log_steps != 0 and step % self.log_steps == 1:
+		if log_disp and self.log_steps != 0 and step % self.log_steps == 0:
 			print("epoch : %d, step : %d, lr : %f, loss : %f"%(epoch, step-1, lr, loss))
 
-		if self.summary_steps != 0 and step % self.summary_steps == 1:
+		if self.summary_steps != 0 and step % self.summary_steps == 0:
 			summary = model.summary(self.sess)
 			if summary:
-				self.summary_writer.add_summary(summary, step-1)
+				self.summary_writer.add_summary(summary, step)
 
-		if self.save_steps != 0 and step % self.save_steps == 1:
-			model.checkpoint_save(self.sess, self.checkpoint_dir, step-1)
+		if self.save_checkpoint_steps != 0 and step % self.save_checkpoint_steps == 0:
+			model.checkpoint_save(self.sess, self.checkpoint_dir, step)
 
 		for validator_steps, validator in self.validator_list:
-			if validator_steps != 0 and step % validator_steps == 1:
-				summary = validator.validate(model, validate_dataset, self.sess, step-1)
+			if validator_steps != 0 and step % validator_steps == 0:
+				summary = validator.validate(model, validate_dataset, self.sess, step-0)
 
 				if summary is not None:
-					self.summary_writer.add_summary(summary, step-1)
+					self.summary_writer.add_summary(summary, step)
 
 		return step
 

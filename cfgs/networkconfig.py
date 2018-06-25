@@ -29,15 +29,20 @@ import json
 import yaml
 import re
 
-def get_config(name):
+def get_config(name, disp=False):
 	with open(os.path.join('cfgs', name + '.json'), 'r') as config_file:
 
 		# remove the comment in json file
-		jsonstring = ""
+		jsonstring = []
 		for line in config_file:
 			pure_line = re.sub('([^:]//.*"?$)|(/\*(.*?)\*/)','',line)
-			jsonstring += pure_line
+			jsonstring.append(pure_line)
 
+		if disp:
+			for i, line in enumerate(jsonstring):
+				print('%d: %s'%(i, line[:-1]))
+
+		jsonstring = ''.join(jsonstring)
 		config_json = json.loads(jsonstring)
 	return config_json
 

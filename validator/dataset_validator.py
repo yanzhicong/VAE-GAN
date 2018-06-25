@@ -58,8 +58,9 @@ class DatasetValidator(object):
 
 			self.log_filepath = os.path.join(self.assets_dir, 'test_dataset_' + self.metric + "_" + self.metric_type + '.csv')
 
-			with open(self.log_filepath, 'w') as logfile:
-				logfile.write('step,' + self.metric_type + '\n')
+			if not self.config.get('continue train', False):
+				with open(self.log_filepath, 'w') as logfile:
+					logfile.write('step,' + self.metric_type + '\n')
 
 		self.summary = tf.summary.merge(self.summary_list)
 

@@ -27,8 +27,6 @@ import os
 import numpy as np
 import pickle
 
-from keras.utils import to_categorical
-
 from .basedataset import BaseDataset
 
 class Cifar10(BaseDataset):
@@ -37,7 +35,7 @@ class Cifar10(BaseDataset):
 
 		super(Cifar10, self).__init__(config)
 		
-		self._dataset_dir = 'D:\Data\Cifar10'
+		self._dataset_dir = 'D:\\Data\\Cifar10'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/Cifar10'
 		if not os.path.exists(self._dataset_dir):

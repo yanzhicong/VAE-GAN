@@ -36,6 +36,3 @@ def get_dataset(name, config):
 	else:
 		raise Exception('None dataset named ' + name)
 
-
-
-

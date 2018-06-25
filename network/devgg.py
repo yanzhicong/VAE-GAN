@@ -88,6 +88,7 @@ class DEVGG(object):
 			'is_training' : self.training
 		}
 		self.config = config
+		self.debug = config.get('debug', False)
 
 		# when first applying the network to input tensor, the reuse is false
 		self.reuse = False
@@ -119,14 +120,34 @@ class DEVGG(object):
 		nb_deconv_filters = self.config.get('nb_deconv_filters', [512, 512, 256, 128, 64])
 		nb_deconv_layers = self.config.get('nb_deconv_layers', [2, 2, 3, 3, 3])
 		nb_deconv_ksize = self.config.get('nb_deconv_ksize', [3, 3, 3, 3, 3])
-		# no_maxpooling = self.config.get('no_maxpooling', False)
-
 
 		# output stage parameters
 		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
 		output_act_fn = get_activation(
 					self.config.get('output_activation', 'none'),
 					self.config.get('output_activation_params', ''))
+
+
+		if self.debug:
+			print('DEVGG:')
+			print('\tactivation', self.config.get('activation', ''))
+			print('\tactivation_params', self.config.get('activation_params', ''))
+			print('\tbatch_norm', self.config.get('batch_norm', ''))
+			print('\tbatch_norm_params', self.config.get('batch_norm_params', ''))
+			print('\tweightsinit', self.config.get('weightsinit', ''))
+			print('\tweightsinit_params', self.config.get('weightsinit_params', ''))
+			print('\tincluding_bottom', self.config.get('including_bottom', ''))
+			print('\tnb_fc_nodes', self.config.get('nb_fc_nodes', ''))
+			print('\tfc_output_reshape', self.config.get('fc_output_reshape', ''))
+			print('\tincluding_deconv', self.config.get('including_deconv', ''))
+			print('\tnb_deconv_blocks', self.config.get('nb_deconv_blocks', ''))
+			print('\tnb_deconv_filters', self.config.get('nb_deconv_filters', ''))
+			print('\tnb_deconv_layers', self.config.get('nb_deconv_layers', ''))
+			print('\tnb_deconv_ksize', self.config.get('nb_deconv_ksize', ''))
+			print('\toutput_dims', self.config.get('output_dims', ''))
+			print('\toutput_activation', self.config.get('output_activation', ''))
+			print('\toutput_activation_params', self.config.get('output_activation_params', ''))
+
 
 
 		with tf.variable_scope(self.name):
@@ -146,12 +167,12 @@ class DEVGG(object):
 							weights_initializer=winit_fn, scope='fc%d'%ind)
 					end_points['fc%d'%ind] = x
 
+			# construct deconvolution layers
+			if including_deconv:
+
 				if fc_output_reshape is not None:
 					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
 
-
-			# construct deconvolution layers
-			if including_deconv:
 				for block_ind in range(nb_conv_blocks):
 					for layer_ind in range(nb_conv_layers[block_ind]):
 
@@ -176,6 +197,11 @@ class DEVGG(object):
 				if output_dims != 0:
 					x = tcl.fully_connected(x, output_dims, 
 								activation_fn=output_act_fn, weights_initializer=winit_fn, scope='fc_out')
+					
+
+				if fc_output_reshape is not None:
+					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
+					
 					end_points['fc_out'] = x
 
 			return x, end_points

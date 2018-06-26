@@ -106,10 +106,12 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# 
 		# x_encoder : x -> hx
 		self.config['x encoder params']['name'] = 'EncoderHX_X'
+		self.config['x encoder params']['output_dims'] = self.hx_dim
 		self.x_encoder = get_encoder(self.config['x encoder'], 
 									self.config['x encoder params'], self.is_training)
 		# decoder : hx -> x
 		self.config['hx decoder params']['name'] = 'DecoderX_HX'
+		self.config['hx decoder params']['output_dims'] = np.product(self.input_shape)
 		self.hx_decoder = get_decoder(self.config['hx decoder'], self.config['hx decoder params'], self.is_training)
 
 		###########################################################################
@@ -138,10 +140,12 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# 
 		# hx_y_encoder : [hx, y] -> hz
 		self.config['hx y encoder params']['name'] = 'EncoderHZ_HXY'
+		self.config['hx y encoder params']['output_dims'] = self.hz_dim
 		self.hx_y_encoder = get_encoder(self.config['hx y encoder'], 
 									self.config['hx y encoder params'], self.is_training)
-		# hz_y_decoder : [hz, y] -> x_decode
+		# hz_y_decoder : [hz, y] -> hx
 		self.config['hz y decoder params']['name'] = 'DecoderX_HZY'
+		self.config['hz y decoder params']['output_dims'] = self.hx_dim
 		self.hz_y_decoder = get_decoder(self.config['hz y decoder'], self.config['hz y decoder params'], self.is_training)
 		# hx_classifier : hx -> ylogits
 		self.config['hx classifier params']['name'] = 'ClassifierHX'
@@ -164,7 +168,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([sample_hxl, self.yl], axis=1))
 		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
 		decode_hxl = self.hz_y_decoder(tf.concat([sample_hzl, self.yl], axis=1))
-
 
 		self.m2_su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hzl, 
 															'log_var' : log_var_hzl, })
@@ -198,7 +201,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		mean_hxu, log_var_hxu = self.x_encoder(self.xu)
 		sample_hxu = self.draw_sample(mean_hxu, log_var_hxu)
 		yulogits = self.hx_classifier(sample_hxu)
-
 		yuprobs = tf.nn.softmax(yulogits)
 
 		unsu_loss_kl_z_list = []
@@ -224,12 +226,15 @@ class SemiDeepGenerativeModel2(BaseModel):
 													'instance_weight' : yuprobs[:, i]})
 			)
 
+		self.m2_unsu_loss_kl_y = (get_loss('kl', 'bernoulli', { 'probs' : yuprobs})
+								* self.m2_loss_weights.get('kl y loss weight', 1.0))
+
 		self.m2_unsu_loss_kl_z = (tf.reduce_sum(unsu_loss_kl_z_list)
 								* self.m2_loss_weights.get('kl z loss weight', 1.0))
 		self.m2_unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
 								* self.m2_loss_weights.get('reconstruction loss weight', 1.0))
 
-		self.m2_unsu_loss = ((self.m2_unsu_loss_kl_z + self.m2_unsu_loss_recon)  #+ self.m2_unsu_loss_kl_y 
+		self.m2_unsu_loss = ((self.m2_unsu_loss_kl_z + self.m2_unsu_loss_recon + self.m2_unsu_loss_kl_y)
 							* self.m2_loss_weights.get('unsupervised loss weight', 1.0))
 
 	def build_model(self):
@@ -278,7 +283,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 	def build_summary(self):
 
 		if self.is_summary:
-
 			common_sum_list = []
 			common_sum_list.append(tf.summary.scalar('learning_rate', self.learning_rate))
 
@@ -298,8 +302,14 @@ class SemiDeepGenerativeModel2(BaseModel):
 
 			sum_list = []
 			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_z_loss', self.m2_unsu_loss_kl_z))
+			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_y_loss', self.m2_unsu_loss_kl_y))
 			sum_list.append(tf.summary.scalar('m2/unsupervised_reconstruction_loss', self.m2_unsu_loss_recon))
 			sum_list.append(tf.summary.scalar('m2/unsupervised_loss', self.m2_unsu_loss))
+			# sum_list.append(tf.summary.scalar('m2/mean_logits', self.mean_logits))
+			# sum_list.append(tf.summary.scalar('m2/var_logits', self.var_logits))
+			# sum_list.append(tf.summary.scalar('m2/mean_prob', self.mean_prob))
+			# sum_list.append(tf.summary.scalar('m2/var_prob', self.var_prob))
+			# sum_list.append(tf.summary.scalar('m2/mean_logprob', self.mean_logprob))
 			self.m2_unsupervised_summary = tf.summary.merge(sum_list + common_sum_list)
 			
 			# summary hists are logged by calling self.summary()
@@ -331,23 +341,24 @@ class SemiDeepGenerativeModel2(BaseModel):
 		train operations
 	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-
 		step = sess.run([self.global_step])[0]
 
-		feed_dict = {
-			self.xl : x_batch,
-			self.yl : y_batch,
-			self.is_training : True
-		}
-
 		if step < self.m1_train_steps:
-			print('error : %d,%d'%(step, self.m1_train_steps))
-
-			return step, 0, 0, None
+			# for m1 can only be trained unsupervised
+			feed_dict = {
+				self.xu : x_batch,
+				self.is_training : True
+			}
+			return self.train(sess, feed_dict, update_op=self.m1_train_op,
+									loss = self.m1_loss, summary=self.m1_summary)
 		else:
+			feed_dict = {
+				self.xl : x_batch,
+				self.yl : y_batch,
+				self.is_training : True
+			}
 			return self.train(sess, feed_dict, update_op = self.m2_supervised_train_op,
 									loss = self.m2_su_loss, summary=self.m2_supervised_summary)
-
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		step = sess.run([self.global_step])[0]
@@ -363,7 +374,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 			return self.train(sess, feed_dict, update_op = self.m2_unsupervised_train_op,
 									loss = self.m2_unsu_loss, summary = self.m2_unsupervised_summary)
 
-
 	'''
 		test operations
 	'''
@@ -378,7 +388,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		y_pred = sess.run([self.ytprobs], feed_dict = feed_dict)[0]
 		return y_pred
 
-
 	def hidden_variable_distribution(self, sess, x_batch):
 		'''
 			p(z | x)
@@ -389,7 +398,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		}
 		mean_hz, log_var_hz = sess.run([self.mean_hzt, self.log_var_hzt], feed_dict=feed_dict)
 		return mean_hz, log_var_hz
-
 
 	'''
 		summary operations

@@ -34,9 +34,9 @@ sys.path.append('../')
 
 
 
-from network.weightsinit import get_weightsinit
-from network.activation import get_activation
-from network.normalization import get_normalization
+from utils.weightsinit import get_weightsinit
+from utils.activation import get_activation
+from utils.normalization import get_normalization
 
 
 from network.vgg import VGG

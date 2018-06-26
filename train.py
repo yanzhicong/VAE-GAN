@@ -72,4 +72,3 @@ if __name__ == '__main__':
 		trainer = get_trainer(config['trainer'], config['trainer params'], model)
 
 		trainer.train(sess, dataset, model)
-

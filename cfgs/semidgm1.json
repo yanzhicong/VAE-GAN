@@ -3,104 +3,156 @@
 
     "dataset" : "mnist",
     "dataset params" : {
-        "semi-supervised" : true,
-        "input_shape" : [28, 28, 1],
-        "batch_size" : 32,
-        "nb_labelled_images_per_class" : 300
+        "semi-supervised" : true,               //
+        "output_shape" : [28, 28, 1],            //
+        "nb_labelled_images_per_class" : 100    //
     },
 
-    "assets dir" : "assets/semidgm/semidgm7",
+    // the validator output, tensorboard output and tensorflow checkpoint will be
+    // saved under this directory
+    "assets dir" : "assets/semidgm/semidgm1",
 
+    // "semi-supervised learning with deep generative models"
+    // implemention is in models/semi_dgm2.py
     "ganmodel" : "semidgm",
     "ganmodel params" : {
         "name" : "semidgm",
 
+        // shape params config
         "input_shape" : [28, 28, 1],
-        "flatten" : true,
         "nb_classes" : 10,
-        "z_dim" : 2,
+        "hz_dim" : 10,
+        "hx_dim" : 50,
 
-        "optimizer" : "rmsprop",       
+        // optimizers config
+        // other optimizers are in utils/optimizer.py
+        "optimizer" : "rmsprop",
+
+        // learning rate scheme
+        // other learning rate schemes are in utils/learning_rate.py
         "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
-            "decay_steps" : 1000,
+            "decay_steps" : 10000,
             "decay_rate" : 0.9
         },
 
-        "loss kl z prod" : 0.0001,
-        "loss kl y prod" : 0.0001,
 
         "summary" : true,
         "debug" : true,
- 
+
+        // the weight of different losses
+        // default loss weight is 1.0
+        "m1 loss weights" : {
+            "kl z loss weight" : 0.0001,
+            "reconstruction loss weight" : 1.0
+        },
+        "m2 loss weights" : {
+            "kl z loss weight" : 0.0001,
+            "kl y loss weight" : 1,
+            "reconstruction loss weight" : 0.1,
+            "classification loss weight" : 1.0,
+            "supervised loss weight" : 1.0,
+            "unsupervised loss weight" : 0.20
+        },
+
+        // network define
+        //
+        // x -(encoder)-> hx -(decoder)-> x
+        //                hx -(classifier)-> y
+        //                [hx, y] -(encoder)-> hz 
+        //                                    [hz, y] -(decoder)-> hx
         "x encoder" : "EncoderSimple",
         "x encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
-            "output_distribution": "mean",
+            "output_distribution": "gaussian",
             "output_dims" : 50
         },
 
-        "hx_y encoder" : "EncoderSimple",
-        "hx_y encoder params" : {
-            "nb_conv_blocks" : 0,
+        "hx decoder" : "DecoderSimple",
+        "hx decoder params" : {
             "batch_norm" : "none",
-            "nb_fc_nodes" : [64, 32],
-            "output_distribution": "gaussian",
-            "output_dims" : 2
+            "nb_fc_nodes" : [600, 600],
+            "output_dims" : 784,
+            "including_deconv" : false,
+            "fc_output_reshape" : [28, 28, 1],
+            "output_activation" : "sigmoid"
         },
 
-        "hx classifier" : "VGG",
+        "hx y encoder" : "EncoderSimple",
+        "hx y encoder params" : {
+            "nb_conv_blocks" : 0,
+            "batch_norm" : "none",
+            "nb_fc_nodes" : [40, 20],
+            "output_distribution": "gaussian",
+            "output_dims" : 10
+        },
+
+        "hz y decoder" : "DecoderSimple",
+        "hz y decoder params" : {
+            "nb_deconv_blocks" : 0,
+            "batch_norm" : "none",
+            "nb_fc_nodes" : [20, 40],
+            "output_dims" : 50,
+            "including_deconv" : false,
+            "output_activation" : "sigmoid"
+        },
+
+        "hx classifier" : "ClassifierSimple",
         "hx classifier params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [],
-            "output_dims" : 10
-        },
-        
-        "decoder" : "DecoderSimple",
-        "decoder params" : {
-            "nb_fc_nodes" : [600, 600],
-            "output_dims" : 784,
-            "output_activation" : "sigmoid"
+            "nb_fc_nodes" : [30],
+            "output_dims" : 10,
+            "output_activation" : "none"
         }
     },
 
+
     "trainer" : "semi-supervised",
     "trainer params" : {
-        "continue train" : false,
-        "train steps" : 20000,
-        "summary steps" : 100,
-        "log steps" : 100,
 
-        "pretrain supervised step" : 2000,
+        // "continue train" : true,
+        // "load checkpoint assets dir" : "assets/semidgm/semidgm_m1", // load checkpoint from other assets dir
+
+        "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
+        "save checkpoint steps"  : 5000,                //save checkpoint interval steps (default 0 is not to save)
+        "log steps" : 100,                      //print log interval steps (default 0 is not to print)
+
+        "train steps" : 90000,                  //maximum total train steps
+
         "supervised step" : 1,
-        "unsupervised step" : 5,
+        "unsupervised step" : 9,
+
         "batch_size" : 128,
-        "print info" : true,
+        "debug" : true,
+
         "validators" : [
             {
                 "validator" : "dataset_validator",
-                "validate steps" : 100,
+                "validate steps" : 500,
                 "has summary" : true,
+                // "continue train" : true, // prevent overwrite previous result file
                 "validator params" : {
                     "metric" : "accuracy",
                     "metric type" : "top1"
                 }
-            },
-            {
-                "validator" : "scatter_plot_validator",
-                "validate steps" : 1000,
-                "validator params" : {
-                    "watch variable" : "hidden dist",
-                    "x_dim" : 0,
-                    "y_dim" : 1,
-                    "log dir" : "scatter1"
-                }
             }
+            // ,
+            // {
+            //     "validator" : "scatter_plot_validator",
+            //     "validate steps" : 5000,
+            //     "validator params" : {
+            //         "watch variable" : "hidden dist",
+            //         "x_dim" : 0,
+            //         "y_dim" : 1,
+            //         "log dir" : "scatter1"
+            //     }
+            // }
         ]
+    
     }
 }
 

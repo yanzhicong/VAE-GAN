@@ -60,6 +60,8 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		super(SemiSupervisedTrainer, self).__init__(config, model)
 
+		# 
+
 		# optional parameters
 		self.pretrain_steps = self.config.get('pretrain steps', [])
 
@@ -67,18 +69,16 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
 		# train data queue
-		self.supervised_image_queue = queue.Queue(maxsize=50)
-		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 30)
+		self.supervised_image_queue = queue.Queue(maxsize=100)
+		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 300)
 
-		self.unsupervised_image_queue = queue.Queue(maxsize=50)
-		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 30)
+		self.unsupervised_image_queue = queue.Queue(maxsize=100)
+		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 300)
 
 
 		self.debug = self.config.get('debug', False)
 		if self.debug:
 			print('Semisupervised Trainer')
-			print('\tpretrain supervised step', self.config.get('pretrain supervised step', ''))
-			print('\tpretrain unsupervised step', self.config.get('pretrain unsupervised step', ''))
 			print('\tsupervised step', self.config.get('supervised step', ''))
 			print('\tunsupervised step', self.config.get('unsupervised step', ''))
 
@@ -101,7 +101,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 		# start threads for queuing supervised train data and unsupervised train data
 		# the supervised train data is stored in self.supervised_image_queue
 		# the unsupervised train data is stored in self.unsupervised_image_queue
-
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
 										args=(self.coord, dataset, self.supervised_image_inner_queue, 'supervised')),
@@ -115,31 +114,35 @@ class SemiSupervisedTrainer(BaseTrainer):
 		for t in threads:
 			t.start()
 
+
 		self.train_initialize(sess, model)
 
+
 		for train_manner, train_steps in self.pretrain_steps:
-			print('\t' + train_manner + ' ' + str(train_steps))
 			if train_manner == 'supervised':
 				for i in range(train_steps):
 					epoch, batch_x, batch_y = self.supervised_image_queue.get()
 					self.su_epoch = epoch
 					step = self.train_inner_step(epoch, model, dataset, batch_x, batch_y, log_disp=False)
 					self.log(step)
-
+					if step >= int(self.config['train steps']):
+							break
 			elif train_manner == 'unsupervised':
 				for i in range(train_steps):
 					epoch, batch_x = self.unsupervised_image_queue.get()
 					self.unsu_epoch = epoch
 					step = self.train_inner_step(epoch, model, dataset, batch_x, log_disp=False)
 					self.log(step)
+					if step >= int(self.config['train steps']):
+						break
 			else :
 				raise Exception('Wrong train manner ' + str(train_manner))
 
 
 		# finally training in both supervised and unsupervised manner
 		while True:
-			if step >= int(self.config['train steps']):
-					break
+			# if step >= int(self.config['train steps']):
+			# 		break
 
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()

@@ -126,6 +126,25 @@ class VGG(object):
 					self.config.get('output_activation_params', ''))
 
 
+		if self.config.get('debug', False):
+			print('VGG')
+			print('\tactivation : ', self.config.get('activation', ''))
+			print('\tactivation_params : ', self.config.get('activation_params', ''))
+			print('\tbatch_norm : ', self.config.get('batch_norm', ''))
+			print('\tbatch_norm_params : ', self.config.get('batch_norm_params', ''))
+			print('\tweightsinit : ', self.config.get('weightsinit', ''))
+			print('\tweightsinit_params : ', self.config.get('weightsinit_params', ''))
+			print('\tnb_conv_blocks : ', self.config.get('nb_conv_blocks', ''))
+			print('\tnb_conv_filters : ', self.config.get('nb_conv_filters', ''))
+			print('\tnb_conv_layers : ', self.config.get('nb_conv_layers', ''))
+			print('\tnb_conv_ksize : ', self.config.get('nb_conv_ksize', ''))
+			print('\tno_maxpooling : ', self.config.get('no_maxpooling', ''))
+			print('\tincluding_top : ', self.config.get('including_top', ''))
+			print('\tnb_fc_nodes : ', self.config.get('nb_fc_nodes', ''))
+			print('\toutput_dims : ', self.config.get('output_dims', ''))
+			print('\toutput_activation : ', self.config.get('output_activation', ''))
+			print('\toutput_activation_params : ', self.config.get('output_activation_params', ''))
+
 		with tf.variable_scope(self.name):
 			if self.reuse:
 				tf.get_variable_scope().reuse_variables()
@@ -173,6 +192,10 @@ class VGG(object):
 							stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
 				end_points['conv_out'] = x
 
+			if self.config.get('debug', False):
+				for key, var in end_points:
+					print(key, '-->', var.get_shape())
+					
 			return x, end_points
 
 	@property

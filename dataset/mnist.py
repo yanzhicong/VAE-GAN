@@ -43,6 +43,8 @@ class MNIST(BaseDataset):
 
 		self._dataset_dir = 'D:/Data/MNIST'
 		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = 'D:/dataset/MNIST'
+		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = 'C:/Data/MNIST'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/MNIST'

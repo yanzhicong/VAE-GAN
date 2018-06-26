@@ -33,10 +33,9 @@ import tensorflow.contrib.layers as tcl
 sys.path.append('../')
 
 
-
-from network.weightsinit import get_weightsinit
-from network.activation import get_activation
-from network.normalization import get_normalization
+from utils.weightsinit import get_weightsinit
+from utils.activation import get_activation
+from utils.normalization import get_normalization
 
 
 from network.vgg import VGG
@@ -86,6 +85,10 @@ class EncoderSimple(object):
 				mean = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
 							weights_initializer=winit_fn, scope='efc_mean')
 				return mean
+			elif self.output_distribution == 'none':
+				out = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn,
+							weights_initializer=winit_fn, scope='efc_mean')
+				return out
 			else:
 				raise Exception("None output distribution named " + self.output_distribution)
 

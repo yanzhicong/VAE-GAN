@@ -1,20 +1,20 @@
 {
-    "config name" : "semidgm2",
+    "config name" : "semidgm3",
 
     "dataset" : "mnist",
     "dataset params" : {
         "semi-supervised" : true,               //
         "output_shape" : [28, 28, 1],            //
-        "nb_labelled_images_per_class" : 100    //
+        "nb_labelled_images_per_class" : 1000    //
     },
 
     // the validator output, tensorboard output and tensorflow checkpoint will be
     // saved under this directory
-    "assets dir" : "assets/semidgm2/semidgm9",
+    "assets dir" : "assets/semidgm3/semidgm7",
 
     // "semi-supervised learning with deep generative models"
-    // implemention is in models/semi_dgm2.py
-    "ganmodel" : "semidgm2",
+    // implemention is in models/semi_dgm3.py
+    "ganmodel" : "semidgm3",
     "ganmodel params" : {
         "name" : "semidgm",
 
@@ -33,53 +33,35 @@
         "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
-            "decay_steps" : 2000,
-            "decay_rate" : 0.8
+            "decay_steps" : 10000,
+            "decay_rate" : 0.9
         },
-
-        "m1 train steps" : 4000,
 
         "summary" : true,
         "debug" : true,
 
-        // the weight of different losses
-        // default loss weight is 1.0
-        "m1 loss weights" : {
+        "loss weights" : {
             "kl z loss weight" : 0.001,
-            "reconstruction loss weight" : 1.0
-        },
-        "m2 loss weights" : {
-            "kl z loss weight" : 0.0001,
             "kl y loss weight" : 1,
-            "reconstruction loss weight" : 0.1,
+            "reconstruction loss weight" : 1,
             "classification loss weight" : 1.0,
             "supervised loss weight" : 1.0,
-            "unsupervised loss weight" : 0.1
+            "unsupervised loss weight" : 0.02
         },
 
         // network define
-        //
-        // x -(encoder)-> hx -(decoder)-> x
-        //                hx -(classifier)-> y
+        // 
+        // x -(classifier)-> y
+        // x -(encoder)-> hx 
         //                [hx, y] -(encoder)-> hz 
-        //                                    [hz, y] -(decoder)-> hx
+        //                                    [hz, y] -(decoder)-> x
         "x encoder" : "EncoderSimple",
         "x encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
-            "output_distribution": "gaussian",
+            "output_distribution": "none",
             "output_dims" : 50
-        },
-
-        "hx decoder" : "DecoderSimple",
-        "hx decoder params" : {
-            "batch_norm" : "none",
-            "nb_fc_nodes" : [600, 600],
-            "output_dims" : 784,
-            "including_deconv" : false,
-            "fc_output_reshape" : [28, 28, 1],
-            "output_activation" : "sigmoid"
         },
 
         "hx y encoder" : "EncoderSimple",
@@ -95,17 +77,18 @@
         "hz y decoder params" : {
             "nb_deconv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [20, 40],
-            "output_dims" : 50,
+            "nb_fc_nodes" : [60, 200],
+            "output_dims" : 784,
             "including_deconv" : false,
+            "fc_output_reshape" : [28, 28, 1],
             "output_activation" : "sigmoid"
         },
 
-        "hx classifier" : "ClassifierSimple",
-        "hx classifier params" : {
+        "x classifier" : "ClassifierSimple",
+        "x classifier params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [30],
+            "nb_fc_nodes" : [256, 80],
             "output_dims" : 10,
             "output_activation" : "none"
         }
@@ -119,19 +102,17 @@
         // "load checkpoint assets dir" : "assets/semidgm2/semidgm_m1", // load checkpoint from other assets dir
 
         "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
-        "save checkpoint steps" : 5000,         //save checkpoint interval steps (default 0 is not to save)
+        "save checkpoint steps"  : 5000,                //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
 
-        "train steps" : 20000,                  //maximum total train steps
+        "train steps" : 10000,                  //maximum total train steps
 
         "pretrain steps" : [
-            ["unsupervised", 4000]
-            ,
-            ["supervised", 3000]
+            ["supervised", 1000]
         ], 
 
         "supervised step" : 1,
-        "unsupervised step" : 2,
+        "unsupervised step" : 9,
 
         "batch_size" : 128,
         "debug" : true,
@@ -139,7 +120,7 @@
         "validators" : [
             {
                 "validator" : "dataset_validator",
-                "validate steps" : 500,
+                "validate steps" : 100,
                 "has summary" : true,
                 // "continue train" : true, // prevent overwrite previous result file
                 "validator params" : {

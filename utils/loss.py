@@ -23,30 +23,27 @@
 # ==============================================================================
 
 
-
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
 def kl_gaussian_loss(mean, log_var, instance_weight=None):
 	if instance_weight is None:
-		return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1))
+		return -0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean))
 	else:
 		return tf.reduce_mean(-0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean), axis=-1) * instance_weight)
-		
 
-def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None):
+
+def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None, lossen=0.02):
 	if logits is not None:
 		probs = tf.nn.softmax(logits)
-
 	if probs is None:
 		raise Exception("Probs can not be none")
-	
 	if instance_weight is None:
-		return -tf.reduce_mean(tf.square(probs - 0.5))
+		return -tf.reduce_mean(tf.log((probs + lossen) / (1 + lossen)) * probs)
 	else:
-		return -tf.reduce_mean(tf.reduce_mean(tf.square(probs - 0.5), axis=-1) * instance_weight)
-	# return -tf.reduce_mean(probs * logprobs)
+		return -tf.reduce_mean(tf.reduce_mean(tf.log((probs + lossen) / (1 + lossen)) * probs, axis=-1) * instance_weight) 
+
 
 def l2_loss(x, y, instance_weight=None):
 	x = tcl.flatten(x)
@@ -66,9 +63,12 @@ def l1_loss(x, y, instance_weight=None):
 	else:
 		return tf.reduce_mean(tf.reduce_mean(tf.abs(x-y), axis=-1) * instance_weight)
 
-def binary_cls_loss(logits, labels, instance_weight=None):
-	return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
 
+def binary_cls_loss(logits, labels, instance_weight=None):
+	if instance_weight is None:
+		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
+	else:
+		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits) * instance_weight)
 
 
 loss_dict = {

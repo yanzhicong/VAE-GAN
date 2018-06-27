@@ -36,8 +36,8 @@ from trainer.trainer import get_trainer
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--gpu_number',     type=str,   default='0')
-parser.add_argument('--config_file',    type=str,   default='cvae1')
-parser.add_argument('--disp_config',    type=bool,   default=False)
+parser.add_argument('--config_file',    type=str,   default='cvae1')		# target config file, stored in ./cfgs
+parser.add_argument('--disp_config',    type=bool,   default=False)			# if there is error in config file, set True to print the config file with line number
 
 args = parser.parse_args()
 
@@ -50,6 +50,8 @@ if __name__ == '__main__':
 	config = get_config(args.config_file, args.disp_config)
 
 	# make the assets directory and copy the config file to it
+	# so if you want to reproduce the result in assets dir
+	# just copy the config_file.json to ./cfgs folder and run python3 train.py --config=(config_file)
 	if not os.path.exists(config['assets dir']):
 		os.makedirs(config['assets dir'])
 	copyfile(os.path.join('./cfgs', args.config_file + '.json'), 

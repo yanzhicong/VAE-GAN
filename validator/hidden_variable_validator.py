@@ -28,8 +28,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-class HiddenVariableValidator(object):
+from .basevalidator import BaseValidator
+
+
+class HiddenVariableValidator(BaseValidator):
 	def __init__(self, config):
+
+		super(HiddenVariableValidator, self).__init__(config)
 
 		self.z_dim = config['z_dim']
 		self.assets_dir = config['assets dir']

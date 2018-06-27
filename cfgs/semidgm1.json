@@ -10,7 +10,7 @@
 
     // the validator output, tensorboard output and tensorflow checkpoint will be
     // saved under this directory
-    "assets dir" : "assets/semidgm/semidgm1",
+    "assets dir" : "assets/semidgm/semidgm4",
 
     // "semi-supervised learning with deep generative models"
     // implemention is in models/semi_dgm2.py
@@ -21,7 +21,7 @@
         // shape params config
         "input_shape" : [28, 28, 1],
         "nb_classes" : 10,
-        "hz_dim" : 10,
+        "hz_dim" : 20,
         "hx_dim" : 50,
 
         // optimizers config
@@ -33,10 +33,11 @@
         "lr" : 0.001,
         "lr_scheme" : "exponential",
         "lr_params" : {
-            "decay_steps" : 10000,
-            "decay_rate" : 0.9
+            "decay_steps" : 2000,
+            "decay_rate" : 0.8
         },
 
+        "m1 train steps" : 4000,
 
         "summary" : true,
         "debug" : true,
@@ -44,7 +45,7 @@
         // the weight of different losses
         // default loss weight is 1.0
         "m1 loss weights" : {
-            "kl z loss weight" : 0.0001,
+            "kl z loss weight" : 0.001,
             "reconstruction loss weight" : 1.0
         },
         "m2 loss weights" : {
@@ -52,8 +53,10 @@
             "kl y loss weight" : 1,
             "reconstruction loss weight" : 0.1,
             "classification loss weight" : 1.0,
+            "regularization loss weight" : 0.0060,
+
             "supervised loss weight" : 1.0,
-            "unsupervised loss weight" : 0.20
+            "unsupervised loss weight" : 0.04
         },
 
         // network define
@@ -67,15 +70,13 @@
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
-            "output_distribution": "gaussian",
-            "output_dims" : 50
+            "output_distribution": "gaussian"
         },
 
         "hx decoder" : "DecoderSimple",
         "hx decoder params" : {
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
-            "output_dims" : 784,
             "including_deconv" : false,
             "fc_output_reshape" : [28, 28, 1],
             "output_activation" : "sigmoid"
@@ -85,17 +86,15 @@
         "hx y encoder params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [40, 20],
-            "output_distribution": "gaussian",
-            "output_dims" : 10
+            "nb_fc_nodes" : [40, 40],
+            "output_distribution": "gaussian"
         },
 
         "hz y decoder" : "DecoderSimple",
         "hz y decoder params" : {
             "nb_deconv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [20, 40],
-            "output_dims" : 50,
+            "nb_fc_nodes" : [40, 40],
             "including_deconv" : false,
             "output_activation" : "sigmoid"
         },
@@ -105,7 +104,6 @@
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [30],
-            "output_dims" : 10,
             "output_activation" : "none"
         }
     },
@@ -117,14 +115,23 @@
         // "continue train" : true,
         // "load checkpoint assets dir" : "assets/semidgm/semidgm_m1", // load checkpoint from other assets dir
 
+        "summary dir" : "log",
+        "summary hyperparams string" : "unsupervised_loss_weight_0_04",
+
         "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
-        "save checkpoint steps"  : 5000,                //save checkpoint interval steps (default 0 is not to save)
+        // "save checkpoint steps" : 5000,         //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
 
-        "train steps" : 90000,                  //maximum total train steps
+        "train steps" : 20000,                  //maximum total train steps
+
+        "pretrain steps" : [
+            ["unsupervised", 4000]
+            ,
+            ["supervised", 3000]
+        ], 
 
         "supervised step" : 1,
-        "unsupervised step" : 9,
+        "unsupervised step" : 5,
 
         "batch_size" : 128,
         "debug" : true,

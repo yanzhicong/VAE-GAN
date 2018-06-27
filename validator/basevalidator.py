@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # MIT License
-#
+# 
 # Copyright (c) 2018 ZhicongYan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,28 +23,27 @@
 # ==============================================================================
 
 
+import os
+import sys
+# import numpy as np
 
-def get_model(model_name, model_params):
-    if model_name == 'cvaegan':
-        from .cvaegan import CVAEGAN
-        return CVAEGAN(model_params)
-    elif model_name == 'vae':
-        from .vae import VAE
-        return VAE(model_params)
-    elif model_name == 'cvae':
-        from .cvae import CVAE
-        return CVAE(model_params)
-    elif model_name == 'classification':
-        from .classification import Classification
-        return Classification(model_params)
-    elif model_name == 'stargan':
-        from .stargan import StarGAN
-        return StarGAN(model_params)
-    elif model_name == 'semidgm':
-        from .semi_dgm import SemiDeepGenerativeModel
-        return SemiDeepGenerativeModel(model_params)
-    elif model_name == 'semidgm2':
-        from .semi_dgm2 import SemiDeepGenerativeModel2
-        return SemiDeepGenerativeModel2(model_params)
-    else:
-        raise Exception("None model named " + model_name)
+sys.path.append('.')
+sys.path.append('../')
+
+# import tensorflow as tf
+# import tensorflow.contrib.layers as tcl
+
+
+
+
+class BaseValidator(object):
+	def __init__(self, config):
+
+		self.config = config
+		self.has_summary = False
+
+	def build_summary(self, model):
+		return NotImplementedError
+
+	def validate(self, model, dataset, sess, step):
+		return NotImplementedError

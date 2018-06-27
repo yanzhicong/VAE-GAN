@@ -64,7 +64,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		# optional parameters
 		self.pretrain_steps = self.config.get('pretrain steps', [])
-
 		self.supervised_step = self.config.get('supervised step', 1)
 		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
@@ -95,8 +94,12 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 
 	def train(self, sess, dataset, model):
-		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		
+
+
+		if 'summary hyperparams string' in self.config:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
+		else:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 
 		# start threads for queuing supervised train data and unsupervised train data
 		# the supervised train data is stored in self.supervised_image_queue
@@ -141,9 +144,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		# finally training in both supervised and unsupervised manner
 		while True:
-			# if step >= int(self.config['train steps']):
-			# 		break
-
 			for i in range(self.supervised_step):
 				epoch, batch_x, batch_y = self.supervised_image_queue.get()
 				self.su_epoch = epoch

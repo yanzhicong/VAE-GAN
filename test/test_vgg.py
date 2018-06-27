@@ -6,8 +6,6 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
-
-from network import vgg
 from network.vgg import VGG
 
 if __name__ == '__main__':
@@ -17,11 +15,8 @@ if __name__ == '__main__':
 	}
 
 	model = VGG(config, True)
-
 	x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
-
 	y, end_points = model(x)
-
 	for name, value in end_points.items():
 		print(name, '  --> ', value.get_shape())
 

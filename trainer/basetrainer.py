@@ -65,16 +65,18 @@ class BaseTrainer(object):
 		self.load_checkpoint_dir = os.path.join(self.config.get('load checkpoint assets dir', self.config['assets dir']),
 												self.config.get('checkpoint dir', 'checkpoint'))
 
-		if not os.path.exists(self.summary_dir):
-			os.mkdir(self.summary_dir)
-		if not os.path.exists(self.checkpoint_dir):
-			os.mkdir(self.checkpoint_dir)
+
 
 		self.summary_steps = int(self.config.get('summary steps', 0))
 		self.log_steps = int(self.config.get('log steps', 0))
 		self.save_checkpoint_steps = int(self.config.get('save checkpoint steps', 0))
 		self.batch_size = int(self.config.get('batch_size', 16))
 
+
+		if self.summary_steps != 0 and not os.path.exists(self.summary_dir):
+			os.mkdir(self.summary_dir)
+		if self.save_checkpoint_steps != 0 and not os.path.exists(self.checkpoint_dir):
+			os.mkdir(self.checkpoint_dir)
 
 		self.validator_list = []
 		for validator_config in self.config.get('validators', []):
@@ -135,7 +137,7 @@ class BaseTrainer(object):
 			self.su_lr = lr
 			self.su_loss = loss
 
-		if summary:
+		if self.summary_steps != 0 and summary is not None:
 			self.summary_writer.add_summary(summary, step)
 
 		if log_disp and self.log_steps != 0 and step % self.log_steps == 0:

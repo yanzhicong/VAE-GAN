@@ -45,6 +45,17 @@ def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None, lossen=0.02
 		return -tf.reduce_mean(tf.reduce_mean(tf.log((probs + lossen) / (1 + lossen)) * probs, axis=-1) * instance_weight) 
 
 
+def kl_categorical_loss(logits=None, probs=None, instance_weight=None, lossen=0.02):
+	if logits is not None:
+		probs = tf.nn.softmax(logits)
+	if probs is None:
+		raise Exception("Probs can not be none")
+	if instance_weight is None:
+		return -tf.reduce_mean(tf.log((probs + lossen) / (1 + lossen)) * probs)
+	else:
+		return -tf.reduce_mean(tf.reduce_mean(tf.log((probs + lossen) / (1 + lossen)) * probs, axis=-1) * instance_weight) 
+
+
 def l2_loss(x, y, instance_weight=None):
 	x = tcl.flatten(x)
 	y = tcl.flatten(y)
@@ -71,10 +82,25 @@ def binary_cls_loss(logits, labels, instance_weight=None):
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits) * instance_weight)
 
 
+def regularization_l1_loss(var_list):
+	loss = 0
+	for var in var_list:
+		loss += tf.reduce_mean(tf.square(var))
+	return loss
+
+
+def regularization_l2_loss(var_list):
+	loss = 0
+	for var in var_list:
+		loss += tf.reduce_mean(tf.abs(var))
+	return loss
+
+
 loss_dict = {
 	'kl' : {
 		'gaussian' : kl_gaussian_loss,
-		'bernoulli' : kl_bernoulli_loss
+		'bernoulli' : kl_bernoulli_loss,
+		'categorical' : kl_categorical_loss,
 	},
 	'reconstruction' : {
 		'mse' : l2_loss,
@@ -82,7 +108,11 @@ loss_dict = {
 		'l1' : l1_loss
 	},
 	'classification' : {
-		'cross entropy' : binary_cls_loss
+		'cross entropy' : binary_cls_loss,
+	},
+	'regularization' : {
+		'l2' : regularization_l2_loss,
+		'l1' : regularization_l1_loss,
 	}
 }
 

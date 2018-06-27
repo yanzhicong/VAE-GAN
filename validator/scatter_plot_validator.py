@@ -29,10 +29,14 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 
-class ScatterPlotValidator(object):
+
+from .basevalidator import BaseValidator
+
+class ScatterPlotValidator(BaseValidator):
 	
 	def __init__(self, config):
 	
+		super(ScatterPlotValidator, self).__init__(config)
 		self.assets_dir = config['assets dir']
 		self.log_dir = config.get('log dir', 'scatter')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
@@ -61,9 +65,6 @@ class ScatterPlotValidator(object):
 
 			elif self.watch_variable == 'hidden dist':
 				z_mean, z_log_var = model.hidden_variable_distribution(sess, batch_x)
-
-				# print(batch_y.shape)
-				# print(np.argmax(batch_y, axis=1).shape)
 
 				x_pos_array.append(
 					np.concatenate([	z_mean[:, self.x_dim:self.x_dim+1], 

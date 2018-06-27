@@ -75,7 +75,6 @@ class MNIST(BaseDataset):
 
 		# whether perpare semi-supervised datset or not
 		if self.config.get('semi-supervised', False):
-
 			self.extra_file_path = os.path.join('./dataset/extra_files', self.name)
 			if not os.path.exists(self.extra_file_path):
 				os.makedirs(self.extra_file_path)
@@ -117,5 +116,3 @@ class MNIST(BaseDataset):
 			magic, num, rows, cols = struct.unpack(">IIII",fimg.read(16))
 			image = np.fromstring(fimg.read(),dtype=np.uint8).reshape(len(label),rows,cols)
 		return (label, image)
-
-

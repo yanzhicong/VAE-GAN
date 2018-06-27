@@ -40,8 +40,13 @@ class Cifar10(BaseDataset):
 			self._dataset_dir = '/mnt/data01/dataset/Cifar10'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/Cifar10'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
 
-		self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
+
+		self.name = 'cifar10'
+		self.output_shape = config.get('output_shape', [32, 32, 3])
+		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
  
 		train_batch_list = [
@@ -66,6 +71,44 @@ class Cifar10(BaseDataset):
 		test_data, test_label = self.read_data(test_batch_file, self._dataset_dir)
 		self.x_test = np.reshape(test_data, [-1, 3, 32, 32]).transpose([0, 2, 3, 1]).astype(np.float32) / 255.0
 		self.y_test = test_label
+
+
+		# whether perpare semi-supervised datset or not
+		if self.config.get('semi-supervised', False):
+
+			self.extra_file_path = os.path.join('./dataset/extra_files', self.name)
+			if not os.path.exists(self.extra_file_path):
+				os.makedirs(self.extra_file_path)
+
+			# if semisupervised training, prepare labelled train set indices,
+			self.nb_labelled_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
+			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_class)
+
+			# unlabelled train set
+			self.x_train_u = self.x_train
+			
+			# labelled train set
+			self.x_train_l = self.x_train[self.labelled_image_indices]
+			self.y_train_l = self.y_train[self.labelled_image_indices]
+		else:
+			# else training in supervised manner
+			self.x_train_l = self.x_train
+			self.y_train_l = self.y_train
+
+
+	def _get_labelled_image_indices(self, nb_images_per_class):
+		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
+		if os.path.exists(pickle_filepath):
+			return pickle.load(open(pickle_filepath, 'rb'))
+		else:
+			train_indices = []
+			for i in range(self.nb_classes):
+				indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_class).tolist()
+				train_indices += indices
+			train_indices = np.array(train_indices)
+			pickle.dump(train_indices, open(pickle_filepath, 'wb'))
+			return train_indices
+	
 
 	def read_data(self, filename, data_path):
 		with open(os.path.join(data_path, filename), 'rb') as datafile:

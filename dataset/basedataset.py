@@ -43,6 +43,9 @@ class BaseDataset(object, metaclass=ABCMeta):
 
 	'''
 		method for direct iterate image
+		E.g.
+		for index, batch_x, batch_y in dataset.iter_train_images_supervised():
+			(training...)
 	'''
 	def iter_train_images_supervised(self):
 		index = np.arange(self.x_train_l.shape[0])
@@ -56,7 +59,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 
 			if 'output_shape' in self.config:
 				batch_x = batch_x.reshape([self.batch_size,] + self.config['output_shape'])
-			batch_y = to_categorical(batch_y, num_classes=self.nb_classes)
+			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y
 
 
@@ -91,7 +94,10 @@ class BaseDataset(object, metaclass=ABCMeta):
 			yield i, batch_x, batch_y
 
 
-	def get_image_indices(self, phase, method):
+	'''
+
+	'''
+	def get_image_indices(self, phase, method='supervised'):
 		'''
 		'''
 		if phase == 'train':
@@ -100,7 +106,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 			elif method == 'unsupervised' : 
 				indices = np.array(range(self.x_train_u.shape[0]))
 			else:
-				raise Exception("None method named " + method)
+				raise Exception("None method named " + str(method))
 			
 			if self.shuffle_train:
 				np.random.shuffle(indices)
@@ -114,7 +120,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 			return indices
 
 		else:
-			raise Exception("None phase named " + phase)
+			raise Exception("None phase named " + str(phase))
 
 	def read_image_by_index_supervised(self, index):
 		label = np.zeros((self.nb_classes,))
@@ -123,6 +129,20 @@ class BaseDataset(object, metaclass=ABCMeta):
 
 	def read_image_by_index_unsupervised(self, index):
 		return self.x_train_u[index].reshape(self.output_shape)
+
+
+	@property
+	def nb_labelled_images(self):
+		return self.x_train_l.shape[0]
+
+	@property
+	def nb_unlabelled_images(self):
+		return self.x_train_u.shape[0]
+
+	@property
+	def nb_test_images(self):
+		return self.x_test.shape[0]
+
 
 	def to_categorical(self, y, num_classes=None):
 		"""

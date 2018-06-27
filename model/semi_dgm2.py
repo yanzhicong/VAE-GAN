@@ -49,6 +49,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 		Implementation of "Semi-Supervised Learning with Deep Generative Models"
 		Diederik P. Kingma, Danilo J. Rezende, Shakir Mohamed, Max Welling
 
+		Experiment Model
+		Including some modification to origin model/semi_dgm.py
+		1. removing the m1/m2 stage from model/semi_dgm.py
+
 		@article{DBLP:journals/corr/KingmaRMW14,
 			author    = {Diederik P. Kingma and
 						Danilo Jimenez Rezende and
@@ -83,23 +87,20 @@ class SemiDeepGenerativeModel2(BaseModel):
 
 		# optional params
 		self.debug = config.get('debug', False)
-		self.m1_train_steps = config.get('m1 train steps', 5000)
-		self.m1_loss_weights = config.get('m1 loss weights', {})
-		self.m2_loss_weights = config.get('m2 loss weights', {})
+		self.loss_weights = config.get('loss weights', {})
 
 		# build model
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
 
-		self.build_model_m1()
-		self.build_model_m2()
 		self.build_model()
 		self.build_summary()
 
 
-
-	def build_model_m1(self):
+	def build_model(self):
 
 		self.xu = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xu_input')
+		self.xl = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xl_input')
+		self.yl = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='yl_input')
 
 		###########################################################################
 		# network define
@@ -107,49 +108,21 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# x_encoder : x -> hx
 		self.config['x encoder params']['name'] = 'EncoderHX_X'
 		self.config['x encoder params']['output_dims'] = self.hx_dim
-		self.x_encoder = get_encoder(self.config['x encoder'], 
-									self.config['x encoder params'], self.is_training)
-		# decoder : hx -> x
-		self.config['hx decoder params']['name'] = 'DecoderX_HX'
-		self.config['hx decoder params']['output_dims'] = np.product(self.input_shape)
-		self.hx_decoder = get_decoder(self.config['hx decoder'], self.config['hx decoder params'], self.is_training)
-
-		###########################################################################
-		# for unsupervised training:
-		# 
-		# xu --> mean_hxu, log_var_hxu ==> kl loss
-		#					|
-		# 			   sample_hxu --> xu_decode ==> reconstruction loss
-		mean_hxu, log_var_hxu = self.x_encoder(self.xu)
-		sample_hxu = self.draw_sample(mean_hxu, log_var_hxu)
-		xu_decode = self.hx_decoder(sample_hxu)
-
-		self.m1_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hxu, 'log_var' : log_var_hxu})
-								* self.m1_loss_weights.get('kl z loss weight', 1.0))
-		self.m1_loss_recon = (get_loss('reconstruction', 'mse', {'x' : self.xu, 'y' : xu_decode})
-								* self.m1_loss_weights.get('reconstruction loss weight', 1.0))
-		self.m1_loss = self.m1_loss_kl_z + self.m1_loss_recon
-
-
-	def build_model_m2(self):
-		self.xl = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xl_input')
-		self.yl = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='yl_input')
-
-		###########################################################################
-		# network define
-		# 
+		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.is_training)
 		# hx_y_encoder : [hx, y] -> hz
 		self.config['hx y encoder params']['name'] = 'EncoderHZ_HXY'
 		self.config['hx y encoder params']['output_dims'] = self.hz_dim
 		self.hx_y_encoder = get_encoder(self.config['hx y encoder'], 
 									self.config['hx y encoder params'], self.is_training)
-		# hz_y_decoder : [hz, y] -> hx
+		# hz_y_decoder : [hz, y] -> x_decode
 		self.config['hz y decoder params']['name'] = 'DecoderX_HZY'
-		self.config['hz y decoder params']['output_dims'] = self.hx_dim
+		self.config['hz y decoder params']['output_dims'] = int(np.product(self.input_shape))
 		self.hz_y_decoder = get_decoder(self.config['hz y decoder'], self.config['hz y decoder params'], self.is_training)
-		# hx_classifier : hx -> ylogits
-		self.config['hx classifier params']['name'] = 'ClassifierHX'
-		self.hx_classifier = get_classifier(self.config['hx classifier'], self.config['hx classifier params'], self.is_training)
+		# x_classifier : hx -> ylogits
+		self.config['x classifier params']['name'] = 'ClassifierX'
+		self.config['x classifier params']['output_dims'] = self.nb_classes
+		self.x_classifier = get_classifier(self.config['x classifier'], self.config['x classifier params'], self.is_training)
+
 
 		###########################################################################
 		# for supervised training:
@@ -162,24 +135,31 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				          |               |
 		# 	  			        [yl,	   	   sample_hzl] --> xl_decode ==> reconstruction loss
 		#
-		mean_hxl, log_var_hxl = self.x_encoder(self.xl)
-		sample_hxl = self.draw_sample(mean_hxl, log_var_hxl)
-		yllogits = self.hx_classifier(sample_hxl)
-		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([sample_hxl, self.yl], axis=1))
-		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
-		decode_hxl = self.hz_y_decoder(tf.concat([sample_hzl, self.yl], axis=1))
 
-		self.m2_su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hzl, 
+		hxl = self.x_encoder(self.xl)
+		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([hxl, self.yl], axis=1))
+		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
+		decode_xl = self.hz_y_decoder(tf.concat([sample_hzl, self.yl], axis=1))
+		# decode_xl = self.hx_decoder(decode_hxl)
+
+		yllogits = self.x_classifier(self.xl)
+
+
+		self.su_loss_kl_z = (get_loss('kl', 'gaussian', {'mean' : mean_hzl, 
 															'log_var' : log_var_hzl, })
-								* self.m2_loss_weights.get('kl z loss weight', 1.0))
-		self.m2_su_loss_recon = (get_loss('reconstruction', 'mse', {	'x' : sample_hxl, 
-																		'y' : decode_hxl})
-								* self.m2_loss_weights.get('reconstruction loss weight', 1.0))
-		self.m2_su_loss_cls = (get_loss('classification', 'cross entropy', {'logits' : yllogits, 
+								* self.loss_weights.get('kl z loss weight', 1.0))
+		self.su_loss_recon = (get_loss('reconstruction', 'mse', {	'x' : self.xl, 
+																		'y' : decode_xl})
+								* self.loss_weights.get('reconstruction loss weight', 1.0))
+		self.su_loss_cls = (get_loss('classification', 'cross entropy', {'logits' : yllogits, 
 																			'labels' : self.yl})
-								* self.m2_loss_weights.get('classiciation loss weight', 1.0))
-		self.m2_su_loss = ((self.m2_su_loss_kl_z + self.m2_su_loss_recon + self.m2_su_loss_cls)
-							* self.m2_loss_weights.get('supervised loss weight', 1.0))
+								* self.loss_weights.get('classiciation loss weight', 1.0))
+
+		self.su_loss_reg = (get_loss('regularization', 'l2', {'var_list' : self.x_classifier.vars })
+								* self.loss_weights.get('regularization loss weight', 0.0001))
+
+		self.su_loss = ((self.su_loss_kl_z + self.su_loss_recon + self.su_loss_cls + self.su_loss_reg)
+							* self.loss_weights.get('supervised loss weight', 1.0))
 
 
 		###########################################################################
@@ -198,9 +178,8 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				  |			[y1,           sample_hzu1] --> decode_hxu1 ==> reconstruction loss * yuprobs[1]
 		#		.......
 		#
-		mean_hxu, log_var_hxu = self.x_encoder(self.xu)
-		sample_hxu = self.draw_sample(mean_hxu, log_var_hxu)
-		yulogits = self.hx_classifier(sample_hxu)
+		hxu = self.x_encoder(self.xu)
+		yulogits = self.x_classifier(self.xu)
 		yuprobs = tf.nn.softmax(yulogits)
 
 		unsu_loss_kl_z_list = []
@@ -210,9 +189,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 			yu_fake = tf.ones([tf.shape(self.xu)[0], ], dtype=tf.int32) * i
 			yu_fake = tf.one_hot(yu_fake, depth=self.nb_classes)
 
-			mean_hzu, log_var_hzu = self.hx_y_encoder(tf.concat([sample_hxu, yu_fake], axis=1))
+			mean_hzu, log_var_hzu = self.hx_y_encoder(tf.concat([hxu, yu_fake], axis=1))
 			sample_hzu = self.draw_sample(mean_hzu, log_var_hzu)
-			decode_hxu = self.hz_y_decoder(tf.concat([sample_hzu, yu_fake], axis=1))
+			decode_xu = self.hz_y_decoder(tf.concat([sample_hzu, yu_fake], axis=1))
+			# decode_xu = self.hx_decoder(decode_hxu)
 
 			unsu_loss_kl_z_list.append(
 				get_loss('kl', 'gaussian', {'mean' : mean_hzu, 
@@ -221,24 +201,27 @@ class SemiDeepGenerativeModel2(BaseModel):
 			)
 
 			unsu_loss_recon_list.append(
-				get_loss('reconstruction', 'mse', {	'x' : sample_hxu, 
-													'y' : decode_hxu,
+				get_loss('reconstruction', 'mse', {	'x' : self.xu, 
+													'y' : decode_xu,
 													'instance_weight' : yuprobs[:, i]})
 			)
 
-		self.m2_unsu_loss_kl_y = (get_loss('kl', 'bernoulli', { 'probs' : yuprobs})
-								* self.m2_loss_weights.get('kl y loss weight', 1.0))
 
-		self.m2_unsu_loss_kl_z = (tf.reduce_sum(unsu_loss_kl_z_list)
-								* self.m2_loss_weights.get('kl z loss weight', 1.0))
-		self.m2_unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
-								* self.m2_loss_weights.get('reconstruction loss weight', 1.0))
+		self.unsu_loss_kl_y = (get_loss('kl', 'bernoulli', { 'probs' : yuprobs})
+								* self.loss_weights.get('kl y loss weight', 1.0))
+		self.unsu_loss_kl_z = (tf.reduce_sum(unsu_loss_kl_z_list)
+								* self.loss_weights.get('kl z loss weight', 1.0))
+		self.unsu_loss_recon = (tf.reduce_sum(unsu_loss_recon_list)
+								* self.loss_weights.get('reconstruction loss weight', 1.0))
 
-		self.m2_unsu_loss = ((self.m2_unsu_loss_kl_z + self.m2_unsu_loss_recon + self.m2_unsu_loss_kl_y)
-							* self.m2_loss_weights.get('unsupervised loss weight', 1.0))
+		self.unsu_loss_reg = (get_loss('regularization', 'l2', {'var_list' : self.x_classifier.vars })
+								* self.loss_weights.get('regularization loss weight', 0.0001))
 
-	def build_model(self):
+		self.unsu_loss = ((self.unsu_loss_kl_z + self.unsu_loss_recon + self.unsu_loss_kl_y + self.unsu_loss_reg)
+							* self.loss_weights.get('unsupervised loss weight', 1.0))
+
 		self.xt = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xt_input')
+
 
 		###########################################################################
 		# for test models
@@ -249,11 +232,10 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# 			   |			    			 |
 		#		     [sample_hxt,    			  ytprobs] --> mean_hzt, log_var_hzt
 		#
-		mean_hxt, log_var_hxt = self.x_encoder(self.xt)
-		sample_hxt = self.draw_sample(mean_hxt, log_var_hxt)
-		ytlogits = self.hx_classifier(sample_hxt)
+		hxt = self.x_encoder(self.xt)
+		ytlogits = self.x_classifier(self.xt)
 		self.ytprobs = tf.nn.softmax(ytlogits)
-		self.mean_hzt, self.log_var_hzt = self.hx_y_encoder(tf.concat([sample_hxt, self.ytprobs], axis=1))
+		self.mean_hzt, self.log_var_hzt = self.hx_y_encoder(tf.concat([hxt, self.ytprobs], axis=1))
 
 		###########################################################################
 		# optimizer configure
@@ -265,16 +247,17 @@ class SemiDeepGenerativeModel2(BaseModel):
 		else:
 			optimizer_params = {}
 
-		self.m1_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m1_loss, 
-						self.m1_vars)
-		self.m2_supervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m2_su_loss, 
-						self.m2_vars)
-		self.m2_unsupervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m2_unsu_loss, 
-						self.m2_vars)
+		# self.m1_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m1_loss, 
+		# 				self.m1_vars)
+		self.supervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.su_loss, 
+						self.vars)
+		self.unsupervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.unsu_loss, 
+						self.vars)
 
-		self.m1_train_op = tf.group([self.m1_optimizer, self.global_step_update])
-		self.m2_supervised_train_op = tf.group([self.m2_supervised_optimizer, self.global_step_update])
-		self.m2_unsupervised_train_op = tf.group([self.m2_unsupervised_optimizer, self.global_step_update])
+
+		# self.m1_train_op = tf.group([self.m1_optimizer, self.global_step_update])
+		self.supervised_train_op = tf.group([self.supervised_optimizer, self.global_step_update])
+		self.unsupervised_train_op = tf.group([self.unsupervised_optimizer, self.global_step_update])
 
 		###########################################################################
 		# model saver
@@ -288,91 +271,59 @@ class SemiDeepGenerativeModel2(BaseModel):
 
 			# summary scalars are logged per step
 			sum_list = []
-			sum_list.append(tf.summary.scalar('m1/kl_z_loss', self.m1_loss_kl_z))
-			sum_list.append(tf.summary.scalar('m1/reconstruction_loss', self.m1_loss_recon))
-			sum_list.append(tf.summary.scalar('m1/loss', self.m1_loss))
-			self.m1_summary = tf.summary.merge(sum_list + common_sum_list)
-
-			sum_list = []
-			sum_list.append(tf.summary.scalar('m2/supervised_kl_z_loss', self.m2_su_loss_kl_z))
-			sum_list.append(tf.summary.scalar('m2/supervised_reconstruction_loss', self.m2_su_loss_recon))
-			sum_list.append(tf.summary.scalar('m2/supervised_clasification_loss', self.m2_su_loss_cls))
-			sum_list.append(tf.summary.scalar('m2/supervised_loss', self.m2_su_loss))
-			self.m2_supervised_summary = tf.summary.merge(sum_list + common_sum_list)
-
-			sum_list = []
-			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_z_loss', self.m2_unsu_loss_kl_z))
-			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_y_loss', self.m2_unsu_loss_kl_y))
-			sum_list.append(tf.summary.scalar('m2/unsupervised_reconstruction_loss', self.m2_unsu_loss_recon))
-			sum_list.append(tf.summary.scalar('m2/unsupervised_loss', self.m2_unsu_loss))
-			# sum_list.append(tf.summary.scalar('m2/mean_logits', self.mean_logits))
-			# sum_list.append(tf.summary.scalar('m2/var_logits', self.var_logits))
-			# sum_list.append(tf.summary.scalar('m2/mean_prob', self.mean_prob))
-			# sum_list.append(tf.summary.scalar('m2/var_prob', self.var_prob))
-			# sum_list.append(tf.summary.scalar('m2/mean_logprob', self.mean_logprob))
-			self.m2_unsupervised_summary = tf.summary.merge(sum_list + common_sum_list)
+			sum_list.append(tf.summary.scalar('unsupervised/kl_z_loss', self.unsu_loss_kl_z))
+			sum_list.append(tf.summary.scalar('unsupervised/kl_y_loss', self.unsu_loss_kl_y))
+			sum_list.append(tf.summary.scalar('unsupervised/reconstruction_loss', self.unsu_loss_recon))
+			sum_list.append(tf.summary.scalar('unsupervised/loss', self.unsu_loss))
+			self.unsupervised_summary = tf.summary.merge(sum_list + common_sum_list)
 			
+			sum_list = []
+			sum_list.append(tf.summary.scalar('supervised/kl_z_loss', self.su_loss_kl_z))
+			sum_list.append(tf.summary.scalar('supervised/reconstruction_loss', self.su_loss_recon))
+			sum_list.append(tf.summary.scalar('supervised/clasification_loss', self.su_loss_cls))
+			sum_list.append(tf.summary.scalar('supervised/loss', self.su_loss))
+			self.supervised_summary = tf.summary.merge(sum_list + common_sum_list)
+
 			# summary hists are logged by calling self.summary()
 			sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
 			self.histogram_summary = tf.summary.merge(sum_list)
 		else:
-			self.m1_summary = None
-			self.m2_supervised_summary = None
-			self.m2_unsupervised_summary = None
+			# self.summary = None
+			self.supervised_summary = None
+			self.unsupervised_summary = None
 			self.histogram_summary = None
 
 	'''
 		network variables property
 	'''
 	@property
-	def m1_vars(self):
-		return self.x_encoder.vars + self.hx_decoder.vars
-
-	@property
-	def m2_vars(self):
-		return self.hx_y_encoder.vars + self.hx_classifier.vars + self.hz_y_decoder.vars
-
-	@property
 	def vars(self):
-		return self.x_encoder.vars + self.hx_decoder.vars + self.hx_y_encoder.vars + self.hx_classifier.vars + self.hz_y_decoder.vars
-
+		return self.x_encoder.vars + self.hx_y_encoder.vars + self.x_classifier.vars + self.hz_y_decoder.vars
 
 	'''
 		train operations
 	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		step = sess.run([self.global_step])[0]
 
-		if step < self.m1_train_steps:
-			# for m1 can only be trained unsupervised
-			feed_dict = {
-				self.xu : x_batch,
-				self.is_training : True
-			}
-			return self.train(sess, feed_dict, update_op=self.m1_train_op,
-									loss = self.m1_loss, summary=self.m1_summary)
-		else:
-			feed_dict = {
-				self.xl : x_batch,
-				self.yl : y_batch,
-				self.is_training : True
-			}
-			return self.train(sess, feed_dict, update_op = self.m2_supervised_train_op,
-									loss = self.m2_su_loss, summary=self.m2_supervised_summary)
+		# step = sess.run([self.global_step])[0]
+
+		feed_dict = {
+			self.xl : x_batch,
+			self.yl : y_batch,
+			self.is_training : True
+		}
+		return self.train(sess, feed_dict, update_op = self.supervised_train_op,
+									loss = self.su_loss, summary=self.supervised_summary)
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		step = sess.run([self.global_step])[0]
+		# step = sess.run([self.global_step])[0]
 		feed_dict = {
 			self.xu : x_batch,
 			self.is_training : True
 		}
 
-		if step < self.m1_train_steps:
-			return self.train(sess, feed_dict, update_op = self.m1_train_op,
-									loss = self.m1_loss, summary=self.m1_summary)
-		else:
-			return self.train(sess, feed_dict, update_op = self.m2_unsupervised_train_op,
-									loss = self.m2_unsu_loss, summary = self.m2_unsupervised_summary)
+		return self.train(sess, feed_dict, update_op = self.unsupervised_train_op,
+									loss = self.unsu_loss, summary = self.unsupervised_summary)
 
 	'''
 		test operations

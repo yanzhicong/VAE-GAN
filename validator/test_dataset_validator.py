@@ -27,12 +27,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-
+from .basevalidator import BaseValidator
 
 class ScatterPlotValidator(object):
 	
 	def __init__(self, config):
 	
+		super(ScatterPlotValidator, self).__init__(config)
+
 		self.assets_dir = config['assets dir']
 		self.log_dir = config.get('log dir', 'test')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)

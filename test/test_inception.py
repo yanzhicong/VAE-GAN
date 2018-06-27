@@ -7,9 +7,7 @@ sys.path.append('../')
 
 import tensorflow as tf
 
-from network import inception_v3
 from network.inception_v3 import InceptionV3
-
 
 if __name__ == '__main__':
 	config = {

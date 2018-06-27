@@ -8,18 +8,18 @@ sys.path.append('../')
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from dataset.mnist import MNIST 
+from dataset.cifar10 import Cifar10 
 
 if __name__ == '__main__':
 	config = {
 		'batch_size' : 16,
-		'input_shape' : [28, 28]
+		'input_shape' : [32, 32, 3]
 	}
 
-	dataset = MNIST(config)
+	dataset = Cifar10(config)
 
-	for ind, x_batch in dataset.iter_images():
+	for ind, x_batch, y_batch in dataset.iter_train_images_supervised():
 		plt.figure(0)
-		plt.imshow(x_batch[0, :, :])
+		plt.imshow(x_batch[0, :, :, :])
 		plt.pause(1)
 

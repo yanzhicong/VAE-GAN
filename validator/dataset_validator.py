@@ -35,14 +35,22 @@ import tensorflow.contrib.layers as tcl
 
 from utils.metric import get_metric
 
-class DatasetValidator(object):
+from .basevalidator import BaseValidator
+
+class DatasetValidator(BaseValidator):
 	def __init__(self, config):
+
+
+		super(DatasetValidator, self).__init__(config)
 
 		self.config = config
 		self.nb_samples = config.get('num_samples', 30)
 		self.metric = config.get('metric', 'accuracy')
 		self.metric_type = config.get('metric type', 'top1')
 		self.assets_dir = config['assets dir']
+
+		if self.metric == 'accuracy':
+			self.has_summary = True
 
 	def build_summary(self, model):
 		if self.metric == 'accuracy':
@@ -61,6 +69,7 @@ class DatasetValidator(object):
 			if not self.config.get('continue train', False):
 				with open(self.log_filepath, 'w') as logfile:
 					logfile.write('step,' + self.metric_type + '\n')
+		
 
 		self.summary = tf.summary.merge(self.summary_list)
 

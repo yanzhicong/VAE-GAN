@@ -30,14 +30,28 @@
 
         // learning rate scheme
         // other learning rate schemes are in utils/learning_rate.py
-        "lr" : 0.001,
-        "lr_scheme" : "exponential",
-        "lr_params" : {
-            "decay_steps" : 2000,
-            "decay_rate" : 0.8
+        "m1 optimizer" : "rmsprop",
+        "m1 optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 2000,
+                "decay_rate" : 0.8
+            }
         },
 
-        "m1 train steps" : 4000,
+
+        "m2 optimizer" : "rmsprop",
+        "m2 optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 2000,
+                "decay_rate" : 0.8
+            }
+        },
+
+        "m1 train steps" : 20000,
 
         "summary" : true,
         "debug" : true,
@@ -67,7 +81,9 @@
         //                                    [hz, y] -(decoder)-> hx
         "x encoder" : "EncoderSimple",
         "x encoder params" : {
-            "nb_conv_blocks" : 0,
+            "nb_conv_blocks" : 4,
+            "nb_conv_layers" : [2, 2, 2, 2],
+            "nb_filters" : [32, 64, 128, 256],
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
             "output_distribution": "gaussian"
@@ -77,9 +93,13 @@
         "hx decoder params" : {
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
-            "including_deconv" : false,
-            "fc_output_reshape" : [32, 32, 3],
-            "output_activation" : "sigmoid"
+            "fc_output_reshape" : [4, 4, 256],
+            "including_deconv" : true,
+            "nb_deconv_blocks" : 4,
+            "nb_deconv_layers" : [3, 3, 3, 3],
+            "nb_deconv_filters" : [256, 128, 64, 32],
+            "output_activation" : "sigmoid",
+            "output_dims" : 3
         },
 
         "hx y encoder" : "EncoderSimple",
@@ -122,12 +142,11 @@
         // "save checkpoint steps" : 5000,         //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
 
-        "train steps" : 20000,                  //maximum total train steps
+        "train steps" : 40000,                  //maximum total train steps
 
         "pretrain steps" : [
-            ["unsupervised", 4000]
-            ,
-            ["supervised", 3000]
+            ["unsupervised", 20000],
+            ["supervised", 10000]
         ], 
 
         "supervised step" : 1,

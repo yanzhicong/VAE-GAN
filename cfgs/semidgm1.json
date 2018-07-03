@@ -26,16 +26,29 @@
 
         // optimizers config
         // other optimizers are in utils/optimizer.py
-        "optimizer" : "rmsprop",
+        "m1 optimizer" : "rmsprop",
+        "m1 optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 2000,
+                "decay_rate" : 0.8
+            }
+        },
+
+
+        "m2 optimizer" : "rmsprop",
+        "m2 optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 2000,
+                "decay_rate" : 0.8
+            }
+        },
 
         // learning rate scheme
         // other learning rate schemes are in utils/learning_rate.py
-        "lr" : 0.001,
-        "lr_scheme" : "exponential",
-        "lr_params" : {
-            "decay_steps" : 2000,
-            "decay_rate" : 0.8
-        },
 
         "m1 train steps" : 4000,
 

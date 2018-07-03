@@ -183,7 +183,7 @@ class WGAN_GP(BaseModel):
 	'''
 		test operation
 	'''
-	def predict(self, sess, z_batch):
+	def generate(self, sess, z_batch):
 		feed_dict = {
 			self.z : z_batch,
 			self.is_training : False

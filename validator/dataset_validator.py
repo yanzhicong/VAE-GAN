@@ -38,6 +38,7 @@ from utils.metric import get_metric
 from .basevalidator import BaseValidator
 
 class DatasetValidator(BaseValidator):
+
 	def __init__(self, config):
 
 
@@ -53,6 +54,7 @@ class DatasetValidator(BaseValidator):
 			self.has_summary = True
 
 	def build_summary(self, model):
+
 		if self.metric == 'accuracy':
 			self.label = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
 							name='test_label')
@@ -70,8 +72,8 @@ class DatasetValidator(BaseValidator):
 				with open(self.log_filepath, 'w') as logfile:
 					logfile.write('step,' + self.metric_type + '\n')
 		
-
 		self.summary = tf.summary.merge(self.summary_list)
+
 
 	def validate(self, model, dataset, sess, step):
 		label_list = []
@@ -96,4 +98,5 @@ class DatasetValidator(BaseValidator):
 			summary = sess.run([self.summary], feed_dict=feed_dict)[0]
 
 		return summary
+
 

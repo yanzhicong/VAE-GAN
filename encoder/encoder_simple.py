@@ -47,10 +47,19 @@ class EncoderSimple(object):
 		self.name = config.get('name', 'EncoderSimple')
 		self.config = config
 
+		self.is_training = is_training
+		self.normalizer_params = {
+			'decay' : 0.999,
+			'center' : True,
+			'scale' : False,
+			'is_training' : self.is_training
+		}
+
 		network_config = config.copy()
 		network_config['name'] = self.name
 		network_config['including_top'] = False
 		network_config['output_dims'] = 0
+
 
 		self.network = VGG(network_config, is_training)
 		self.output_distribution = self.config.get('output_distribution', 'gaussian')
@@ -79,9 +88,9 @@ class EncoderSimple(object):
 						self.config.get('output_activation_params', ''))
 
 
-		x, end_points = self.network(i, condition=condition)
+		x, end_points = self.network(i)
 
-		x = tf.flatten(x)
+		x = tcl.flatten(x)
 		if condition is not None:
 			x = tf.concatenate([x, condition], axis=-1)
 

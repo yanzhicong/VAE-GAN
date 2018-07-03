@@ -26,21 +26,34 @@
 
 import tensorflow as tf
 
+def get_learning_rate(name, initial_learning_rate, global_step, config):
 
-def get_learning_rate(name, initial, global_step, params):
-    if name == 'exponential':
-        return tf.train.exponential_decay(initial, global_step, **params)
-    elif name == 'constant':
-    	return tf.constant(initial)
-    # elif name == '':
-    else:
-        raise Exception('None learning rate scheme named ' + name)
+	if name == 'constant':
+		return tf.constant(initial_learning_rate)
+
+	elif name == 'exponential':
+		return tf.train.exponential_decay(initial_learning_rate, global_step, 
+					decay_steps=config['decay_steps'],
+					decay_rate=config['decay_rate'],
+					staircase=config.get('staircase', True))
+
+	elif name == 'piecewise':
+		'''
+			config parameters:
+			e.g.	
+				boundaries: [10000, 30000]
+				values : [1.0, 0.5, 0.1]
+		'''
+		return tf.train.piecewise_constant(global_step, 
+				boundaries=config['boundaries'],
+				values=[value * initial_learning_rate for value in config['values']]
+			)
+	else:
+		raise Exception('None learning rate scheme named ' + name)
 
 
 def get_global_step(name='global_step'):
-    global_step = tf.Variable(0, trainable=False, name=name)
-    global_step_update = tf.assign(global_step, global_step+1)
-    return global_step, global_step_update
-
-
+	global_step = tf.Variable(0, trainable=False, name=name)
+	global_step_update = tf.assign(global_step, global_step+1)
+	return global_step, global_step_update
 

@@ -81,12 +81,12 @@ class VGG(object):
 
 	def __init__(self, config, is_training):
 		self.name = config.get('name', 'VGG')
-		self.training = is_training
+		self.is_training = is_training
 		self.normalizer_params = {
 			'decay' : 0.999,
 			'center' : True,
 			'scale' : False,
-			'is_training' : self.training
+			'is_training' : self.is_training
 		}
 		self.config = config
 

@@ -42,7 +42,9 @@ from utils.optimizer import get_optimizer
 from utils.optimzier import get_optimizer_by_config
 from utils.loss import get_loss
 
+
 from .basemodel import BaseModel
+
 
 class SemiDeepGenerativeModel2(BaseModel):
 	"""
@@ -83,7 +85,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		self.hx_dim = config['hx_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config
-
 
 		# optional params
 		self.debug = config.get('debug', False)
@@ -134,7 +135,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				          |               |
 		# 	  			        [yl,	   	   sample_hzl] --> xl_decode ==> reconstruction loss
 		#
-		
+
 		hxl = self.x_encoder(self.xl)
 		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([hxl, self.yl], axis=1))
 		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
@@ -204,7 +205,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 													'y' : decode_xu,
 													'instance_weight' : yuprobs[:, i]})
 			)
-
 
 		self.unsu_loss_kl_y = (get_loss('kl', 'bernoulli', { 'probs' : yuprobs})
 								* self.loss_weights.get('kl y loss weight', 1.0))
@@ -355,5 +355,3 @@ class SemiDeepGenerativeModel2(BaseModel):
 			return sum
 		else:
 			return None
-
-

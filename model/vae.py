@@ -49,11 +49,16 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
-# Implementation of "Auto-Encoding Variational Bayes"
-# https://arxiv.org/pdf/1312.6114.pdf
+
 
 
 class VAE(BaseModel):
+
+	'''
+		Implementation of "Auto-Encoding Variational Bayes"
+		https://arxiv.org/pdf/1312.6114.pdf
+
+	'''
 
 	def __init__(self, config, **kwargs):
 
@@ -133,7 +138,6 @@ class VAE(BaseModel):
 	@property
 	def vars(self):
 		return self.encoder.vars + self.decoder.vars
-	
 
 	'''
 		train operations

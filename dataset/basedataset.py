@@ -130,6 +130,11 @@ class BaseDataset(object, metaclass=ABCMeta):
 	def read_image_by_index_unsupervised(self, index):
 		return self.x_train_u[index].reshape(self.output_shape)
 
+	def read_test_image_by_index(self, index):
+		label = np.zeros((self.nb_classes,))
+		label[self.y_test[index]] = 1.0
+		return self.x_test[index].reshape(self.output_shape), label
+
 
 	@property
 	def nb_labelled_images(self):

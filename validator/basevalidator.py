@@ -25,15 +25,9 @@
 
 import os
 import sys
-# import numpy as np
 
 sys.path.append('.')
 sys.path.append('../')
-
-# import tensorflow as tf
-# import tensorflow.contrib.layers as tcl
-
-
 
 
 class BaseValidator(object):
@@ -47,3 +41,5 @@ class BaseValidator(object):
 
 	def validate(self, model, dataset, sess, step):
 		return NotImplementedError
+
+

@@ -39,6 +39,7 @@ from discriminator.discriminator import get_discriminator
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
+from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 
 from .basemodel import BaseModel
@@ -111,7 +112,8 @@ class SemiDeepGenerativeModel(BaseModel):
 									self.config['x encoder params'], self.is_training)
 		# decoder : hx -> x
 		self.config['hx decoder params']['name'] = 'DecoderX_HX'
-		self.config['hx decoder params']['output_dims'] = int(np.product(self.input_shape))
+		# if self.config
+		# self.config['hx decoder params']['output_dims'] = int(np.product(self.input_shape))
 		self.hx_decoder = get_decoder(self.config['hx decoder'], self.config['hx decoder params'], self.is_training)
 
 		###########################################################################
@@ -130,6 +132,15 @@ class SemiDeepGenerativeModel(BaseModel):
 								* self.m1_loss_weights.get('reconstruction loss weight', 1.0))
 		self.m1_loss = self.m1_loss_kl_z + self.m1_loss_recon
 
+
+		###########################################################################
+		# optimizer configure
+		self.m1_global_step, m1_global_step_update = get_global_step('m1_step')
+
+		(self.m1_train_op, 
+			self.m1_learning_rate, 
+				_) = get_optimizer_by_config(self.config['m1 optimizer'], self.config['m1 optimizer params'], 
+													self.m1_loss, self.m1_vars, self.m1_global_step, m1_global_step_update)
 
 	def build_model_m2(self):
 		self.xl = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xl_input')
@@ -237,6 +248,23 @@ class SemiDeepGenerativeModel(BaseModel):
 		self.m2_unsu_loss = ((self.m2_unsu_loss_kl_z + self.m2_unsu_loss_recon + self.m2_unsu_loss_kl_y)
 							* self.m2_loss_weights.get('unsupervised loss weight', 1.0))
 
+
+		###########################################################################
+		# optimizer configure
+		self.m2_global_step, m2_global_step_update = get_global_step('m2_step')
+
+		(self.m2_supervised_train_op,
+			self.m2_supervised_learning_rate,
+			 	_) = get_optimizer_by_config(self.config['m2 optimizer'], self.config['m2 optimizer params'], 
+			 										self.m2_su_loss, self.m2_vars, self.m2_global_step, m2_global_step_update)
+
+
+		(self.m2_unsupervised_train_op,
+			self.m2_unsupervised_learning_rate,
+			 	_) = get_optimizer_by_config(self.config['m2 optimizer'], self.config['m2 optimizer params'], 
+			 										self.m2_unsu_loss, self.m2_vars, self.m2_global_step, m2_global_step_update)
+
+
 	def build_model(self):
 		# test input x
 		self.xt = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xt_input')
@@ -258,43 +286,23 @@ class SemiDeepGenerativeModel(BaseModel):
 		# test sample hidden variable distribution
 		self.mean_hzt, self.log_var_hzt = self.hx_y_encoder(tf.concat([sample_hxt, self.ytprobs], axis=1))
 
-		###########################################################################
-		# optimizer configure
-		self.global_step, self.global_step_update = get_global_step()
-
-		if 'lr' in self.config:
-			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
-			optimizer_params = {'learning_rate' : self.learning_rate}
-		else:
-			optimizer_params = {}
-
-		self.m1_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m1_loss, 
-						self.m1_vars)
-		self.m2_supervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m2_su_loss, 
-						self.m2_vars)
-		self.m2_unsupervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m2_unsu_loss, 
-						self.m2_vars)
-
-		self.m1_train_op = tf.group([self.m1_optimizer, self.global_step_update])
-		self.m2_supervised_train_op = tf.group([self.m2_supervised_optimizer, self.global_step_update])
-		self.m2_unsupervised_train_op = tf.group([self.m2_unsupervised_optimizer, self.global_step_update])
 
 		###########################################################################
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.global_step,])
+		self.saver = tf.train.Saver(self.vars + [self.m1_global_step, self.m2_global_step])
 
 	def build_summary(self):
 
 		if self.is_summary:
-			common_sum_list = []
-			common_sum_list.append(tf.summary.scalar('learning_rate', self.learning_rate))
 
 			# summary scalars are logged per step
 			sum_list = []
 			sum_list.append(tf.summary.scalar('m1/kl_z_loss', self.m1_loss_kl_z))
 			sum_list.append(tf.summary.scalar('m1/reconstruction_loss', self.m1_loss_recon))
 			sum_list.append(tf.summary.scalar('m1/loss', self.m1_loss))
-			self.m1_summary = tf.summary.merge(sum_list + common_sum_list)
+			sum_list.append(tf.summary.scalar('m1/learning_rate', self.m1_learning_rate))
+
+			self.m1_summary = tf.summary.merge(sum_list)
 
 			sum_list = []
 			sum_list.append(tf.summary.scalar('m2/supervised_kl_z_loss', self.m2_su_loss_kl_z))
@@ -302,7 +310,8 @@ class SemiDeepGenerativeModel(BaseModel):
 			sum_list.append(tf.summary.scalar('m2/supervised_classification_loss', self.m2_su_loss_cls))
 			sum_list.append(tf.summary.scalar('m2/supervised_regularization_loss', self.m2_su_loss_reg))
 			sum_list.append(tf.summary.scalar('m2/supervised_loss', self.m2_su_loss))
-			self.m2_supervised_summary = tf.summary.merge(sum_list + common_sum_list)
+			sum_list.append(tf.summary.scalar('m2/supervised_learning_rate', self.m2_supervised_learning_rate))
+			self.m2_supervised_summary = tf.summary.merge(sum_list)
 
 			sum_list = []
 			sum_list.append(tf.summary.scalar('m2/unsupervised_kl_z_loss', self.m2_unsu_loss_kl_z))
@@ -310,12 +319,8 @@ class SemiDeepGenerativeModel(BaseModel):
 			sum_list.append(tf.summary.scalar('m2/unsupervised_reconstruction_loss', self.m2_unsu_loss_recon))
 			sum_list.append(tf.summary.scalar('m2/unsupervised_regularization_loss', self.m2_unsu_loss_reg))
 			sum_list.append(tf.summary.scalar('m2/unsupervised_loss', self.m2_unsu_loss))
-			# sum_list.append(tf.summary.scalar('m2/mean_logits', self.mean_logits))
-			# sum_list.append(tf.summary.scalar('m2/var_logits', self.var_logits))
-			# sum_list.append(tf.summary.scalar('m2/mean_prob', self.mean_prob))
-			# sum_list.append(tf.summary.scalar('m2/var_prob', self.var_prob))
-			# sum_list.append(tf.summary.scalar('m2/mean_logprob', self.mean_logprob))
-			self.m2_unsupervised_summary = tf.summary.merge(sum_list + common_sum_list)
+			sum_list.append(tf.summary.scalar('m2/unsupervised_learning_rate', self.m2_unsupervised_learning_rate))
+			self.m2_unsupervised_summary = tf.summary.merge(sum_list)
 			
 			# summary hists are logged by calling self.summary()
 			sum_list = [tf.summary.histogram(var.name, var) for var in self.vars]
@@ -346,7 +351,7 @@ class SemiDeepGenerativeModel(BaseModel):
 		train operations
 	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		step = sess.run([self.global_step])[0]
+		step = sess.run([self.m1_global_step])[0]
 
 		if step < self.m1_train_steps:
 			# for m1 can only be trained unsupervised
@@ -354,30 +359,46 @@ class SemiDeepGenerativeModel(BaseModel):
 				self.xu : x_batch,
 				self.is_training : True
 			}
-			return self.train(sess, feed_dict, update_op=self.m1_train_op,
-									loss = self.m1_loss, summary=self.m1_summary)
+			m1_step, lr, loss, summ = self.train(sess, feed_dict, update_op=self.m1_train_op,
+																step=self.m1_global_step,
+																learning_rate=self.m1_learning_rate,
+																loss=self.m1_loss, summary=self.m1_summary)
+			return m1_step, lr, loss, summ
 		else:
 			feed_dict = {
 				self.xl : x_batch,
 				self.yl : y_batch,
 				self.is_training : True
 			}
-			return self.train(sess, feed_dict, update_op = self.m2_supervised_train_op,
-									loss = self.m2_su_loss, summary=self.m2_supervised_summary)
+			m2_step, lr, loss, summ = self.train(sess, feed_dict, 
+																update_op = self.m2_supervised_train_op,
+																step=self.m2_global_step,
+																learning_rate=self.m2_supervised_learning_rate,
+																loss = self.m2_su_loss, summary=self.m2_supervised_summary)
+
+			return m2_step + step, lr, loss, [(m2_step,summ)]
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		step = sess.run([self.global_step])[0]
+		step = sess.run([self.m1_global_step])[0]
 		feed_dict = {
 			self.xu : x_batch,
 			self.is_training : True
 		}
 
 		if step < self.m1_train_steps:
-			return self.train(sess, feed_dict, update_op = self.m1_train_op,
-									loss = self.m1_loss, summary=self.m1_summary)
+			m1_step, lr, loss, summ = self.train(sess, feed_dict, update_op=self.m1_train_op,
+																step=self.m1_global_step,
+																learning_rate=self.m1_learning_rate,
+																loss=self.m1_loss, summary=self.m1_summary)
+			return m1_step, lr, loss, summ
 		else:
-			return self.train(sess, feed_dict, update_op = self.m2_unsupervised_train_op,
-									loss = self.m2_unsu_loss, summary = self.m2_unsupervised_summary)
+			m2_step, lr, loss, summ = self.train(sess, feed_dict, 
+																update_op = self.m2_unsupervised_train_op,
+																step=self.m2_global_step,
+																learning_rate=self.m2_unsupervised_learning_rate,
+																loss = self.m2_unsu_loss, summary=self.m2_unsupervised_summary)
+
+			return m2_step + step, lr, loss, [(m2_step,summ)]
 
 	'''
 		test operations

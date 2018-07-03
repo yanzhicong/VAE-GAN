@@ -30,13 +30,15 @@ import tensorflow as tf
 def get_learning_rate(name, initial, global_step, params):
     if name == 'exponential':
         return tf.train.exponential_decay(initial, global_step, **params)
+    elif name == 'constant':
+    	return tf.constant(initial)
     # elif name == '':
     else:
         raise Exception('None learning rate scheme named ' + name)
 
 
-def get_global_step():
-    global_step = tf.Variable(0, trainable=False, name='global_step')
+def get_global_step(name='global_step'):
+    global_step = tf.Variable(0, trainable=False, name=name)
     global_step_update = tf.assign(global_step, global_step+1)
     return global_step, global_step_update
 

@@ -68,14 +68,13 @@ def l2_loss(x, y, instance_weight=None):
 def l1_loss(x, y, instance_weight=None):
 	x = tcl.flatten(x)
 	y = tcl.flatten(y)
-
 	if instance_weight is None:
 		return tf.reduce_mean(tf.abs(x - y))
 	else:
 		return tf.reduce_mean(tf.reduce_mean(tf.abs(x-y), axis=-1) * instance_weight)
 
 
-def binary_cls_loss(logits, labels, instance_weight=None):
+def classify_cross_entropy_loss(logits, labels, instance_weight=None):
 	if instance_weight is None:
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
 	else:
@@ -96,6 +95,26 @@ def regularization_l2_loss(var_list):
 	return loss
 
 
+def feature_matching_l2_loss(fx, fy, fnames):
+	loss = 0
+	for feature_name in fnames:
+		loss += tf.reduce_mean(tf.square(fx - fy))
+
+def adv_down_wassterstein_loss(dis_real, dis_fake):
+	return - tf.reduce_mean(dis_real) + tf.reduce_mean(dis_fake)
+
+
+def adv_up_wassterstein_loss(dis_fake):
+	return -tf.reduce_mean(dis_fake)
+
+
+def gradient_penalty_l2_loss(x, y):
+	gradients = tf.gradients(y, xs=[x])[0]
+	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1,2,3]))
+	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
+	return gradient_penalty
+
+
 loss_dict = {
 	'kl' : {
 		'gaussian' : kl_gaussian_loss,
@@ -108,11 +127,23 @@ loss_dict = {
 		'l1' : l1_loss
 	},
 	'classification' : {
-		'cross entropy' : binary_cls_loss,
+		'cross entropy' : classify_cross_entropy_loss,
 	},
 	'regularization' : {
 		'l2' : regularization_l2_loss,
 		'l1' : regularization_l1_loss,
+	},
+	'feature matching' : {
+		'l2' : feature_matching_l2_loss
+	},
+	'adversarial down' : {
+		'wassterstein' : adv_down_wassterstein_loss 
+	},
+	'adversarial up' : {
+		'wassterstein' : adv_up_wassterstein_loss 
+	},
+	'gradient penalty' : {
+		'l2' : gradient_penalty_l2_loss
 	}
 }
 

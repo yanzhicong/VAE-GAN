@@ -93,6 +93,8 @@ class MNIST(BaseDataset):
 			# else training in supervised manner
 			self.x_train_l = self.x_train
 			self.y_train_l = self.y_train
+			
+			self.x_train_u = self.x_train
 
 
 	def _get_labelled_image_indices(self, nb_images_per_class):

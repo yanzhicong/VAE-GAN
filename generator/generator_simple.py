@@ -24,45 +24,40 @@
 
 import os
 import sys
-
+sys.path.append('../')
 
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
-
-
-sys.path.append('../')
-
-
 
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 
-from network.vgg import VGG
+# from network.vgg import VGG
+from network.devgg import DEVGG
 
-
-class ClassifierSimple(object):
+class GeneratorSimple(object):
 
 	def __init__(self, config, is_training):
-		self.name = config.get('name', 'ClassifierSimple')
+
+		self.name = config.get('name', 'GeneratorSimple')
 		self.config = config
 
 		network_config = config.copy()
 		network_config['name'] = self.name
-		self.network = VGG(network_config, is_training)
+		self.network = DEVGG(network_config, is_training)
+
+		self.reuse=False
 		
 	def __call__(self, i):
-		x, end_points = self.network(i)
-		return x
 
-	def features(self, i):
 		x, end_points = self.network(i)
-		return x, end_points
+
+		return x
 
 	@property
 	def vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
-
 
 

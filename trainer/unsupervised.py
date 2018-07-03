@@ -29,11 +29,14 @@ import sys
 sys.path.append('.')
 sys.path.append('../')
 
+import queue
+import threading
 import tensorflow as tf
 
 from validator.validator import get_validator
 
 from .basetrainer import BaseTrainer
+
 
 class UnsupervisedTrainer(BaseTrainer):
 	'''
@@ -44,9 +47,11 @@ class UnsupervisedTrainer(BaseTrainer):
 
 		super(UnsupervisedTrainer, self).__init__(config, model)
 		self.multi_thread = self.config.get('multi thread', False)
+
 		if self.multi_thread:
 			self.train_data_queue = queue.Queue(maxsize=50)
 			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*30)
+
 
 	def train(self, sess, dataset, model):
 
@@ -63,13 +68,12 @@ class UnsupervisedTrainer(BaseTrainer):
 			for t in threads:
 				t.start()
 
-
 		if self.multi_thread : 
 			# in multi thread model, the image data were read in by dataset.get_train_indices()
 			# and dataset.read_train_image_by_index()
 			while True:
 				epoch, batch_x = self.train_data_queue.get()
-				step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
+				step = self.train_inner_step(epoch, model, dataset, batch_x)
 				if step > int(self.config['train steps']):
 					break
 		else:
@@ -77,7 +81,7 @@ class UnsupervisedTrainer(BaseTrainer):
 			while True:
 				# in single thread model, the image data were read in by dataset.iter_train_images_unsupervised()
 				for ind, batch_x in dataset.iter_train_images_unsupervised():
-					step = self.train_inner_step(epoch, sess, model, dataset, batch_x)
+					step = self.train_inner_step(epoch, model, dataset, batch_x)
 					if step > int(self.config['train steps']):
 						return
 				epoch += 1

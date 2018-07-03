@@ -48,10 +48,10 @@ class DEVGG(object):
 		the convolution layers are divied into blocks, in the end of each blocks there is a max pooling behind.
 		the max pooling params is always ksize=2 and strides=2, and padding of convolution layers is always 'SAME'
 		the convolution layers params(in @params:config):
-			'nb_conv_blocks':
-			'nb_conv_filters':
-			'nb_conv_layers':
-			'nb_conv_ksize':
+			'nb_deconv_blocks':
+			'nb_deconv_filters':
+			'nb_deconv_layers':
+			'nb_deconv_ksize':
 			'no_maxpooling':
 
 		the fc layers are appended behind the convolution layers. if 'including_top' is false, then there is 
@@ -88,7 +88,6 @@ class DEVGG(object):
 			'is_training' : self.training
 		}
 		self.config = config
-		self.debug = config.get('debug', False)
 
 		# when first applying the network to input tensor, the reuse is false
 		self.reuse = False
@@ -128,28 +127,6 @@ class DEVGG(object):
 					self.config.get('output_activation_params', ''))
 
 
-		if self.debug:
-			print('DEVGG:')
-			print('\tactivation', self.config.get('activation', ''))
-			print('\tactivation_params', self.config.get('activation_params', ''))
-			print('\tbatch_norm', self.config.get('batch_norm', ''))
-			print('\tbatch_norm_params', self.config.get('batch_norm_params', ''))
-			print('\tweightsinit', self.config.get('weightsinit', ''))
-			print('\tweightsinit_params', self.config.get('weightsinit_params', ''))
-			print('\tincluding_bottom', self.config.get('including_bottom', ''))
-			print('\tnb_fc_nodes', self.config.get('nb_fc_nodes', ''))
-			print('\tfc_output_reshape', self.config.get('fc_output_reshape', ''))
-			print('\tincluding_deconv', self.config.get('including_deconv', ''))
-			print('\tnb_deconv_blocks', self.config.get('nb_deconv_blocks', ''))
-			print('\tnb_deconv_filters', self.config.get('nb_deconv_filters', ''))
-			print('\tnb_deconv_layers', self.config.get('nb_deconv_layers', ''))
-			print('\tnb_deconv_ksize', self.config.get('nb_deconv_ksize', ''))
-			print('\toutput_dims', self.config.get('output_dims', ''))
-			print('\toutput_activation', self.config.get('output_activation', ''))
-			print('\toutput_activation_params', self.config.get('output_activation_params', ''))
-
-
-
 		with tf.variable_scope(self.name):
 			if self.reuse:
 				tf.get_variable_scope().reuse_variables()
@@ -169,21 +146,20 @@ class DEVGG(object):
 
 			# construct deconvolution layers
 			if including_deconv:
-
 				if fc_output_reshape is not None:
 					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
 
-				for block_ind in range(nb_conv_blocks):
-					for layer_ind in range(nb_conv_layers[block_ind]):
+				for block_ind in range(nb_deconv_blocks):
+					for layer_ind in range(nb_deconv_layers[block_ind]):
 
-						if layer_ind == nb_conv_layers[block_ind]-1:
-							x = tcl.conv2d_transpose(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
+						if layer_ind == nb_deconv_layers[block_ind]-1 and block_ind != nb_deconv_blocks-1:
+							x = tcl.conv2d_transpose(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind],
 									stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv%d_%d'%(block_ind+1, layer_ind))
 							end_points['deconv%d_%d'%(block_ind+1, layer_ind)] = x
 				
 						else:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
+							x = tcl.conv2d(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind],
 									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 							end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
@@ -198,11 +174,34 @@ class DEVGG(object):
 					x = tcl.fully_connected(x, output_dims, 
 								activation_fn=output_act_fn, weights_initializer=winit_fn, scope='fc_out')
 					
-
 				if fc_output_reshape is not None:
 					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
-					
+
 					end_points['fc_out'] = x
+
+			if self.config.get('debug', False):
+				print('DEVGG : (' + self.name + ')')
+				print('\tactivation :                ', self.config.get('activation', ''))
+				print('\tactivation_params :         ', self.config.get('activation_params', ''))
+				print('\tbatch_norm :                ', self.config.get('batch_norm', ''))
+				print('\tbatch_norm_params :         ', self.config.get('batch_norm_params', ''))
+				print('\tweightsinit :               ', self.config.get('weightsinit', ''))
+				print('\tweightsinit_params :        ', self.config.get('weightsinit_params', ''))
+				print('\tincluding_bottom :          ', self.config.get('including_bottom', ''))
+				print('\tnb_fc_nodes :               ', self.config.get('nb_fc_nodes', ''))
+				print('\tfc_output_reshape :         ', self.config.get('fc_output_reshape', ''))
+				print('\tincluding_deconv :          ', self.config.get('including_deconv', ''))
+				print('\tnb_deconv_blocks :          ', self.config.get('nb_deconv_blocks', ''))
+				print('\tnb_deconv_filters :         ', self.config.get('nb_deconv_filters', ''))
+				print('\tnb_deconv_layers :          ', self.config.get('nb_deconv_layers', ''))
+				print('\tnb_deconv_ksize :           ', self.config.get('nb_deconv_ksize', ''))
+				print('\toutput_dims :               ', self.config.get('output_dims', ''))
+				print('\toutput_activation :         ', self.config.get('output_activation', ''))
+				print('\toutput_activation_params :  ', self.config.get('output_activation_params', ''))
+				print('\tnetwork : ')
+				for var_name, var in end_points.items():
+					print('\t\t' + var_name, ' --> ', var.get_shape())
+				print('')
 
 			return x, end_points
 

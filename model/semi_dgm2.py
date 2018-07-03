@@ -39,10 +39,10 @@ from discriminator.discriminator import get_discriminator
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
+from utils.optimzier import get_optimizer_by_config
 from utils.loss import get_loss
 
 from .basemodel import BaseModel
-
 
 class SemiDeepGenerativeModel2(BaseModel):
 	"""
@@ -95,7 +95,6 @@ class SemiDeepGenerativeModel2(BaseModel):
 		self.build_model()
 		self.build_summary()
 
-
 	def build_model(self):
 
 		self.xu = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='xu_input')
@@ -135,7 +134,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		#				          |               |
 		# 	  			        [yl,	   	   sample_hzl] --> xl_decode ==> reconstruction loss
 		#
-
+		
 		hxl = self.x_encoder(self.xl)
 		mean_hzl, log_var_hzl = self.hx_y_encoder(tf.concat([hxl, self.yl], axis=1))
 		sample_hzl = self.draw_sample(mean_hzl, log_var_hzl)
@@ -239,25 +238,19 @@ class SemiDeepGenerativeModel2(BaseModel):
 
 		###########################################################################
 		# optimizer configure
-		self.global_step, self.global_step_update = get_global_step()
 
-		if 'lr' in self.config:
-			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
-			optimizer_params = {'learning_rate' : self.learning_rate}
-		else:
-			optimizer_params = {}
+		global_step, global_step_update = get_global_step()
 
-		# self.m1_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.m1_loss, 
-		# 				self.m1_vars)
-		self.supervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.su_loss, 
-						self.vars)
-		self.unsupervised_optimizer = get_optimizer(self.config['optimizer'], optimizer_params, self.unsu_loss, 
-						self.vars)
-
-
-		# self.m1_train_op = tf.group([self.m1_optimizer, self.global_step_update])
-		self.supervised_train_op = tf.group([self.supervised_optimizer, self.global_step_update])
-		self.unsupervised_train_op = tf.group([self.unsupervised_optimizer, self.global_step_update])
+		(self.supervised_train_op, 
+			self.supervised_learning_rate, 
+				_) = get_optimizer_by_config(self.config['optimizer'], 
+											self.config['optimizer params'], self.su_loss, self.vars, 
+											global_step, global_step_update)
+		(self.unsupervised_train_op, 
+			self.unsupervised_learning_rate,
+				_) = get_optimizer_by_config(self.config['optimizer'], 
+											self.config['optimizer parmas'], self.unsu_loss, self.vars,
+											global_step, global_step_update)
 
 		###########################################################################
 		# model saver
@@ -275,6 +268,8 @@ class SemiDeepGenerativeModel2(BaseModel):
 			sum_list.append(tf.summary.scalar('unsupervised/kl_y_loss', self.unsu_loss_kl_y))
 			sum_list.append(tf.summary.scalar('unsupervised/reconstruction_loss', self.unsu_loss_recon))
 			sum_list.append(tf.summary.scalar('unsupervised/loss', self.unsu_loss))
+			sum_list.append(tf.summary.scalar('unsupervised/learning_rate', self.unsupervised_learning_rate))
+
 			self.unsupervised_summary = tf.summary.merge(sum_list + common_sum_list)
 			
 			sum_list = []
@@ -282,6 +277,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 			sum_list.append(tf.summary.scalar('supervised/reconstruction_loss', self.su_loss_recon))
 			sum_list.append(tf.summary.scalar('supervised/clasification_loss', self.su_loss_cls))
 			sum_list.append(tf.summary.scalar('supervised/loss', self.su_loss))
+			sum_list.append(tf.summary.scalar('supervised/learning_rate', self.supervised_learning_rate))
 			self.supervised_summary = tf.summary.merge(sum_list + common_sum_list)
 
 			# summary hists are logged by calling self.summary()

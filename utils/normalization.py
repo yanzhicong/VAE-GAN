@@ -5,6 +5,8 @@ import tensorflow.contrib.layers as tcl
 
 
 
+
+
 def get_normalization(name, params):
     if name == 'batch_norm' : 
         return tcl.batch_norm, params

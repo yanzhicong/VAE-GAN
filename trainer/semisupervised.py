@@ -174,5 +174,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 	def log(self, step):
 		if self.log_steps != 0 and step % self.log_steps == 0:
-			print("supervised : [epoch : %d, step : %d, lr : %f, loss : %f] \\ unsupervised : [epoch : %d, step : %d, lr : %f, loss : %f]"%(
-					self.su_epoch, self.su_step, self.su_lr, self.su_loss, self.unsu_epoch, self.unsu_step, self.unsu_lr, self.unsu_loss))
+			print("supervised : [epoch : " + str(self.su_epoch) 
+							+ ", step : " + str(self.su_step)
+							+ ", lr : " + str(self.su_lr)
+							+ ", loss : " + str(self.su_loss) + "] "
+					"\\ unsupervised : [epoch : " + str(self.unsu_epoch) 
+							+ ", step : " + str(self.unsu_step)
+							+ ", lr : " + str(self.unsu_lr)
+							+ ", loss : " +str(self.unsu_loss) + "]")

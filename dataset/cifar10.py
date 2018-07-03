@@ -95,6 +95,8 @@ class Cifar10(BaseDataset):
 			self.x_train_l = self.x_train
 			self.y_train_l = self.y_train
 
+			self.x_train_u = self.x_train
+
 
 	def _get_labelled_image_indices(self, nb_images_per_class):
 		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)

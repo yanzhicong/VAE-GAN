@@ -26,6 +26,9 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
+from .learning_rate import get_global_step
+from .learning_rate import get_learning_rate
+
 
 def get_optimizer(name, params, target, variables):
     if name == 'rmsprop':       
@@ -39,3 +42,98 @@ def get_optimizer(name, params, target, variables):
     else:
         raise Exception("None optimizer named " + name)
 
+
+
+
+def get_optimizer_by_config(name, config, target, variables,    
+                        global_step=None, 
+                        global_step_update=None, 
+                        global_step_name='global_step'):
+
+    if global_step is None:
+        global_step, global_step_update = get_global_step(global_step_name)
+
+    if name == 'rmsprop':
+
+        learning_rate = get_learning_rate(
+                config['lr scheme'],
+                config['lr'],
+                global_step,
+                config.get('lr params', {})
+            )
+
+        optimize_op = tf.train.RMSPropOptimizer(
+                learning_rate,
+                decay=config.get('decay', 0.9),
+                momentum=config.get('momentum', 0.0),
+                epsilon=config.get('epsilon', 1e-10),
+                centered=config.get('centered', False)
+            ).minimize(target, var_list=variables)
+        return tf.group([optimize_op, global_step_update]) , learning_rate, global_step
+
+    elif name == 'adam':
+        if 'lr' in config:
+            learning_rate = get_learning_rate(
+                    config['lr scheme'],
+                    config['lr'],
+                    global_step,
+                    config.get('lr params', {})
+                )
+
+        else:
+            learning_rate = tf.constant(0.001)
+
+        optimize_op = tf.train.AdamOptimizer(
+                learning_rate,
+                beta1=config.get('beta1', 0.9),
+                beta2=config.get('beta2', 0.999),
+                epsilon=config.get('epsilon', 1e-8),
+            ).minimize(target, var_list=variables)
+        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
+
+    elif name == 'adadelta':
+        if 'lr' in config:
+            learning_rate = get_learning_rate(
+                    config['lr scheme'],
+                    config['lr'],
+                    global_step,
+                    config.get('lr params', {})
+                )
+
+        else:
+            learning_rate = tf.constant(0.001)
+
+        optimize_op = tf.train.AdadeltaOptimizer(
+                learning_rate,
+                rho=config.get('rho', 0.95),
+                epsilon=config.get('epsilon', 1e-8)
+            ).minimize(target, var_list=variables)
+        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
+
+    elif name == 'momentum': 
+        learning_rate = get_learning_rate(
+                config['lr scheme'],
+                config['lr'],
+                global_step,
+                config.get('lr params', {})
+            )
+
+        optimize_op = tf.train.MomentumOptimizer(
+                learning_rate,
+                config['momentum'],
+                use_nesterov=config.get('use_nesterov', False)
+            ).minimize(target, var_list=variables)
+        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
+
+    elif name == 'sgd':
+        learning_rate = get_learning_rate(
+                config['lr scheme'],
+                config['lr'],
+                global_step,
+                config.get('lr params', {})
+            )
+
+        optimize_op = tf.train.GradientDescentOptimizer(
+                learning_rate
+            ).minimize(target, var_list=variables)
+        return tf.group([optimize_op, global_step_update]), learning_rate, global_step

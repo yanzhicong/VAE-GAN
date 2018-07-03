@@ -22,47 +22,15 @@
 # SOFTWARE.
 # ==============================================================================
 
+
 import os
 import sys
 
 
-import tensorflow as tf
-import tensorflow.contrib.layers as tcl
-
-
-sys.path.append('../')
-
-
-
-from utils.weightsinit import get_weightsinit
-from utils.activation import get_activation
-from utils.normalization import get_normalization
-
-
-from network.vgg import VGG
-
-
-class ClassifierSimple(object):
-
-	def __init__(self, config, is_training):
-		self.name = config.get('name', 'ClassifierSimple')
-		self.config = config
-
-		network_config = config.copy()
-		network_config['name'] = self.name
-		self.network = VGG(network_config, is_training)
-		
-	def __call__(self, i):
-		x, end_points = self.network(i)
-		return x
-
-	def features(self, i):
-		x, end_points = self.network(i)
-		return x, end_points
-
-	@property
-	def vars(self):
-		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
-
-
+def get_generator(name, config, is_training):
+	if name == 'GeneratorSimple': 
+		from .generator_simple import GeneratorSimple
+		return GeneratorSimple(config, is_training)
+	else:
+		raise Exception("None Generator named " + name)
 

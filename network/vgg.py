@@ -126,25 +126,6 @@ class VGG(object):
 					self.config.get('output_activation_params', ''))
 
 
-		if self.config.get('debug', False):
-			print('VGG')
-			print('\tactivation : ', self.config.get('activation', ''))
-			print('\tactivation_params : ', self.config.get('activation_params', ''))
-			print('\tbatch_norm : ', self.config.get('batch_norm', ''))
-			print('\tbatch_norm_params : ', self.config.get('batch_norm_params', ''))
-			print('\tweightsinit : ', self.config.get('weightsinit', ''))
-			print('\tweightsinit_params : ', self.config.get('weightsinit_params', ''))
-			print('\tnb_conv_blocks : ', self.config.get('nb_conv_blocks', ''))
-			print('\tnb_conv_filters : ', self.config.get('nb_conv_filters', ''))
-			print('\tnb_conv_layers : ', self.config.get('nb_conv_layers', ''))
-			print('\tnb_conv_ksize : ', self.config.get('nb_conv_ksize', ''))
-			print('\tno_maxpooling : ', self.config.get('no_maxpooling', ''))
-			print('\tincluding_top : ', self.config.get('including_top', ''))
-			print('\tnb_fc_nodes : ', self.config.get('nb_fc_nodes', ''))
-			print('\toutput_dims : ', self.config.get('output_dims', ''))
-			print('\toutput_activation : ', self.config.get('output_activation', ''))
-			print('\toutput_activation_params : ', self.config.get('output_activation_params', ''))
-
 		with tf.variable_scope(self.name):
 			if self.reuse:
 				tf.get_variable_scope().reuse_variables()
@@ -157,23 +138,22 @@ class VGG(object):
 			# construct convolution layers
 			for block_ind in range(nb_conv_blocks):
 				for layer_ind in range(nb_conv_layers[block_ind]):
-
-					if layer_ind == nb_conv_layers[block_ind]-1:
+					if layer_ind == nb_conv_layers[block_ind]-1 and block_ind != nb_conv_blocks-1:
 						if no_maxpooling:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
+							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
 									stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 						else:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
+							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
 									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 							x = tcl.max_pool2d(x, 2, stride=2, padding='SAME')							
 					else:
-						x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind],
+						x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
 								stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 								padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 					end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
-
+ 
 			# construct top fully connected layer
 			if including_top: 
 				x = tcl.flatten(x)
@@ -192,14 +172,32 @@ class VGG(object):
 							stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
 				end_points['conv_out'] = x
 
+
 			if self.config.get('debug', False):
-				for key, var in end_points:
-					print(key, '-->', var.get_shape())
-					
+				print('VGG : (' + self.name + ')')
+				print('\tactivation :               ', self.config.get('activation', ''))
+				print('\tactivation_params :        ', self.config.get('activation_params', ''))
+				print('\tbatch_norm :               ', self.config.get('batch_norm', ''))
+				print('\tbatch_norm_params :        ', self.config.get('batch_norm_params', ''))
+				print('\tweightsinit :              ', self.config.get('weightsinit', ''))
+				print('\tweightsinit_params :       ', self.config.get('weightsinit_params', ''))
+				print('\tnb_conv_blocks :           ', self.config.get('nb_conv_blocks', ''))
+				print('\tnb_conv_filters :          ', self.config.get('nb_conv_filters', ''))
+				print('\tnb_conv_layers :           ', self.config.get('nb_conv_layers', ''))
+				print('\tnb_conv_ksize :            ', self.config.get('nb_conv_ksize', ''))
+				print('\tno_maxpooling :            ', self.config.get('no_maxpooling', ''))
+				print('\tincluding_top :            ', self.config.get('including_top', ''))
+				print('\tnb_fc_nodes :              ', self.config.get('nb_fc_nodes', ''))
+				print('\toutput_dims :              ', self.config.get('output_dims', ''))
+				print('\toutput_activation :        ', self.config.get('output_activation', ''))
+				print('\toutput_activation_params : ', self.config.get('output_activation_params', ''))
+				for var_name, var in end_points.items():
+					print('\t\t' + var_name, ' --> ', var.get_shape())
+				print('')
+
 			return x, end_points
 
 	@property
 	def vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
-
 

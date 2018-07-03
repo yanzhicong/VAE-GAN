@@ -22,8 +22,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-
-
 import os
 import sys
 sys.path.append('.')
@@ -42,25 +40,24 @@ from discriminator.discriminator import get_discriminator
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
-from utils.optimizer import get_optimizer_by_config
 from utils.sample import get_sample
 from utils.loss import get_loss
 
 from .basemodel import BaseModel
 
 
-# Implementation of "Auto-Encoding Variational Bayes"
-# https://arxiv.org/pdf/1312.6114.pdf
 
+class CVAE2(BaseModel):
 
-class VAE(BaseModel):
+	def __init__(self, config,
+		**kwargs
+	):
 
-	def __init__(self, config, **kwargs):
-
-		super(VAE, self).__init__(config, **kwargs)
+		super(CVAE2, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input_shape']
 		self.z_dim = config['z_dim']
+		self.nb_classes = config['nb_classes']
 		self.config = config
 
 		self.build_model()
@@ -68,86 +65,97 @@ class VAE(BaseModel):
 		if self.is_summary:
 			self.build_summary()
 
-
 	def build_model(self):
 
-		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+		self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
+		self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')		
 
-
-		self.config['encoder params']['name'] = 'Encoder'
+		self.encoder_input_shape = int(np.product(self.input_shape))
+		
+		self.config['encoder parmas']['name'] = 'EncoderX'
 		self.config['encoder params']['output_dims'] = self.z_dim
-		self.config['decoder params']['name'] = 'Decoder'
-		self.config['decoder params']['output_dims'] = list(self.input_shape)
+		self.encoder = get_encoder(self.config['x encoder'], self.config['encoder params'], self.is_training)
 
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.is_training)
+		# self.config['y encoder parmas']['name'] = 'EncoderY'
+		# self.config['y encoder params']['output_dims'] = self.z_dim
+		self.config['decoder params']['name'] = 'Decoder'
+		self.config['decoder params']['output_dims'] = self.encoder_input_shape
+
+		# self.y_encoder = get_encoder(self.config['y encoder'], self.config['y encoder params'], self.is_training)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)
 
 		# build encoder
-		self.mean_z, self.log_var_z = self.encoder(self.x_real)
+		self.z_mean, self.z_log_var = self.x_encoder(tf.concatenate([self.x_real, self.y_real]))
+		self.z_mean_y = self.y_encoder(self.y_real)
 
-		# sample z from mean_z and log_var_z
-		sample_z = self.draw_sample(self.mean_z, self.log_var_z)
+		# sample z from z_mean and z_log_var
+		# self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
+		# self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
+		self.z_sample = self.draw_sample(self.z_mean, self.z_log_var)
 
 		# build decoder
-		self.x_decode = self.decoder(sample_z)
+		self.x_decode = self.decoder(self.z_sample)
 
 		# build test decoder
 		self.z_test = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z_test')
-		self.x_test = self.decoder(self.z_test)
+		self.x_test = self.decoder(self.z_test, reuse=True)
 
 		# loss function
-		self.kl_loss = (get_loss('kl', self.config['kl loss'], {'mean' : self.mean_z, 'log_var' : self.log_var_z})
+		self.kl_loss = (get_loss('kl', self.config['kl loss'], 
+							{'z_mean' : (self.z_mean - self.z_mean_y), 'z_log_var' : self.z_log_var})
 							* self.config.get('kl loss prod', 1.0))
-
-		self.recon_loss = (get_loss('reconstruction', self.config['reconstruction loss'], {'x' : self.x_real, 'y' : self.x_decode })
-							 * self.config.get('reconstruction loss prod', 1.0))
-
-		self.loss = self.kl_loss + self.recon_loss
+		self.xent_loss = (get_loss('reconstruction', self.config['reconstruction loss'], 
+							{'x' : self.x_real, 'y' : self.x_decode })
+							* self.config.get('reconstruction loss prod', 1.0))
+		self.loss = self.kl_loss + self.xent_loss
 
 		# optimizer configure
-		self.train_op, self.learning_rate, self.global_step = get_optimizer_by_config(
-																	self.config['optimizer'], self.config['optimizer params'],
-																	self.loss, self.vars)
+		self.global_step, self.global_step_update = get_global_step()
+		if 'lr' in self.config:
+			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
+			self.optimizer = get_optimizer(self.config['optimizer'], {'learning_rate' : self.learning_rate}, self.loss, 
+							self.decoder.vars + self.x_encoder.vars + self.y_encoder.vars)
+		else:
+			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.decoder.vars + self.x_encoder.vars + self.y_encoder.vars)
 
+		self.train_update = tf.group([self.optimizer, self.global_step_update])
 
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.global_step,])
-
+		self.saver = tf.train.Saver(self.x_encoder.vars + self.y_encoder.vars, self.decoder.vars + [self.global_step,])
 
 	def build_summary(self):
 		# summary scalars are logged per step
 		sum_list = []
 		sum_list.append(tf.summary.scalar('encoder/kl_loss', self.kl_loss))
 		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-		sum_list.append(tf.summary.scalar('decoder/reconstruction_loss', self.recon_loss))
+		sum_list.append(tf.summary.scalar('decoder/reconstruction_loss', self.xent_loss))
 		sum_list.append(tf.summary.scalar('loss', self.loss))
 		self.sum_scalar = tf.summary.merge(sum_list)
 
 		# summary hists are logged by calling self.summary()
 		sum_list = []
-		sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
+		sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.x_encoder.vars + self.y_encoder.vars]
 		sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
 		self.sum_hist = tf.summary.merge(sum_list)
-
-
-	@property
-	def vars(self):
-		return self.encoder.vars + self.decoder.vars
-	
 
 	'''
 		train operations
 	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		raise NotImplementedError
-
-	def train_on_batch_unsupervised(self, sess, x_batch):
+		if self.config.get('flatten', False):
+			x_batch = x_batch.reshape([x_batch.shape[0], -1])
+			
 		feed_dict = {
 			self.x_real : x_batch,
-			# self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
+			self.y_real : y_batch,
 			self.is_training : True
 		}
-		return self.train(sess, feed_dict)
+		return self.train(sess, feed_dict, 
+				train_op=self.train_update,
+				summary=self.sum_scalar)
+
+	def train_on_batch_unsupervised(self, sess, x_batch):
+		return NotImplementedError
 
 	'''
 		test operation
@@ -163,17 +171,18 @@ class VAE(BaseModel):
 	def hidden_variable_distribution(self, sess, x_batch):
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
+
 		feed_dict = {
 			self.x_real : x_batch,
 			self.is_training : False
 		}
-		mean_z, log_var_z = sess.run([self.mean_z, self.log_var_z], feed_dict=feed_dict)
-		return mean_z, log_var_z
+
+		z_mean, z_log_var = sess.run([self.z_mean, self.z_log_var], feed_dict=feed_dict)
+		return z_mean, z_log_var
 
 	'''
 		summary operation
 	'''
-
 	def summary(self, sess):
 		if self.is_summary:
 			sum = sess.run(self.sum_hist)

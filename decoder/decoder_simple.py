@@ -23,8 +23,11 @@ class DecoderSimple(object):
 		network_config = config.copy()
 		self.network = DEVGG(network_config, is_training)
 
-	def __call__(self, i):
-		x, end_points = self.network(i)
+	def __call__(self, x, condition=None):
+		if condition is not None:
+			x = tf.concatenate([x, condition], axis=-1)
+		x, end_points = self.network(x)
+		
 		return x
 
 	@property

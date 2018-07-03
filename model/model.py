@@ -46,5 +46,8 @@ def get_model(model_name, model_params):
     elif model_name == 'semidgm2':
         from .semi_dgm2 import SemiDeepGenerativeModel2
         return SemiDeepGenerativeModel2(model_params)
+    elif model_name == 'wgan_gp':
+        from .wgan_gp import WGAN_GP
+        return WGAN_GP(model_params)
     else:
         raise Exception("None model named " + model_name)

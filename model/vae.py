@@ -64,14 +64,13 @@ class VAE(BaseModel):
 
 		super(VAE, self).__init__(config, **kwargs)
 
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']
 		self.config = config
 
 		self.build_model()
 
-		if self.is_summary:
-			self.build_summary()
+		self.build_summary()
 
 
 	def build_model(self):
@@ -121,19 +120,22 @@ class VAE(BaseModel):
 
 	def build_summary(self):
 		# summary scalars are logged per step
-		sum_list = []
-		sum_list.append(tf.summary.scalar('encoder/kl_loss', self.kl_loss))
-		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-		sum_list.append(tf.summary.scalar('decoder/reconstruction_loss', self.recon_loss))
-		sum_list.append(tf.summary.scalar('loss', self.loss))
-		self.sum_scalar = tf.summary.merge(sum_list)
+		if self.is_summary:
+			sum_list = []
+			sum_list.append(tf.summary.scalar('encoder/kl_loss', self.kl_loss))
+			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
+			sum_list.append(tf.summary.scalar('decoder/reconstruction_loss', self.recon_loss))
+			sum_list.append(tf.summary.scalar('loss', self.loss))
+			self.sum_scalar = tf.summary.merge(sum_list)
 
-		# summary hists are logged by calling self.summary()
-		sum_list = []
-		sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
-		sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-		self.sum_hist = tf.summary.merge(sum_list)
-
+			# summary hists are logged by calling self.summary()
+			sum_list = []
+			sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
+			sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
+			self.sum_hist = tf.summary.merge(sum_list)
+		else:
+			self.sum_scalar = None
+			self.sum_hist = None
 
 	@property
 	def vars(self):

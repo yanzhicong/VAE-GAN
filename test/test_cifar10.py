@@ -1,4 +1,3 @@
-
 import os
 import sys
 
@@ -13,7 +12,7 @@ from dataset.cifar10 import Cifar10
 if __name__ == '__main__':
 	config = {
 		'batch_size' : 16,
-		'input_shape' : [32, 32, 3]
+		'output shape' : [32, 32, 3]
 	}
 
 	dataset = Cifar10(config)
@@ -22,4 +21,3 @@ if __name__ == '__main__':
 		plt.figure(0)
 		plt.imshow(x_batch[0, :, :, :])
 		plt.pause(1)
-

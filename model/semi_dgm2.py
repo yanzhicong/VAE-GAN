@@ -80,7 +80,7 @@ class SemiDeepGenerativeModel2(BaseModel):
 		super(SemiDeepGenerativeModel2, self).__init__(config, **kwargs)
 
 		# parameters must be configured
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 		self.hz_dim = config['hz_dim']
 		self.hx_dim = config['hx_dim']
 		self.nb_classes = config['nb_classes']
@@ -345,6 +345,9 @@ class SemiDeepGenerativeModel2(BaseModel):
 		}
 		mean_hz, log_var_hz = sess.run([self.mean_hzt, self.log_var_hzt], feed_dict=feed_dict)
 		return mean_hz, log_var_hz
+
+	def generate(self, sess, z_batch):
+		pass
 
 	'''
 		summary operations

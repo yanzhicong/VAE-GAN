@@ -54,7 +54,7 @@ class CeleBA(BaseDataset):
 			raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 
 		self.name = 'mnist'
-		self.input_shape = config.get('output_shape', [28, 28, 1])
+		self.input_shape = config.get('output shape', [28, 28, 1])
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
 

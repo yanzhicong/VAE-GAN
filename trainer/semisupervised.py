@@ -60,8 +60,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		super(SemiSupervisedTrainer, self).__init__(config, model)
 
-		# 
-
 		# optional parameters
 		self.pretrain_steps = self.config.get('pretrain steps', [])
 		self.supervised_step = self.config.get('supervised step', 1)
@@ -94,7 +92,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 
 	def train(self, sess, dataset, model):
-
 
 		if 'summary hyperparams string' in self.config:
 			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)

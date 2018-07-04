@@ -46,9 +46,9 @@ class CVAEGAN(BaseModel):
         **kwargs
     ):
         
-        super(CVAEGAN, self).__init__(input_shape=config['input_shape'], **kwargs)
+        super(CVAEGAN, self).__init__(input_shape=config['input shape'], **kwargs)
 
-        self.input_shape = config['input_shape']
+        self.input_shape = config['input shape']
         self.nb_classes = config['nb_classes']
         self.z_dim = config['z_dim']
         self.config = config

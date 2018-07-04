@@ -35,7 +35,7 @@ from model.model import get_model
 from trainer.trainer import get_trainer
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('--gpu_number',     type=str,   default='0')
+parser.add_argument('--gpu',     type=str,   default='0')
 parser.add_argument('--config_file',    type=str,   default='cvae1')		# target config file, stored in ./cfgs
 parser.add_argument('--disp_config',    type=bool,   default=False)			# if there is error in config file, set True to print the config file with line number
 
@@ -43,7 +43,7 @@ args = parser.parse_args()
 
 if __name__ == '__main__':
 	os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"   # see issue #152
-	os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu_number
+	os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu
 	tf.reset_default_graph()
 
 	# load config file

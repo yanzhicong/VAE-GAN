@@ -55,7 +55,7 @@ class CVAE2(BaseModel):
 
 		super(CVAE2, self).__init__(config, **kwargs)
 
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config
@@ -76,8 +76,6 @@ class CVAE2(BaseModel):
 		self.config['encoder params']['output_dims'] = self.z_dim
 		self.encoder = get_encoder(self.config['x encoder'], self.config['encoder params'], self.is_training)
 
-		# self.config['y encoder parmas']['name'] = 'EncoderY'
-		# self.config['y encoder params']['output_dims'] = self.z_dim
 		self.config['decoder params']['name'] = 'Decoder'
 		self.config['decoder params']['output_dims'] = self.encoder_input_shape
 
@@ -89,8 +87,6 @@ class CVAE2(BaseModel):
 		self.z_mean_y = self.y_encoder(self.y_real)
 
 		# sample z from z_mean and z_log_var
-		# self.eps = tf.placeholder(tf.float32, shape=[None,self.z_dim], name='eps')
-		# self.z_sample = self.z_mean + tf.exp(self.z_log_var / 2) * self.eps
 		self.z_sample = self.draw_sample(self.z_mean, self.z_log_var)
 
 		# build decoder

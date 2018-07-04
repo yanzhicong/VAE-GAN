@@ -50,7 +50,7 @@ class ImageNet(BaseDataset):
 
 		self.task = self.config.get('task', 'classification')  # classification or localization
 
-		self.input_shape = self.config.get('output_shape', [224, 224, 3])
+		self.input_shape = self.config.get('output shape', [224, 224, 3])
 
 		self.extra_file_path = './dataset/extra_files'
 		if not os.path.exists(self.extra_file_path):

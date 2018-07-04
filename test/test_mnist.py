@@ -13,7 +13,7 @@ from dataset.mnist import MNIST
 if __name__ == '__main__':
 	config = {
 		'batch_size' : 16,
-		'input_shape' : [28, 28]
+		'output shape' : [28, 28]
 	}
 
 	dataset = MNIST(config)

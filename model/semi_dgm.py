@@ -75,7 +75,7 @@ class SemiDeepGenerativeModel(BaseModel):
 		super(SemiDeepGenerativeModel, self).__init__(config, **kwargs)
 
 		# parameters must be configured
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 		self.hz_dim = config['hz_dim']
 		self.hx_dim = config['hx_dim']
 		self.nb_classes = config['nb_classes']

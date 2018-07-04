@@ -45,6 +45,7 @@ def get_optimizer(name, params, target, variables):
 
 
 
+
 def get_optimizer_by_config(name, config, target, variables,    
                         global_step=None, 
                         global_step_update=None, 
@@ -54,9 +55,8 @@ def get_optimizer_by_config(name, config, target, variables,
         global_step, global_step_update = get_global_step(global_step_name)
 
     if name == 'rmsprop':
-
         learning_rate = get_learning_rate(
-                config['lr scheme'],
+                config.get('lr scheme', 'constant'),
                 config['lr'],
                 global_step,
                 config.get('lr params', {})
@@ -74,7 +74,7 @@ def get_optimizer_by_config(name, config, target, variables,
     elif name == 'adam':
         if 'lr' in config:
             learning_rate = get_learning_rate(
-                    config['lr scheme'],
+                    config.get('lr scheme', 'constant'),
                     config['lr'],
                     global_step,
                     config.get('lr params', {})
@@ -82,7 +82,6 @@ def get_optimizer_by_config(name, config, target, variables,
 
         else:
             learning_rate = tf.constant(0.001)
-
         optimize_op = tf.train.AdamOptimizer(
                 learning_rate,
                 beta1=config.get('beta1', 0.9),
@@ -94,7 +93,7 @@ def get_optimizer_by_config(name, config, target, variables,
     elif name == 'adadelta':
         if 'lr' in config:
             learning_rate = get_learning_rate(
-                    config['lr scheme'],
+                    config.get('lr scheme', 'constant'),
                     config['lr'],
                     global_step,
                     config.get('lr params', {})
@@ -102,7 +101,6 @@ def get_optimizer_by_config(name, config, target, variables,
 
         else:
             learning_rate = tf.constant(0.001)
-
         optimize_op = tf.train.AdadeltaOptimizer(
                 learning_rate,
                 rho=config.get('rho', 0.95),
@@ -112,7 +110,7 @@ def get_optimizer_by_config(name, config, target, variables,
 
     elif name == 'momentum': 
         learning_rate = get_learning_rate(
-                config['lr scheme'],
+                config.get('lr scheme', 'constant'),
                 config['lr'],
                 global_step,
                 config.get('lr params', {})
@@ -127,7 +125,7 @@ def get_optimizer_by_config(name, config, target, variables,
 
     elif name == 'sgd':
         learning_rate = get_learning_rate(
-                config['lr scheme'],
+                config.get('lr scheme', 'constant'),
                 config['lr'],
                 global_step,
                 config.get('lr params', {})

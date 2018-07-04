@@ -55,7 +55,11 @@ class UnsupervisedTrainer(BaseTrainer):
 
 	def train(self, sess, dataset, model):
 
-		self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		if 'summary hyperparams string' in self.config:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
+		else:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		
 
 		self.train_initialize(sess, model)
 

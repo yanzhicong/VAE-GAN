@@ -37,6 +37,8 @@ class Cifar10(BaseDataset):
 		
 		self._dataset_dir = 'D:\\Data\\Cifar10'
 		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = 'C:\\Data\\Cifar10'
+		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/Cifar10'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/Cifar10'
@@ -45,7 +47,7 @@ class Cifar10(BaseDataset):
 
 
 		self.name = 'cifar10'
-		self.output_shape = config.get('output_shape', [32, 32, 3])
+		self.output_shape = config.get('output shape', [32, 32, 3])
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
  

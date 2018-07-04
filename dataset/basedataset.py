@@ -57,8 +57,8 @@ class BaseDataset(object, metaclass=ABCMeta):
 			batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
 			batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
 
-			if 'output_shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output_shape'])
+			if 'output shape' in self.config:
+				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y
 
@@ -72,8 +72,8 @@ class BaseDataset(object, metaclass=ABCMeta):
 		for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
 			batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
 
-			if 'output_shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output_shape'])
+			if 'output shape' in self.config:
+				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
 
 			yield i, batch_x
 
@@ -87,8 +87,8 @@ class BaseDataset(object, metaclass=ABCMeta):
 			batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
 			batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
 
-			if 'output_shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output_shape'])
+			if 'output shape' in self.config:
+				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
 			
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y

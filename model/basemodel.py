@@ -3,9 +3,9 @@ import sys
 import time
 import numpy as np
 import tensorflow as tf
-from abc import ABCMeta, abstractmethod
+# from abc import ABCMeta, abstractmethod
 
-class BaseModel(object, metaclass=ABCMeta):
+class BaseModel(object):
 
 
 	def __init__(self, config, **kwargs):
@@ -70,28 +70,35 @@ class BaseModel(object, metaclass=ABCMeta):
 		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
 		return sample
 
-	@abstractmethod
-	def predict(self, x_batch):
-		'''
-		Plase override "predict" method in the derived model!
-		'''
-		pass
 
 
-	@abstractmethod
+	'''
+		train methods
+	'''
 	def train_on_batch_supervised(self, x_batch, y_batch):
+		raise NotImplementedError
 		'''
-		Plase override "train_on_batch_supervised" method in the derived model!
+			Please override "train_on_batch_supervised" method in the derived model!
 		'''
-		pass
 
-
-	@abstractmethod
 	def train_on_batch_unsupervised(self, x_batch):
+		raise NotImplementedError
 		'''
-		Plase override "train_on_batch_unsupervised" method in the derived model!
+			Please override "train_on_batch_unsupervised" method in the derived model!
 		'''
-		pass
+
+	'''
+		test methods
+	'''
+	def predict(self, sess, x_batch):
+		raise NotImplementedError
+
+	def generate(self, sess, z_batch):
+		raise NotImplementedError
+
+	def hidden_distribution(self, sess, x_batch):
+		raise NotImplementedError
+
 
 	def train(self, sess, feed_dict,
 				update_op=None, 

@@ -13,7 +13,7 @@ from dataset.imagenet import ImageNet
 if __name__ == '__main__':
 	config = {
 		'batch_size' : 16,
-		'input_shape' : [224, 224, 3]
+		'output shape' : [224, 224, 3]
 	}
 	dataset = ImageNet(config)
 

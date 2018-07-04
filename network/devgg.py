@@ -176,7 +176,6 @@ class DEVGG(object):
 					
 				if fc_output_reshape is not None:
 					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
-
 					end_points['fc_out'] = x
 
 			if self.config.get('debug', False):

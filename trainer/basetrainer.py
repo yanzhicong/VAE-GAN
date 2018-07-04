@@ -65,8 +65,6 @@ class BaseTrainer(object):
 		self.load_checkpoint_dir = os.path.join(self.config.get('load checkpoint assets dir', self.config['assets dir']),
 												self.config.get('checkpoint dir', 'checkpoint'))
 
-
-
 		self.summary_steps = int(self.config.get('summary steps', 0))
 		self.log_steps = int(self.config.get('log steps', 0))
 		self.save_checkpoint_steps = int(self.config.get('save checkpoint steps', 0))
@@ -80,17 +78,17 @@ class BaseTrainer(object):
 
 		self.validator_list = []
 		for validator_config in self.config.get('validators', []):
-			
 			validator_params = validator_config.get('validator params', {})
 			validator_params['assets dir'] = self.config['assets dir']
-
 			validator = get_validator(validator_config['validator'], validator_params)
 
 			if validator_config.get('has summary', False):
 				validator.build_summary(self.model)
 
 			validator_steps = int(validator_config['validate steps'])
+
 			self.validator_list.append((validator_steps, validator))
+
 
 		self.debug = self.config.get('debug', False)
 		if self.debug:

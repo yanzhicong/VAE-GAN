@@ -47,10 +47,10 @@ class StarGAN(BaseModel):
 		**kwargs
 	):
 		
-		super(StarGAN, self).__init__(input_shape=config['input_shape'], **kwargs)
+		super(StarGAN, self).__init__(input_shape=config['input shape'], **kwargs)
 
 		self.config = config
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 
 		self.nb_classes = config['nb_classes']
 		self.adv_type = config.get('adv_type', 'wgan')

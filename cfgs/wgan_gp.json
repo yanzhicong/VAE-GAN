@@ -5,37 +5,25 @@
     "dataset params" : {
         "output_shape" : [32, 32, 3]
     },
-
     "assets dir" : "assets/wgan_gp1",
-
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
 
-        "input_shape" : [32, 32, 3],
-        "z_dim" : 10,
+        "input shape" : [32, 32, 3],
+        "z_dim" : 100,
 
-
-        "discriminator optimizer" : "rmsprop",
+        "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 5e-5,
+            "lr" : 0.00002,
             "lr scheme" : "constant"
-            // "lr params" : {
-            //     "decay_steps" : 1000,
-            //     "decay_rate" : 0.9
-            // }
         },
 
-        "generator optimizer" : "rmsprop",
+        "generator optimizer" : "adam",
         "generator optimizer params" : {
-            "lr" : 5e-5,
+            "lr" : 0.00002,
             "lr scheme" : "constant"
-            // "lr params" : {
-            //     "decay_steps" : 1000,
-            //     "decay_rate" : 0.9
-            // }
         },
-
 
         "summary" : true,
  
@@ -44,13 +32,12 @@
 
             "batch_norm" : "batch_norm",
             "including_bottom" : true,
-            "nb_fc_nodes" : [1024, 4096],
+            "nb_fc_nodes" : [1024],
             "fc_output_reshape" : [4, 4, 256],
-            
             "including_deconv" : true,
             "nb_deconv_blocks" : 4,
-            "nb_deconv_layers" : [3, 3, 3, 3],
-            "nb_deconv_filters" : [256, 128, 64, 32],
+            "nb_deconv_layers" : [2, 2, 2, 2],
+            "nb_deconv_filters" : [128, 96, 48, 32],
             "output_dims" : 3,
             "output_activation" : "sigmoid",
             "debug" : true
@@ -58,11 +45,15 @@
 
         "discriminator" : "DiscriminatorSimple",
         "discriminator params" : {
-            "nb_conv_blocks" : 4,
-            "nb_conv_layers" : [3, 3, 3, 2],
-            "nb_conv_filters" : [64, 128, 256, 256],
+            "activation" : "leaky_relu",
+            "activation params" : "0.2",
+            "nb_conv_blocks" : 3,
+            "nb_conv_layers" : [1, 1, 1],
+            "nb_conv_filters" : [32, 48, 64],
             "batch_norm" : "none",
-            "nb_fc_nodes" : [1024, 256],
+            "nb_fc_nodes" : [256],
+            "output_activation" : "none",
+            "output_dims" : 1,
             "debug" : true
         }
     },
@@ -72,21 +63,31 @@
         "multi thread" : true,
         "continue train" : false,
         "train steps" : 20000,
-        "summary steps" : 1000,
-        "log steps" : 100 
+        // "summary steps" : 1000,
+        "log steps" : 100 ,
+        "debug" : true,
         // "save checkpoint steps" : 1000,
-        // "validators" : [
-        //     {
-        //         "validator" : "scatter_plot_validator",
-        //         "validate steps" : 1000,
-        //         "validator params" : {
-        //             "watch variable" : "hidden dist",
-        //             "x_dim" : 0,
-        //             "y_dim" : 1,
-        //             "log dir" : "scatter"
-        //         }
-        //     }
-        // ]
+        "validators" : [
+            {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    // "watch variable" : "hidden dist",
+                    "z shape" : [100],
+                    "x shape" : [32, 32, 3],
+                    "nb row" : 8,
+                    "nb col" : 8
+                }
+            }
+            // {
+            //     "validator" : "embedding_visualize",
+            //     "validate steps" : 500,
+            //     "validator params" : {
+            //         // "watch variable" : "hidden dist",
+            //         "z shape" : [100]
+            //     }
+            // }
+        ]
     }
 }
 

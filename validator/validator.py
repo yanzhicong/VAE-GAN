@@ -36,6 +36,9 @@ def get_validator(name, config):
     elif name == 'random_generate':
         from .random_generate import RandomGenerate
         return RandomGenerate(config)
+    elif name == 'embedding_visualize':
+        from .embedding_validator import EmbeddingValidator
+        return EmbeddingValidator(config)
     else:
         raise Exception("None validator named " + name)
 

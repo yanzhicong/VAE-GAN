@@ -7,9 +7,9 @@ import tensorflow.contrib.layers as tcl
 
 def get_lrelu(params):
     if params == None:
-        leak = 0.1
+        leak=0.1
     else :
-        leak = float(params.split()[0])
+        leak=float(params.split()[0])
 
     def lrelu(x, leak=leak, name="lrelu"):
         with tf.variable_scope(name):
@@ -22,7 +22,7 @@ def get_lrelu(params):
 def get_activation(name, params=None):
     if name == 'relu':
         return tf.nn.relu
-    elif name == 'lrelu':
+    elif name == 'lrelu' or name == 'leaky_relu':
         return get_lrelu(params)
     elif name == 'softmax' : 
         return tf.nn.softmax

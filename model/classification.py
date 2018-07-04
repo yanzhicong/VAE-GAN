@@ -54,7 +54,7 @@ class Classification(BaseModel):
 	):
 		super(Classification, self).__init__(config, **kwargs)
 
-		self.input_shape = config['input_shape']
+		self.input_shape = config['input shape']
 		# self.z_dim = config['z_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config

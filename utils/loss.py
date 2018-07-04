@@ -105,7 +105,7 @@ def adv_down_wassterstein_loss(dis_real, dis_fake):
 
 
 def adv_up_wassterstein_loss(dis_fake):
-	return -tf.reduce_mean(dis_fake)
+	return - tf.reduce_mean(dis_fake)
 
 
 def gradient_penalty_l2_loss(x, y):

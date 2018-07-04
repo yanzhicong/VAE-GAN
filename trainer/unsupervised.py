@@ -49,8 +49,8 @@ class UnsupervisedTrainer(BaseTrainer):
 		self.multi_thread = self.config.get('multi thread', False)
 
 		if self.multi_thread:
-			self.train_data_queue = queue.Queue(maxsize=50)
-			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*30)
+			self.train_data_queue = queue.Queue(maxsize=200)
+			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*200)
 
 
 	def train(self, sess, dataset, model):

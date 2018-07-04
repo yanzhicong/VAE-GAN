@@ -27,6 +27,7 @@ import sys
 sys.path.append('./')
 sys.path.append('../')
 
+import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
@@ -40,7 +41,8 @@ from utils.normalization import get_normalization
 class DEVGG(object):
 
 	'''
-		a flexible image feature encoding network class, which can be customized easily.
+		a flexible generative model network class, can be customized easily.
+		from z(one-dimensional or three-dimensional) to x(three-dimensional)
 		
 		the structure imitates the vgg network structure, which consists several convolution layers 
 		and fc layer behind.
@@ -109,9 +111,8 @@ class DEVGG(object):
 
 		# fully connected parameters
 		including_bottom = self.config.get('including_bottom', True)
-		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 4096])
+		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 1024])
 		fc_output_reshape = self.config.get('fc_output_reshape', None)
-
 
 		# convolution structure parameters
 		including_deconv = self.config.get('including_deconv', False)
@@ -144,6 +145,11 @@ class DEVGG(object):
 							weights_initializer=winit_fn, scope='fc%d'%ind)
 					end_points['fc%d'%ind] = x
 
+				if fc_output_reshape is not None:
+					x = tcl.fully_connected(x, int(np.product(list(fc_output_reshape))), activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+							weights_initializer=winit_fn, scope='fc%d'%(len(nb_fc_nodes)+1))
+					end_points['fc%d'%(len(nb_fc_nodes)+1)] = x
+
 			# construct deconvolution layers
 			if including_deconv:
 				if fc_output_reshape is not None:
@@ -175,7 +181,7 @@ class DEVGG(object):
 								activation_fn=output_act_fn, weights_initializer=winit_fn, scope='fc_out')
 					
 				if fc_output_reshape is not None:
-					x = tf.reshape(x, [-1, ] + list(fc_output_reshape))
+					x = tf.reshape(x, [-1,] + list(fc_output_reshape))
 					end_points['fc_out'] = x
 
 			if self.config.get('debug', False):

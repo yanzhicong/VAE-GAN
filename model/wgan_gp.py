@@ -85,11 +85,8 @@ class WGAN_GP(BaseModel):
 		# loss config
 		eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
 
-		print(eplison.get_shape())
-		print(self.x_real.get_shape())
-		print(self.x_fake.get_shape())
 
-		x_hat = eplison * self.x_real + (1 - eplison) * self.x_fake
+		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
 		self.d_loss_adv = (get_loss('adversarial down', 
@@ -179,9 +176,6 @@ class WGAN_GP(BaseModel):
 
 		for i in range(dis_train_step):
 
-			print(x_batch.shape)
-			# print()
-
 			feed_dict = {
 				self.x_real : x_batch,
 				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
@@ -193,7 +187,6 @@ class WGAN_GP(BaseModel):
 															loss=self.d_loss,
 															summary=self.d_sum_scalar)
 			summary_list.append((step_d, summary_d))
-
 
 		feed_dict = {
 			self.z : np.random.randn(x_batch.shape[0], self.z_dim),

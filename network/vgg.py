@@ -177,7 +177,6 @@ class VGG(object):
 							stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
 				end_points['conv_out'] = x
 
-
 			if self.config.get('debug', False):
 				print('VGG : (' + self.name + ')')
 				print('\tactivation :               ', self.config.get('activation', ''))
@@ -196,10 +195,10 @@ class VGG(object):
 				print('\toutput_dims :              ', self.config.get('output_dims', ''))
 				print('\toutput_activation :        ', self.config.get('output_activation', ''))
 				print('\toutput_activation_params : ', self.config.get('output_activation_params', ''))
+				print('\tnetwork : ')
 				for var_name, var in end_points.items():
 					print('\t\t' + var_name, ' --> ', var.get_shape())
 				print('')
-
 			return x, end_points
 
 	@property

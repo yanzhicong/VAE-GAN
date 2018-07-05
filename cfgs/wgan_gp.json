@@ -13,47 +13,54 @@
         "input shape" : [32, 32, 3],
         "z_dim" : 100,
 
-        "discriminator optimizer" : "adam",
+        "discriminator optimizer" : "rmsprop",
         "discriminator optimizer params" : {
             "lr" : 0.0001,
             "lr scheme" : "constant"
         },
 
-        "generator optimizer" : "adam",
+        "generator optimizer" : "rmsprop",
         "generator optimizer params" : {
             "lr" : 0.0001,
             "lr scheme" : "constant"
         },
 
+        "gradient penalty loss weight" : 10,
         "summary" : true,
  
-        "generator" : "GeneratorSimple",
+        "generator" : "generator_cifar10",
         "generator params" : {
-            "batch_norm" : "batch_norm",
-            "including_bottom" : true,
-            "nb_fc_nodes" : [],
-            "fc_output_reshape" : [4, 4, 64],
-            "including_deconv" : true,
-            "nb_deconv_blocks" : 4,
-            "nb_deconv_layers" : [2, 2, 2, 2],
-            "nb_deconv_filters" : [128, 96, 48, 32],
-            "output_dims" : 3,
-            "output_activation" : "sigmoid",
-            "debug" : true
+            // "batch_norm" : "batch_norm", //
+
+            // "including_bottom" : true,
+            // "nb_fc_nodes" : [],
+            // "fc_output_reshape" : [4, 4, 64],   
+
+            // "including_deconv" : true,
+            // "nb_deconv_blocks" : 4,
+            // "nb_deconv_layers" : [2, 2, 2, 2],
+            // "nb_deconv_filters" : [128, 96, 48, 32],
+            
+            // "output_dims" : 3,
+            // "output_activation" : "sigmoid",
+            // "debug" : true
         },
 
-        "discriminator" : "DiscriminatorSimple",
+        "discriminator" : "discriminator_cifar10",
         "discriminator params" : {
-            "activation" : "relu",
-            "activation params" : "0.2",
-            "nb_conv_blocks" : 3,
-            "nb_conv_layers" : [1, 1, 1],
-            "nb_conv_filters" : [32, 48, 64],
-            "batch_norm" : "none",
-            "nb_fc_nodes" : [256],
-            "output_activation" : "none",
-            "output_dims" : 1,
-            "debug" : true
+
+            // "activation" : "relu",
+            // "batch_norm" : "batch_norm",
+            // "no_maxpooling" : true,
+
+            // "nb_conv_blocks" : 3,
+            // "nb_conv_layers" : [2, 2, 2],
+            // "nb_conv_filters" : [32, 48, 64],
+            // "nb_fc_nodes" : [256],
+
+            // "output_dims" : 1,
+            // "output_activation" : "none",
+            // "debug" : true
         }
     },
 
@@ -62,7 +69,7 @@
         "multi thread" : true,
         "continue train" : false,
         "train steps" : 20000,
-        // "summary steps" : 1000,
+        "summary steps" : 300,
         "log steps" : 100 ,
         "debug" : true,
         "batch_size" : 32,
@@ -72,21 +79,19 @@
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
-                    // "watch variable" : "hidden dist",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
                     "nb row" : 8,
                     "nb col" : 8
                 }
+            },
+            {
+                "validator" : "embedding_visualize",
+                "validate steps" : 500,
+                "validator params" : {
+                    "z shape" : [100]
+                }
             }
-            // {
-            //     "validator" : "embedding_visualize",
-            //     "validate steps" : 500,
-            //     "validator params" : {
-            //         // "watch variable" : "hidden dist",
-            //         "z shape" : [100]
-            //     }
-            // }
         ]
     }
 }

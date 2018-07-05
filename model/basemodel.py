@@ -100,6 +100,8 @@ class BaseModel(object):
 		raise NotImplementedError
 
 
+
+
 	def train(self, sess, feed_dict,
 				update_op=None, 
 				step=None,

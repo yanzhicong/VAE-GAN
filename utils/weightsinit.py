@@ -27,11 +27,31 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
-def get_weightsinit(name, params=None):
-    if name == 'normal' : 
-        return tf.random_normal_initializer(float(params.split()[0]), float(params.split()[1]))
-    elif name == 'xvarial' : 
-        return None
-    else :
-        raise Exception("None weights initializer named " + name)
+def get_weightsinit(name_config):
+
+	split = name_config.split()
+	name = split[0]
+	if len(split) > 1:
+		params = split[1]
+
+	if name == 'normal': 
+		if len(split) == 3:
+			init_mean = float(split[1])
+			init_var = float(split[2])
+		else:
+			init_mean = 0.0
+			init_var = 0.02
+		return tf.random_normal_initializer(init_mean, init_var)
+
+	elif name == 'xvarial':
+		return None
+
+	elif name == 'zeros':
+		return tf.zeros_initializer()
+		
+	elif name == 'ones':
+		return tf.ones_initializer()
+
+	else :
+		raise Exception("None weights initializer named " + name)
 

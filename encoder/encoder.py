@@ -29,9 +29,14 @@ import sys
 
 
 def get_encoder(name, config, is_training):
-	if name == 'EncoderSimple': 
+	if name == 'encoder' or name == 'EncoderSimple': 
 		from .encoder_simple import EncoderSimple
 		return EncoderSimple(config, is_training)
+	elif name == 'mnist encoder' or name == 'encoder_mnist':
+		from .encoder_mnist import EncoderMnist
+		return EncoderMnist(config, is_training)
+	elif name == 'cifar10 encoder' or name == 'encoder_cifar10':
+		from .encoder_cifar10 import EncoderCifar10
+		return EncoderCifar10(config, is_training)
 	else:
 		raise Exception("None encoder named " + name)
-

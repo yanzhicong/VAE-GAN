@@ -9,7 +9,7 @@ def get_lrelu(params):
     if params == None:
         leak=0.1
     else :
-        leak=float(params.split()[0])
+        leak=float(params[0])
 
     def lrelu(x, leak=leak, name="lrelu"):
         with tf.variable_scope(name):
@@ -19,7 +19,14 @@ def get_lrelu(params):
     return lrelu
 
 
-def get_activation(name, params=None):
+def get_activation(name_config):
+    name = name_config.split()[0]
+
+    if len(name_config.split()) > 1:
+        params = name_config.split()[1:]
+    else:
+        params = None
+
     if name == 'relu':
         return tf.nn.relu
     elif name == 'lrelu' or name == 'leaky_relu':
@@ -32,8 +39,4 @@ def get_activation(name, params=None):
         return None
     else :
         raise Exception("None actiavtion named " + name)
-
-
-
-
 

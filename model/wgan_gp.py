@@ -84,8 +84,6 @@ class WGAN_GP(BaseModel):
 
 		# loss config
 		eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
-
-
 		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
@@ -166,10 +164,10 @@ class WGAN_GP(BaseModel):
 
 		g_step = sess.run(self.g_global_step)
 
-		if g_step < self.discriminator_warm_up_steps:
-			dis_train_step = self.discriminator_training_steps * 20
-		else:
-			dis_train_step = self.discriminator_training_steps
+		# if g_step < self.discriminator_warm_up_steps:
+			# dis_train_step = self.discriminator_training_steps * 20
+		# else:
+		dis_train_step = self.discriminator_training_steps
 
 		summary_list = []
 

@@ -38,6 +38,7 @@ class ClassifierPixel(object):
 		else:
 			act_fn = get_activation('lrelu', '0.2')
 
+
 		if 'batch_norm' in self.config:
 			norm_fn, norm_params = get_normalization(self.config['batch_norm'])
 		elif 'batch_norm' in self.model_config:

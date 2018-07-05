@@ -142,13 +142,13 @@ class BaseTrainer(object):
 			else:
 				self.summary_writer.add_summary(summary, step)
 
-		if log_disp and self.log_steps != 0 and step % self.log_steps == 0:
+		if log_disp and self.log_steps != 0 and (step % self.log_steps == 0 or step <= 5):
 			print("epoch : " + str(epoch)       
 					+ ", step : " + str(step)
 					+ ", lr : " + str(lr) 
 					+ ", loss : " + str(loss))
 
-		if self.summary_steps != 0 and step % self.summary_steps == 0:
+		if self.summary_steps != 0 and (step % self.summary_steps == 0 or step == 1):
 			summary = model.summary(self.sess)
 			if summary:
 				self.summary_writer.add_summary(summary, step)
@@ -159,7 +159,6 @@ class BaseTrainer(object):
 		for validator_steps, validator in self.validator_list:
 			if validator_steps != 0 and step % validator_steps == 0:
 				summary = validator.validate(model, validate_dataset, self.sess, step)
-
 				if summary is not None:
 					self.summary_writer.add_summary(summary, step)
 		return step

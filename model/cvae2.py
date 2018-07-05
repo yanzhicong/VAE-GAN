@@ -70,7 +70,7 @@ class CVAE2(BaseModel):
 		self.x_real = tf.placeholder(tf.float32, shape=[None, np.product(self.input_shape)], name='x_input')
 		self.y_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='y_input')		
 
-		self.encoder_input_shape = int(np.product(self.input_shape))
+		# self.encoder_input_shape = int(np.product(self.input_shape))
 		
 		self.config['encoder parmas']['name'] = 'EncoderX'
 		self.config['encoder params']['output_dims'] = self.z_dim

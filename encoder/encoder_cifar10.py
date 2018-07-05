@@ -41,10 +41,10 @@ from utils.normalization import get_normalization
 from network.vgg import VGG
 
 
-class EncoderSimple(object):
+class EncoderCifar10(object):
 
 	def __init__(self, config, is_training):
-		self.name = config.get('name', 'EncoderSimple')
+		self.name = config.get('name', 'EncoderCifar10')
 		self.config = config
 
 		self.is_training = is_training

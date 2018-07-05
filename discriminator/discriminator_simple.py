@@ -53,6 +53,7 @@ class DiscriminatorSimple(object):
 
 		self.network = VGG(network_config, is_training)
 		
+		
 	def __call__(self, i):
 		x, end_points = self.network(i)
 		return x

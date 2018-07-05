@@ -110,10 +110,13 @@ def adv_up_wassterstein_loss(dis_fake):
 
 def gradient_penalty_l2_loss(x, y):
 	gradients = tf.gradients(y, xs=[x])[0]
+
+	print(gradients.get_shape())
+
 	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[1,2,3]))
+	
 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
 	return gradient_penalty
-
 
 loss_dict = {
 	'kl' : {

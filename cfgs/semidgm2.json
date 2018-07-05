@@ -111,7 +111,7 @@
 
 
         "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
-        // "save checkpoint steps"  : 5000,                //save checkpoint interval steps (default 0 is not to save)
+        // "save checkpoint steps"  : 5000,        //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
 
         "train steps" : 20000,                  //maximum total train steps

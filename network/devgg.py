@@ -43,13 +43,11 @@ class DEVGG(object):
 	'''
 		a flexible generative model network class, can be customized easily.
 		from z(one-dimensional or three-dimensional) to x(three-dimensional)
-		
-		the structure imitates the vgg network structure, which consists several convolution layers 
-		and fc layer behind.
 
 		the convolution layers are divied into blocks, in the end of each blocks there is a max pooling behind.
 		the max pooling params is always ksize=2 and strides=2, and padding of convolution layers is always 'SAME'
 		the convolution layers params(in @params:config):
+
 			'nb_deconv_blocks':
 			'nb_deconv_filters':
 			'nb_deconv_layers':
@@ -64,11 +62,9 @@ class DEVGG(object):
 
 		the interval layers params(both convolution layer and fc layer):
 			'activation':
-			'activation params':
 			'batch_norm':
 			'batch_norm_params':
 			'weightsinit':
-			'weightsinit_params':
 
 		the output nodes is defined by 'output_dims', if there is fc layers, the output tensor shape is [batchsize, output_dims]
 		else if there is no fc layers, the output tensor shape is [batchsize, h, w, output_dims], and if 'output_dims' == 0, then 
@@ -76,7 +72,6 @@ class DEVGG(object):
 		output params:
 			'output_dims':
 			'output_activation':
-			'output_activation_params'
 	'''
 
 
@@ -97,17 +92,15 @@ class DEVGG(object):
 
 	def __call__(self, x):
 
-		act_fn = get_activation(
-					self.config.get('activation', 'relu'),
-					self.config.get('activation_params', {}))
+		act_fn = get_activation(self.config.get('activation', 'relu'))
+		norm_fn, norm_params = get_normalization(
+					self.config.get('batch_norm', 'batch_norm'),
+					self.config.get('batch_norm params', None))
+		winit_fn = get_weightsinit(self.config.get('weightsinit', 'normal 0.00 0.02'))
 
 		norm_fn, norm_params = get_normalization(
 					self.config.get('batch_norm', 'batch_norm'),
 					self.config.get('batch_norm_params', self.normalizer_params))
-
-		winit_fn = get_weightsinit(
-					self.config.get('weightsinit', 'normal'),
-					self.config.get('weightsinit_params', '0.00 0.02'))
 
 		# fully connected parameters
 		including_bottom = self.config.get('including_bottom', True)
@@ -123,9 +116,7 @@ class DEVGG(object):
 
 		# output stage parameters
 		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
-		output_act_fn = get_activation(
-					self.config.get('output_activation', 'none'),
-					self.config.get('output_activation_params', ''))
+		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
 
 
 		with tf.variable_scope(self.name):
@@ -187,11 +178,9 @@ class DEVGG(object):
 			if self.config.get('debug', False):
 				print('DEVGG : (' + self.name + ')')
 				print('\tactivation :                ', self.config.get('activation', ''))
-				print('\tactivation_params :         ', self.config.get('activation_params', ''))
 				print('\tbatch_norm :                ', self.config.get('batch_norm', ''))
 				print('\tbatch_norm_params :         ', self.config.get('batch_norm_params', ''))
 				print('\tweightsinit :               ', self.config.get('weightsinit', ''))
-				print('\tweightsinit_params :        ', self.config.get('weightsinit_params', ''))
 				print('\tincluding_bottom :          ', self.config.get('including_bottom', ''))
 				print('\tnb_fc_nodes :               ', self.config.get('nb_fc_nodes', ''))
 				print('\tfc_output_reshape :         ', self.config.get('fc_output_reshape', ''))
@@ -202,7 +191,6 @@ class DEVGG(object):
 				print('\tnb_deconv_ksize :           ', self.config.get('nb_deconv_ksize', ''))
 				print('\toutput_dims :               ', self.config.get('output_dims', ''))
 				print('\toutput_activation :         ', self.config.get('output_activation', ''))
-				print('\toutput_activation_params :  ', self.config.get('output_activation_params', ''))
 				print('\tnetwork : ')
 				for var_name, var in end_points.items():
 					print('\t\t' + var_name, ' --> ', var.get_shape())

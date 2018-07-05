@@ -5,7 +5,7 @@
     "dataset params" : {
         "output_shape" : [32, 32, 3]
     },
-    "assets dir" : "assets/wgan_gp1",
+    "assets dir" : "assets/wgan_gp2",
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
@@ -15,13 +15,13 @@
 
         "discriminator optimizer" : "rmsprop",
         "discriminator optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.0005,
             "lr scheme" : "constant"
         },
 
         "generator optimizer" : "rmsprop",
         "generator optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.0005,
             "lr scheme" : "constant"
         },
 
@@ -66,6 +66,10 @@
 
     "trainer" : "unsupervised",
     "trainer params" : {
+
+        "summary dir" : "log",
+        "summary hyperparams string" : "lr_0_0005",
+
         "multi thread" : true,
         "continue train" : false,
         "train steps" : 20000,
@@ -79,6 +83,7 @@
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
+                    "log dir" : "generated_lr_0_0005",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
                     "nb row" : 8,
@@ -89,7 +94,8 @@
                 "validator" : "embedding_visualize",
                 "validate steps" : 500,
                 "validator params" : {
-                    "z shape" : [100]
+                    "z shape" : [100],
+                    "log dir" : "log_lr_0_0005"
                 }
             }
         ]

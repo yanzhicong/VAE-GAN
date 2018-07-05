@@ -5,7 +5,9 @@
     "dataset params" : {
         "output_shape" : [32, 32, 3]
     },
-    "assets dir" : "assets/wgan_gp2",
+
+
+    "assets dir" : "assets/wgan_gp3",
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
@@ -15,17 +17,17 @@
 
         "discriminator optimizer" : "rmsprop",
         "discriminator optimizer params" : {
-            "lr" : 0.0005,
+            "lr" : 0.0002,
             "lr scheme" : "constant"
         },
 
         "generator optimizer" : "rmsprop",
         "generator optimizer params" : {
-            "lr" : 0.0005,
+            "lr" : 0.0002,
             "lr scheme" : "constant"
         },
 
-        "gradient penalty loss weight" : 10,
+        "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
         "generator" : "generator_cifar10",
@@ -68,7 +70,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0005",
+        "summary hyperparams string" : "lr_0_0002",
 
         "multi thread" : true,
         "continue train" : false,
@@ -76,14 +78,14 @@
         "summary steps" : 300,
         "log steps" : 100 ,
         "debug" : true,
-        "batch_size" : 32,
+        "batch_size" : 128,
         // "save checkpoint steps" : 1000,
         "validators" : [
             {
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
-                    "log dir" : "generated_lr_0_0005",
+                    "log dir" : "generated_lr_0_0002",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
                     "nb row" : 8,
@@ -95,7 +97,8 @@
                 "validate steps" : 500,
                 "validator params" : {
                     "z shape" : [100],
-                    "log dir" : "log_lr_0_0005"
+                    "x shape" : [32, 32, 3],
+                    "log dir" : "log_lr_0_0002"
                 }
             }
         ]

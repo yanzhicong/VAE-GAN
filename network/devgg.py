@@ -37,7 +37,6 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 
-
 class DEVGG(object):
 
 	'''
@@ -93,14 +92,9 @@ class DEVGG(object):
 	def __call__(self, x):
 
 		act_fn = get_activation(self.config.get('activation', 'relu'))
-		norm_fn, norm_params = get_normalization(
-					self.config.get('batch_norm', 'batch_norm'),
-					self.config.get('batch_norm params', None))
+		norm_fn, norm_params = get_normalization(self.config.get('batch_norm', 'batch_norm'),
+												self.config.get('batch_norm params', self.normalizer_params))
 		winit_fn = get_weightsinit(self.config.get('weightsinit', 'normal 0.00 0.02'))
-
-		norm_fn, norm_params = get_normalization(
-					self.config.get('batch_norm', 'batch_norm'),
-					self.config.get('batch_norm_params', self.normalizer_params))
 
 		# fully connected parameters
 		including_bottom = self.config.get('including_bottom', True)
@@ -132,12 +126,14 @@ class DEVGG(object):
 			if including_bottom: 
 				x = tcl.flatten(x)
 				for ind, nb_nodes in enumerate(nb_fc_nodes):
-					x = tcl.fully_connected(x, nb_nodes, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+					x = tcl.fully_connected(x, nb_nodes, 
+							activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							weights_initializer=winit_fn, scope='fc%d'%ind)
 					end_points['fc%d'%ind] = x
 
 				if fc_output_reshape is not None:
-					x = tcl.fully_connected(x, int(np.product(list(fc_output_reshape))), activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+					x = tcl.fully_connected(x, int(np.product(list(fc_output_reshape))), 
+							activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							weights_initializer=winit_fn, scope='fc%d'%(len(nb_fc_nodes)+1))
 					end_points['fc%d'%(len(nb_fc_nodes)+1)] = x
 
@@ -150,26 +146,28 @@ class DEVGG(object):
 					for layer_ind in range(nb_deconv_layers[block_ind]):
 
 						if layer_ind == nb_deconv_layers[block_ind]-1 and block_ind != nb_deconv_blocks-1:
-							x = tcl.conv2d_transpose(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind],
-									stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-									padding='SAME', weights_initializer=winit_fn, scope='deconv%d_%d'%(block_ind+1, layer_ind))
+							x = tcl.conv2d_transpose(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind], stride=2, padding='SAME',
+									activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+									weights_initializer=winit_fn, scope='deconv%d_%d'%(block_ind+1, layer_ind))
 							end_points['deconv%d_%d'%(block_ind+1, layer_ind)] = x
 				
 						else:
-							x = tcl.conv2d(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind],
-									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-									padding='SAME', weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+							x = tcl.conv2d(x, nb_deconv_filters[block_ind], nb_deconv_ksize[block_ind], stride=1, padding='SAME',
+									activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+									weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 							end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
-
+			
 				# construct a convolution layer for output
 				if output_dims != 0:
-					x = tcl.conv2d(x, output_dims, 1, 
-								stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
+					x = tcl.conv2d(x, output_dims, 1, stride=1, padding='SAME', 
+								activation_fn=output_act_fn, 
+								weights_initializer=winit_fn, scope='conv_out')
 					end_points['conv_out'] = x
 			else:
 				if output_dims != 0:
 					x = tcl.fully_connected(x, output_dims, 
-								activation_fn=output_act_fn, weights_initializer=winit_fn, scope='fc_out')
+								activation_fn=output_act_fn, 
+								weights_initializer=winit_fn, scope='fc_out')
 					
 				if fc_output_reshape is not None:
 					x = tf.reshape(x, [-1,] + list(fc_output_reshape))
@@ -179,7 +177,6 @@ class DEVGG(object):
 				print('DEVGG : (' + self.name + ')')
 				print('\tactivation :                ', self.config.get('activation', ''))
 				print('\tbatch_norm :                ', self.config.get('batch_norm', ''))
-				print('\tbatch_norm_params :         ', self.config.get('batch_norm_params', ''))
 				print('\tweightsinit :               ', self.config.get('weightsinit', ''))
 				print('\tincluding_bottom :          ', self.config.get('including_bottom', ''))
 				print('\tnb_fc_nodes :               ', self.config.get('nb_fc_nodes', ''))
@@ -201,11 +198,4 @@ class DEVGG(object):
 	@property
 	def vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
-
-
-
-
-
-
-
 

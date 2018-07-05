@@ -60,7 +60,7 @@ class DiscriminatorCifar10(object):
 	def __call__(self, x):
 	
 		act_fn = get_activation('lrelu 0.2')
-		norm_fn, norm_params = get_normalization('batch_norm', self.normalizer_params)
+		norm_fn, norm_params = get_normalization('none', self.normalizer_params)
 		winit_fn = get_weightsinit('normal 0.00 0.02')
 		binit_fn = get_weightsinit('zeros')
 
@@ -80,6 +80,7 @@ class DiscriminatorCifar10(object):
 										padding='SAME', 
 										weights_initializer=winit_fn, 
 										biases_initializer=binit_fn, scope='conv0')
+			
 			x = tcl.conv2d(x, 256, 5, stride=2, 
 										activation_fn=act_fn, 
 										normalizer_fn=norm_fn, 
@@ -87,6 +88,7 @@ class DiscriminatorCifar10(object):
 										padding='SAME', 
 										weights_initializer=winit_fn, 
 										biases_initializer=binit_fn, scope='conv1')
+
 			x = tcl.conv2d(x, 512, 5, stride=2, 
 										activation_fn=act_fn, 
 										normalizer_fn=norm_fn, 
@@ -96,6 +98,14 @@ class DiscriminatorCifar10(object):
 										biases_initializer=binit_fn, scope='conv2')
 
 			x = tcl.flatten(x)
+
+			x = tcl.fully_connected(x, 512, 
+										activation_fn=act_fn, 
+										normalizer_fn=norm_fn, 
+										normalizer_params=norm_params,
+										weights_initializer=winit_fn, 
+										biases_initializer=binit_fn, scope='fc0')
+
 			x = tcl.fully_connected(x, 1, 
 										activation_fn=None, 
 										normalizer_fn=None, 

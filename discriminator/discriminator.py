@@ -9,7 +9,7 @@ sys.path.append('../')
 
 
 def get_discriminator(name, config, is_training):
-	if name == 'DiscriminatorSimple':
+	if name == 'discriminator':
 		from .discriminator_simple import DiscriminatorSimple
 		return DiscriminatorSimple(config, is_training)
 	elif name == 'cifar10 discriminator' or name == 'discriminator_cifar10':

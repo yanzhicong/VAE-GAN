@@ -26,6 +26,7 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 from scipy.stats import norm
 
 from .basevalidator import BaseValidator
@@ -57,11 +58,22 @@ class RandomGenerate(BaseValidator):
 		batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
 		batch_x = model.generate(sess, batch_z)
 
+
+		print(batch_x.shape)
+
 		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(8, 8),
 								subplot_kw={'xticks': [], 'yticks': []})
 		fig.subplots_adjust(hspace=0.01, wspace=0.01)
 		for ind, ax in enumerate(axes.flat):
-			ax.imshow(batch_x[ind], vmin=0.0, vmax=1.0)
+
+			img = batch_x[ind]
+
+			if len(img.shape) == 3:
+				if img.shape[2] == 1:
+					img = cv2.merge([img, img, img])
+
+
+			ax.imshow(img, vmin=0.0, vmax=1.0)
 
 		plt.tight_layout()
 		plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))

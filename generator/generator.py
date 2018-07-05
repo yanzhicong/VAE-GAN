@@ -28,7 +28,7 @@ import sys
 
 
 def get_generator(name, config, is_training):
-	if name == 'GeneratorSimple': 
+	if name == 'generator': 
 		from .generator_simple import GeneratorSimple
 		return GeneratorSimple(config, is_training)
 

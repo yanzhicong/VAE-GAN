@@ -51,6 +51,7 @@ class EmbeddingValidator(BaseValidator):
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
 
 		self.z_shape = list(config['z shape'])
+		self.x_shape = list(config['x shape'])
 
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
@@ -69,7 +70,7 @@ class EmbeddingValidator(BaseValidator):
 		embedding.metadata_path = "metadata.tsv"
 		projector.visualize_embeddings(summary_writer, config)
 
-		self.plot_array_var = tf.get_variable('test', shape=[2000, 32*32*3])
+		self.plot_array_var = tf.get_variable('test', shape=[2000, int(np.product(self.x_shape))])
 		self.saver = tf.train.Saver([self.plot_array_var])
 
 

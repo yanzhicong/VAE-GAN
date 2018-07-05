@@ -100,9 +100,8 @@ class VGG(object):
 		act_fn = get_activation(self.config.get('activation', 'relu'))
 		norm_fn, norm_params = get_normalization(
 					self.config.get('batch_norm', 'batch_norm'),
-					self.config.get('batch_norm params', None))
+					self.config.get('batch_norm params', self.normalizer_params))
 		winit_fn = get_weightsinit(self.config.get('weightsinit', 'normal 0.00 0.02'))
-		binit_fn = get_weightsinit(self.config.get('biasesinit', 'normal 0.00 0.02'))
 
 
 		# convolution structure parameters
@@ -110,7 +109,7 @@ class VGG(object):
 		nb_conv_blocks = int(self.config.get('nb_conv_blocks', 5))
 		nb_conv_filters = self.config.get('nb_conv_filters', [64, 128, 256, 512, 512])
 		nb_conv_layers = self.config.get('nb_conv_layers', [2, 2, 3, 3, 3])
-		nb_conv_ksize = self.config.get('nb_conv_ksize', [3, 3, 3, 3, 3])
+		nb_conv_ksize = self.config.get('nb_conv_ksize', [3 for i in range(nb_conv_blocks)])
 		no_maxpooling = self.config.get('no_maxpooling', False)
 
 		# fully connected parameters
@@ -121,7 +120,6 @@ class VGG(object):
 		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
 
 		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
-
 
 		with tf.variable_scope(self.name):
 			if self.reuse:
@@ -139,24 +137,24 @@ class VGG(object):
 						if layer_ind == nb_conv_layers[block_ind]-1:
 						 # and block_ind != nb_conv_blocks-1:
 							if no_maxpooling:
-								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
-										stride=2, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-										padding='SAME', weights_initializer=winit_fn, biases_initializer=binit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=2, padding='SAME', 
+										activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+										weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 								end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
 
 							else:
-								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
-										stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-										padding='SAME', weights_initializer=winit_fn, biases_initializer=binit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=1, padding='SAME', 
+										activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+										weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 								end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
 
 								x = tcl.max_pool2d(x, 2, stride=2, padding='SAME')	
 								end_points['maxpool%d_%d'%(block_ind+1, layer_ind)] = x
 
 						else:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], 
-									stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-									padding='SAME', weights_initializer=winit_fn, biases_initializer=binit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
+							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=1, padding='SAME',
+									activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+									weights_initializer=winit_fn, scope='conv%d_%d'%(block_ind+1, layer_ind))
 							end_points['conv%d_%d'%(block_ind+1, layer_ind)] = x
  
 
@@ -164,28 +162,30 @@ class VGG(object):
 			if including_top: 
 				x = tcl.flatten(x)
 				for ind, nb_nodes in enumerate(nb_fc_nodes):
-					x = tcl.fully_connected(x, nb_nodes, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							weights_initializer=winit_fn, biases_initializer=binit_fn, scope='fc%d'%ind)
+					x = tcl.fully_connected(x, nb_nodes, 
+							activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+							weights_initializer=winit_fn, scope='fc%d'%ind)
 					end_points['fc%d'%ind] = x
 
 				if output_dims != 0:
-					x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, weights_initializer=winit_fn, biases_initializer=binit_fn, scope='fc_out')
+					x = tcl.fully_connected(x, output_dims, 
+							activation_fn=output_act_fn, 
+							weights_initializer=winit_fn, scope='fc_out')
 					end_points['fc_out'] = x
 
 			# else construct a convolution layer for output
 			elif output_dims != 0:
-				x = tcl.conv2d(x, output_dims, 1, 
-							stride=1, activation_fn=output_act_fn, padding='SAME', weights_initializer=winit_fn, scope='conv_out')
+				x = tcl.conv2d(x, output_dims, 1, stride=1, padding='SAME',
+					activation_fn=output_act_fn,  
+					weights_initializer=winit_fn, scope='conv_out')
 				end_points['conv_out'] = x
 
 			if self.config.get('debug', False):
 				print('VGG : (' + self.name + ')')
 				print('\tactivation :               ', self.config.get('activation', ''))
-				print('\tactivation_params :        ', self.config.get('activation_params', ''))
 				print('\tbatch_norm :               ', self.config.get('batch_norm', ''))
-				print('\tbatch_norm_params :        ', self.config.get('batch_norm_params', ''))
 				print('\tweightsinit :              ', self.config.get('weightsinit', ''))
-				print('\tweightsinit_params :       ', self.config.get('weightsinit_params', ''))
+				print('\tincluding_conv :           ', self.config.get('including_conv', ''))
 				print('\tnb_conv_blocks :           ', self.config.get('nb_conv_blocks', ''))
 				print('\tnb_conv_filters :          ', self.config.get('nb_conv_filters', ''))
 				print('\tnb_conv_layers :           ', self.config.get('nb_conv_layers', ''))

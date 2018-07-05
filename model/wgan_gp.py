@@ -95,9 +95,9 @@ class WGAN_GP(BaseModel):
 		self.d_loss_gp = (get_loss('gradient penalty',
 									'l2',
 									{'x' : x_hat, 'y' : dis_hat})
-							* self.config.get('gradient penalty loss weight', 1.0))
+							* self.config.get('gradient penalty loss weight', 10.0))
 		self.d_loss = self.d_loss_gp + self.d_loss_adv
-		# self.d_loss = self.d_loss_adv
+
 
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : dis_fake})
 
@@ -121,7 +121,8 @@ class WGAN_GP(BaseModel):
 																self.g_loss, self.generator.vars, global_step_name='g_global_step')
 
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.d_global_step,self.g_global_step])
+		self.saver = tf.train.Saver(self.vars + [self.d_global_step, self.g_global_step])
+
 
 
 	def build_summary(self):

@@ -60,7 +60,7 @@ class GeneratorCifar10(object):
 
 
 		act_fn = get_activation('relu')
-		norm_fn, norm_params = get_normalization('batch_norm', self.normalizer_params)
+		norm_fn, norm_params = get_normalization('none', self.normalizer_params)
 		winit_fn = get_weightsinit('normal 0.00 0.02')
 		binit_fn = get_weightsinit('zeros')
 		output_act_fn = get_activation('sigmoid')
@@ -72,40 +72,70 @@ class GeneratorCifar10(object):
 				assert tf.get_variable_scope().reuse is False
 				self.reuse = True
 
-			x = tcl.fully_connected(x, 4 * 4 * 512, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+
+			x = tcl.fully_connected(x, 512, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 							weights_initializer=winit_fn, scope='fc0')
 
 
+			x = tcl.fully_connected(x, 4 * 4 * 512, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+							weights_initializer=winit_fn, scope='fc1')
+
 			x = tf.reshape(x, [-1, 4, 4, 512])
 
-			x = tcl.conv2d_transpose(x, 256, 5,
+			x = tcl.conv2d_transpose(x, 256, 3,
 									stride=2, 
 									activation_fn=act_fn, 
 									normalizer_fn=norm_fn, 
 									normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv0')
 
-			x = tcl.conv2d_transpose(x, 128, 5,
+			x = tcl.conv2d(x, 256, 3,
+									stride=1, 
+									activation_fn=act_fn, 
+									normalizer_fn=norm_fn, 
+									normalizer_params=norm_params,
+									padding='SAME', weights_initializer=winit_fn, scope='conv0')
+
+
+			x = tcl.conv2d_transpose(x, 128, 3,
 									stride=2, 
 									activation_fn=act_fn, 
 									normalizer_fn=norm_fn, 
 									normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv1')
 
-			x = tcl.conv2d_transpose(x, 64, 5,
+			x = tcl.conv2d(x, 128, 3,
+									stride=1, 
+									activation_fn=act_fn, 
+									normalizer_fn=norm_fn, 
+									normalizer_params=norm_params,
+									padding='SAME', weights_initializer=winit_fn, scope='conv1')
+
+
+			x = tcl.conv2d_transpose(x, 64, 3,
 									stride=2, 
 									activation_fn=act_fn, 
 									normalizer_fn=norm_fn, 
 									normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv2')
+
+
+			x = tcl.conv2d(x, 64, 3,
+									stride=1, 
+									activation_fn=act_fn, 
+									normalizer_fn=norm_fn, 
+									normalizer_params=norm_params,
+									padding='SAME', weights_initializer=winit_fn, scope='conv2')
 												
-			x = tcl.conv2d_transpose(x, 3, 5,
+			x = tcl.conv2d_transpose(x, 3, 1,
 									stride=1, 
 									activation_fn=output_act_fn, 
 									normalizer_fn=None, 
 									normalizer_params=None,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv3')
+
 		return x
+
 
 	@property
 	def vars(self):

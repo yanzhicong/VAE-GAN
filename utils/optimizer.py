@@ -43,9 +43,6 @@ def get_optimizer(name, params, target, variables):
         raise Exception("None optimizer named " + name)
 
 
-
-
-
 def get_optimizer_by_config(name, config, target, variables,    
                         global_step=None, 
                         global_step_update=None, 
@@ -69,7 +66,6 @@ def get_optimizer_by_config(name, config, target, variables,
                 epsilon=config.get('epsilon', 1e-10),
                 centered=config.get('centered', False)
             ).minimize(target, var_list=variables)
-        return tf.group([optimize_op, global_step_update]) , learning_rate, global_step
 
     elif name == 'adam':
         if 'lr' in config:
@@ -88,7 +84,6 @@ def get_optimizer_by_config(name, config, target, variables,
                 beta2=config.get('beta2', 0.999),
                 epsilon=config.get('epsilon', 1e-8),
             ).minimize(target, var_list=variables)
-        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
 
     elif name == 'adadelta':
         if 'lr' in config:
@@ -106,7 +101,6 @@ def get_optimizer_by_config(name, config, target, variables,
                 rho=config.get('rho', 0.95),
                 epsilon=config.get('epsilon', 1e-8)
             ).minimize(target, var_list=variables)
-        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
 
     elif name == 'momentum': 
         learning_rate = get_learning_rate(
@@ -121,7 +115,6 @@ def get_optimizer_by_config(name, config, target, variables,
                 config['momentum'],
                 use_nesterov=config.get('use_nesterov', False)
             ).minimize(target, var_list=variables)
-        return tf.group([optimize_op, global_step_update]), learning_rate, global_step
 
     elif name == 'sgd':
         learning_rate = get_learning_rate(
@@ -134,4 +127,10 @@ def get_optimizer_by_config(name, config, target, variables,
         optimize_op = tf.train.GradientDescentOptimizer(
                 learning_rate
             ).minimize(target, var_list=variables)
+
+
+
+    if global_step_update is not None:
         return tf.group([optimize_op, global_step_update]), learning_rate, global_step
+    else:
+        return optimize_op, learning_rate, global_step

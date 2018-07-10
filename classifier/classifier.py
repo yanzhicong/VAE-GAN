@@ -6,7 +6,7 @@ sys.path.append('../')
 
 
 def get_classifier(name, config, is_training):
-    if name == 'ClassifierSimple':
+    if name == 'classifier':
         from .classifier_simple import ClassifierSimple
         return ClassifierSimple(config, is_training)
     else:

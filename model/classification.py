@@ -31,16 +31,12 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-from encoder.encoder import get_encoder
-from decoder.decoder import get_decoder
+
 from classifier.classifier import get_classifier
-from discriminator.discriminator import get_discriminator
 
 
-from utils.learning_rate import get_learning_rate
-from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
-from utils.sample import get_sample
+from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 from utils.metric import get_metric
 
@@ -71,31 +67,36 @@ class Classification(BaseModel):
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
 		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
 
-		self.logits = self.classifier(self.x)
+		self.logits, self.end_points = self.classifier.features(self.x)
+
+		# print(self.logits.get_shape())
 		self.loss = get_loss('classification', self.config['classification loss'], 
 						{'logits' : self.logits, 'labels' : self.label})
 		self.train_acc = get_metric('accuracy', 'top1', 
 						{'logits': self.logits, 'labels':self.label})
 
 		# for testing
-		self.test_x = tf.placeholder(tf.float32, shape=[None,] + self.input_shape, name='x_test')
+		self.test_x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='test_x_input')
+		self.test_logits = self.classifier(self.test_x)
+		self.test_y = tf.nn.softmax(self.test_logits)
+		
+		print('vars')
+		for var in self.classifier.vars:
+			print(var.name, ' --> ', var.get_shape())
 
-		ylogits = self.classifier(self.test_x)
-		self.test_y = tf.nn.softmax(ylogits)
+		print('vars_to_save_and_restore')
+		for var in self.classifier.vars_to_save_and_restore:
+			print(var.name, ' --> ', var.get_shape())
 
-		# optimizer config
-		self.global_step, self.global_step_update = get_global_step()
-		if 'lr' in self.config:
-			self.learning_rate = get_learning_rate(self.config['lr_scheme'], float(self.config['lr']), self.global_step, self.config['lr_params'])
-			self.optimizer = get_optimizer(self.config['optimizer'], {'learning_rate' : self.learning_rate}, self.loss, self.classifier.vars)
-		else:
-			self.optimizer = get_optimizer(self.config['optimizer'], {}, self.loss, self.classifier.vars)
-
-		self.train_op = tf.group([self.optimizer, self.global_step_update])
+		(self.train_op, 
+			self.learning_rate, 
+				self.global_step) = get_optimizer_by_config(self.config['optimizer'], self.config['optimizer params'],
+														target=self.loss, variables=self.classifier.vars)
 
 		# model saver
-		self.saver = tf.train.Saver(self.classifier.vars + [self.global_step,])
-		
+		self.saver = tf.train.Saver(self.classifier.vars_to_save_and_restore + [self.global_step,])
+
+
 	def build_summary(self):
 		# summary scalars are logged per step
 		sum_list = []
@@ -104,8 +105,13 @@ class Classification(BaseModel):
 		sum_list.append(tf.summary.scalar('train acc', self.train_acc))
 		self.sum_scalar = tf.summary.merge(sum_list)
 
+		for key, var in self.end_points.items():
+			sum_list.append(tf.summary.histogram('netout/' + key, var))
+
+		self.sum_scalar2 = tf.summary.merge(sum_list)
+
 		# summary hists are logged by calling self.summary()
-		sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars]
+		sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars_to_save_and_restore]
 		self.sum_hist = tf.summary.merge(sum_list)
 
 	'''
@@ -117,7 +123,23 @@ class Classification(BaseModel):
 			self.label : y_batch,
 			self.is_training : True
 		}
-		return self.train(sess, feed_dict)
+
+
+		step = sess.run([self.global_step])[0]
+
+		if step % 100 == 0:
+			return self.train(sess, feed_dict, 
+							update_op=self.train_op,
+							learning_rate=self.learning_rate,
+							loss=self.loss,
+							summary=self.sum_scalar2)
+		else:
+
+			return self.train(sess, feed_dict, 
+							update_op=self.train_op,
+							learning_rate=self.learning_rate,
+							loss=self.loss,
+							summary=self.sum_scalar)
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		raise NotImplementedError
@@ -127,14 +149,15 @@ class Classification(BaseModel):
 	'''
 	def predict(self, sess, x_batch):
 		feed_dict = {
-			self.test_y : x_batch,
+			self.test_x : x_batch,
 			self.is_training : False
 		}
-		y = sess.run([self.test_y], feed_dict = feed_dict)
+		y = sess.run([self.test_y], feed_dict = feed_dict)[0]
 		return y
 
 	'''
 		summary operations
+
 	'''
 	def summary(self, sess):
 		if self.is_summary:

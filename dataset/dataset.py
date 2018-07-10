@@ -27,12 +27,19 @@ def get_dataset(name, config):
 	if name == 'imagenet':
 		from .imagenet import ImageNet
 		return ImageNet(config)
+		
 	elif name == 'mnist':
 		from .mnist import MNIST
 		return MNIST(config)
+
 	elif name == 'cifar10':
 		from .cifar10 import Cifar10
 		return Cifar10(config)
+
+	elif name == 'pascal_voc':
+		from .pascal_voc import PASCAL_VOC
+		return PASCAL_VOC(config)
+
 	else:
 		raise Exception('None dataset named ' + name)
 

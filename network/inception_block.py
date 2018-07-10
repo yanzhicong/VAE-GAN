@@ -75,14 +75,7 @@ def inception_v3_figure5(
 	name, x, end_points, 
 	act_fn, norm_fn, norm_params, winit_fn, 
 	filters=[[64,96,96,], [48,64,], [64], [64]],
-	is_avg_pooling=True, downsample=False):
-
-	if downsample:
-		ds=2
-		dsp='VALID'
-	else:
-		ds=1
-		dsp='SAME'
+	is_avg_pooling=True):
 
 	with tf.variable_scope(name):
 		with tf.variable_scope('branch0'):
@@ -93,38 +86,34 @@ def inception_v3_figure5(
 						stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 						padding='SAME', weights_initializer=winit_fn, scope='conv2d_0b_3x3')
 			branch_0 = tcl.conv2d(branch_0, filters[0][2], 3,
-						stride=ds, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-						padding=dsp, weights_initializer=winit_fn, scope='conv2d_0c_3x3')
+						stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+						padding='SAME', weights_initializer=winit_fn, scope='conv2d_0c_3x3')
 		with tf.variable_scope('branch1'):
 			branch_1 = tcl.conv2d(x, filters[1][0],  1, 
 						stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
 						padding='SAME', weights_initializer=winit_fn, scope='conv2d_1a_1x1')
 			branch_1 = tcl.conv2d(branch_1, filters[1][1], 3, 
-						stride=ds, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-						padding=dsp, weights_initializer=winit_fn, scope='conv2d_1b_3x3')
+						stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+						padding='SAME', weights_initializer=winit_fn, scope='conv2d_1b_3x3')
 		with tf.variable_scope('branch2'):
 			if is_avg_pooling:
-				branch_2 = tcl.avg_pool2d(x, 3, stride=ds,
-						padding=dsp, scope='avgpool_2a_3x3')
+				branch_2 = tcl.avg_pool2d(x, 3, stride=1,
+						padding='SAME', scope='avgpool_2a_3x3')
 			else:
-				branch_2 = tcl.max_pool2d(x, 3, stride=ds, 
-						padding=dsp, scope='maxpool_2a_3x3')
+				branch_2 = tcl.max_pool2d(x, 3, stride=1, 
+						padding='SAME', scope='maxpool_2a_3x3')
 
 			if not downsample:
 				branch_2 = tcl.conv2d(branch_2, filters[2][0], 1,
 							stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding=dsp, weights_initializer=winit_fn, scope='conv2d_2b_1x1')
+							padding='SAME', weights_initializer=winit_fn, scope='conv2d_2b_1x1')
 
-		if not downsample:
-			with tf.variable_scope('branch3'):
-				branch_3 = tcl.conv2d(x, filters[3][0],  1, 
-							stride=ds, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
-							padding='SAME', weights_initializer=winit_fn, scope='conv2d_3a_1x1')
+		with tf.variable_scope('branch3'):
+			branch_3 = tcl.conv2d(x, filters[3][0],  1, 
+						stride=1, activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+						padding='SAME', weights_initializer=winit_fn, scope='conv2d_3a_1x1')
 
-		if not downsample:
-			x = tf.concat(axis=3, values=[branch_0, branch_1, branch_2, branch_3])
-		else:
-			x = tf.concat(axis=3, values=[branch_0, branch_1, branch_2])
+		x = tf.concat(axis=3, values=[branch_0, branch_1, branch_2, branch_3])
 
 		end_points[name] = x
 	return x, end_points
@@ -162,7 +151,6 @@ def inception_v3_figure5_downsample(
 				branch_2 = tcl.max_pool2d(x, 3, stride=2, 
 						padding='VALID', scope='maxpool_2a_3x3')
 
-
 		x = tf.concat(axis=3, values=[branch_0, branch_1, branch_2])
 
 		end_points[name] = x
@@ -174,7 +162,7 @@ def inception_v3_figure6(
 	name, x, end_points, n,
 	act_fn, norm_fn, norm_params, winit_fn, 
 	filters=[[128,128,128,128,192,], [128,128,192,], [192], [192]],
-	is_avg_pooling=True, downsample=False):
+	is_avg_pooling=True):
 
 
 	with tf.variable_scope(name):

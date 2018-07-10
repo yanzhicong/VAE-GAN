@@ -45,7 +45,7 @@ class Cifar10(BaseDataset):
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/Cifar10'
 		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)
+			self._dataset_dir = self.config.get('dataset dir', self._dataset_dir)
 
 		self.name = 'cifar10'
 		self.output_shape = config.get('output shape', [32, 32, 3])

@@ -25,8 +25,9 @@
 
 import os
 import sys
-import time
+# import time
 import numpy as np
+import cv2
 
 from abc import ABCMeta, abstractmethod
 
@@ -42,21 +43,18 @@ class BaseDataset(object, metaclass=ABCMeta):
 		self.batch_size = self.config.get('batch_size', 16)
 
 	'''
-		method for direct iterate image
+		method for direct access images
 		E.g.
 		for index, batch_x, batch_y in dataset.iter_train_images_supervised():
 			(training...)
 	'''
 	def iter_train_images_supervised(self):
 		index = np.arange(self.x_train_l.shape[0])
-
 		if self.shuffle_train:
 			np.random.shuffle(index)
-
 		for i in range(int(self.x_train_l.shape[0] / self.batch_size)):
 			batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
 			batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
-
 			if 'output shape' in self.config:
 				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
@@ -65,18 +63,13 @@ class BaseDataset(object, metaclass=ABCMeta):
 
 	def iter_train_images_unsupervised(self):
 		index = np.arange(self.x_train_u.shape[0])
-
 		if self.shuffle_train:
 			np.random.shuffle(index)
-
 		for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
 			batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
-
 			if 'output shape' in self.config:
 				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-
 			yield i, batch_x
-
 
 	def iter_test_images(self):
 		index = np.arange(self.x_test.shape[0])
@@ -136,6 +129,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 		return self.x_test[index].reshape(self.output_shape), label
 
 
+
 	@property
 	def nb_labelled_images(self):
 		return self.x_train_l.shape[0]
@@ -149,7 +143,10 @@ class BaseDataset(object, metaclass=ABCMeta):
 		return self.x_test.shape[0]
 
 
-	def to_categorical(self, y, num_classes=None):
+	'''
+		util functions
+	'''
+	def to_categorical(self, y, num_classes):
 		"""
 			Copyed from keras
 			Converts a class vector (integers) to binary class matrix.
@@ -170,8 +167,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 		if input_shape and input_shape[-1] == 1 and len(input_shape) > 1:
 			input_shape = tuple(input_shape[:-1])
 		y = y.ravel()
-		if not num_classes:
-			num_classes = np.max(y) + 1
+		num_classes = np.max(y) + 1
 		n = y.shape[0]
 		categorical = np.zeros((n, num_classes), dtype=np.float32)
 		categorical[np.arange(n), y] = 1
@@ -179,3 +175,59 @@ class BaseDataset(object, metaclass=ABCMeta):
 		categorical = np.reshape(categorical, output_shape)
 		return categorical
 
+	def mask_to_categorical(self, mask, color_map):
+		h, w, c = mask.shape
+		out_c = len(color_map)
+
+		outputs = np.zeros((h, w, len(color_map)), dtype=np.uint8)
+
+		for ind, color in enumerate(color_map):
+			outputs[:, :, i]
+
+
+
+	def categorical_to_mask(self, cate_mask, color_map, output_channels=3):
+		h, w, c = cate_mask.shape
+		out_mask = np.zeros((h, w, output_channels), dtype=np.uint8)
+
+
+
+	def random_scaling(self, img, minval=0.5, maxval=1.5, mask=None):
+
+		scale = np.random.uniform(minval, maxval)
+
+		h = int(img.shape[0])
+		w = int(img.shape[1])
+		h_new = int(img.shape[0] * scale)
+		w_new = int(img.shape[1] * scale)
+
+		img = cv2.resize(img,(w_new, h_new))
+
+		if mask is not None:
+			mask = cv2.resize(img, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
+			return img, mask
+		else:
+			return img
+
+
+	def random_mirroring(self, img, mask=None):
+		eps = np.random.uniform(0.0, 1.0)
+		if eps < 0.5:
+			img = img[:, ::-1]
+			if mask is not None:
+				mask = mask[:, ::-1]
+
+		eps = np.random.uniform(0.0, 10)
+		if eps < 0.5:
+			img = img[::-1, :]
+			if mask is not None:
+				mask = mask[::-1, :]
+
+		if mask is not None:
+			return img, mask
+		else:
+			return img
+
+
+	def random_crop_and_pad(self, img, ):
+		pass

@@ -54,7 +54,6 @@ class BaseTrainer(object):
 
 			other parameters:
 			'batch_size':
-
 	'''
 	def __init__(self, config, model):
 		self.config = config

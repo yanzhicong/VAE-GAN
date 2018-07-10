@@ -28,6 +28,8 @@ import tensorflow as tf
 
 def get_learning_rate(name, initial_learning_rate, global_step, config):
 
+	initial_learning_rate = float(initial_learning_rate)
+
 	if name == 'constant':
 		return tf.constant(initial_learning_rate)
 

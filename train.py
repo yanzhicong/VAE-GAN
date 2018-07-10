@@ -29,6 +29,11 @@ from shutil import copyfile
 
 import tensorflow as tf
 
+
+sys.path.append('./')
+sys.path.append('./lib')
+sys.path.append('../')
+
 from cfgs.networkconfig import get_config
 from dataset.dataset import get_dataset
 from model.model import get_model

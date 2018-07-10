@@ -6,3 +6,4 @@ dataset/dataset_extra_files*
 sftp-config.json
 dataset/production.py
 test/test_production.py
+lib/*

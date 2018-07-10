@@ -24,40 +24,51 @@
 
 import os
 import sys
+
+sys.path.append('./')
 sys.path.append('../')
 
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+
 
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 
-# from network.vgg import VGG
-from network.devgg import DEVGG
-from network.basenetwork import BaseNetwork
 
-class GeneratorSimple(BaseNetwork):
+class BaseNetwork(object):
 
 	def __init__(self, config, is_training):
-		BaseNetwork.__init__(self, config, is_training)
+		self.name = config['name']
+		self.is_training = is_training
+		self.batch_norm_params_collection = 'BATCH_NORM_MOVING_VARS'
 
-		self.name = config.get('name', 'GeneratorSimple')
+		self.norm_params = {
+			'is_training' : self.is_training,
+			'moving_vars_collection' : self.batch_norm_params_collection
+		}
 		self.config = config
 
-		network_config = config.copy()
-		network_config['name'] = self.name
-		self.network = DEVGG(network_config, is_training)
+		# when first applying the network to input tensor, the reuse is false
+		self.reuse = False
 
-		self.reuse=False
-		
-	def __call__(self, i):
-		x, end_points = self.network(i)
-		return x
 
-	# @property
-	# def vars(self):
-	# 	return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
+	@property
+	def vars(self):
+		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
+	@property
+	def vars_to_save_and_restore(self):
+		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) + tf.get_collection(self.batch_norm_params_collection, scope=self.name)
+
+	@property
+	def moving_vars(self):
+		return tf.get_collection(self.batch_norm_params_collection, scope=self.name)
+
+
+	@property
+	def all_vars(self):
+		return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
 

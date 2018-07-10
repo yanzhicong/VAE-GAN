@@ -51,7 +51,7 @@ class MNIST(BaseDataset):
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
 		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
+			self._dataset_dir = config.get('dataset dir', self._dataset_dir)
 		if not os.path.exists(self._dataset_dir):
 			raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 

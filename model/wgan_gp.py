@@ -96,33 +96,36 @@ class WGAN_GP(BaseModel):
 									'l2',
 									{'x' : x_hat, 'y' : dis_hat})
 							* self.config.get('gradient penalty loss weight', 10.0))
+
+
 		self.d_loss = self.d_loss_gp + self.d_loss_adv
-
-
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : dis_fake})
 
 
-		for var in self.generator.vars:
-			print(var.name, ' --> ', var.get_shape())
-		for var in self.discriminator.vars:
-			print(var.name, ' --> ', var.get_shape())
-
 		# optimizer config
+		self.global_step, self.global_step_update = get_global_step()
+
+		# optimizer of discriminator 
+		# configured with global step and without global step update
+		# so we can keep the learning rate of discriminator the same as generator
 		(self.d_train_op, 
 			self.d_learning_rate, 
 				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
 																self.config['discriminator optimizer params'],
-																self.d_loss, self.discriminator.vars, global_step_name='d_global_step')
+																self.d_loss, self.discriminator.vars,
+																self.global_step)
 		
 		(self.g_train_op, 
 			self.g_learning_rate, 
 				self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
 																self.config['generator optimizer params'],
-																self.g_loss, self.generator.vars, global_step_name='g_global_step')
+																self.g_loss, self.generator.vars,
+																self.global_step, self.global_step_update)
 
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.d_global_step, self.g_global_step])
-
+		self.saver = tf.train.Saver(self.discriminator.vars_to_save_and_restore 
+									+ self.generator.vars_to_save_and_restore
+									+ [self.global_step])
 
 
 	def build_summary(self):
@@ -163,18 +166,16 @@ class WGAN_GP(BaseModel):
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 
-		g_step = sess.run(self.g_global_step)
+		step = sess.run(self.global_step)
 
-		# if g_step < self.discriminator_warm_up_steps:
-			# dis_train_step = self.discriminator_training_steps * 20
-		# else:
-		dis_train_step = self.discriminator_training_steps
-
+		if step < self.discriminator_warm_up_steps:
+			dis_train_step = self.discriminator_training_steps * 20
+		else:
+			dis_train_step = self.discriminator_training_steps
+		
 		summary_list = []
 
-
 		for i in range(dis_train_step):
-
 			feed_dict = {
 				self.x_real : x_batch,
 				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
@@ -185,7 +186,7 @@ class WGAN_GP(BaseModel):
 															learning_rate=self.d_learning_rate,
 															loss=self.d_loss,
 															summary=self.d_sum_scalar)
-			summary_list.append((step_d, summary_d))
+		summary_list.append((step_d, summary_d))
 
 		feed_dict = {
 			self.z : np.random.randn(x_batch.shape[0], self.z_dim),

@@ -39,20 +39,20 @@ from utils.normalization import get_normalization
 
 
 from network.vgg import VGG
+from network.basenetwork import BaseNetwork
 
 
-class DiscriminatorSimple(object):
+class DiscriminatorSimple(BaseNetwork):
 
 	def __init__(self, config, is_training):
+		BaseNetwork.__init__(self, config, is_training)
 		self.name = config.get('name', 'DiscriminatorSimple')
 		self.config = config
 
 		network_config = config.copy()
 		network_config['output_dims'] = 1
 		network_config['output_activation'] = 'none'
-
 		self.network = VGG(network_config, is_training)
-		
 		
 	def __call__(self, i):
 		x, end_points = self.network(i)
@@ -60,13 +60,5 @@ class DiscriminatorSimple(object):
 
 	def features(self, i, condition=None):
 		x, end_points = self.network(i)
-
 		return x, end_points
-
-
-
-	@property
-	def vars(self):
-		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
-
 

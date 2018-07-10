@@ -85,6 +85,7 @@ class DatasetValidator(BaseValidator):
 		label_list = np.concatenate(label_list, axis=0)
 		pred_list = np.concatenate(pred_list, axis=0)
 
+
 		if self.metric == 'accuracy' : 
 			feed_dict = {
 				self.label : label_list,

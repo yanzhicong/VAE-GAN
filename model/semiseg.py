@@ -47,7 +47,6 @@ from .basemodel import BaseModel
 
 class SemiSupervisedSegmentationModel(BaseModel):
 
-
 	def __init__(self, config,
 		**kwargs
 	):
@@ -57,8 +56,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 		# parameters must be configured
 		self.input_shape = config['input shape']
 		self.mask_size = config['mask size']
-		# self.hz_dim = config['hz_dim']
-		# self.hx_dim = config['hx_dim']
 		self.nb_classes = config['nb_classes']
 		self.config = config
 
@@ -71,7 +68,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 		self.build_model()
 		self.build_summary()
-
 
 
 	def build_model(self):
@@ -94,7 +90,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 		self.config['discriminator params']['output_activation'] = 'none'
 		self.discriminator = get_discriminator(self.config['discriminator'], 
 									self.config['discriminator params'], self.is_training)
-
 
 		###########################################################################
 		# for supervised training:
@@ -140,7 +135,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 				self.g_su_global_step) = get_optimizer_by_config(self.config['supervised optimizer'], self.config['supervised optimizer params'],
 												self.g_su_loss, self.generator.vars, global_step_name='g_global_step_su')
 
-
 		###########################################################################
 		# # for test models
 		# # 
@@ -161,7 +155,7 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 		###########################################################################
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.d_su_global_step, self.g_su_global_step])
+		self.saver = tf.train.Saver(self.vars_to_save_and_restore + [self.d_su_global_step, self.g_su_global_step])
 
 	def build_summary(self):
 

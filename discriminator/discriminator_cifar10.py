@@ -60,7 +60,7 @@ class DiscriminatorCifar10(object):
 	def __call__(self, x):
 	
 		act_fn = get_activation('lrelu 0.2')
-		norm_fn, norm_params = get_normalization('none', self.normalizer_params)
+		norm_fn, norm_params = get_normalization('batch_norm', self.normalizer_params)
 		winit_fn = get_weightsinit('normal 0.00 0.02')
 		binit_fn = get_weightsinit('zeros')
 

@@ -6,15 +6,17 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
-from network.vgg import VGG
+from network.unet import UNet
 
 if __name__ == '__main__':
 	config = {
 		'output_classes' : 10,
-		'name' : 'VGG16'
+		'name' : 'UNet'
 	}
 
-	model = VGG(config, True)
+	is_training = tf.placeholder(tf.bool, name='is_training')
+
+	model = UNet(config, is_training)
 	x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3), name='input')
 	y, end_points = model(x)
 

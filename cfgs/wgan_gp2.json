@@ -3,11 +3,11 @@
 
     "dataset" : "mnist",
     "dataset params" : {
-        "output_shape" : [32, 32, 3]
+        "output_shape" : [28, 28, 1]
     },
 
 
-    "assets dir" : "assets/wgan_gp5",
+    "assets dir" : "assets/wgan_gp2/result1",
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
@@ -32,7 +32,7 @@
  
         "generator" : "generator",
         "generator params" : {
-            "batch_norm" : "none", //
+            "batch_norm" : "batch_norm",
 
             "including_bottom" : true,
             "nb_fc_nodes" : [],
@@ -70,7 +70,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001",
+        "summary hyperparams string" : "lr_0_0001_3",
 
         "multi thread" : true,
         "continue train" : false,
@@ -85,7 +85,7 @@
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
-                    "log dir" : "generated_lr_0_0001",
+                    "log dir" : "generated_lr_0_0001_3",
                     "z shape" : [20],
                     "x shape" : [28, 28, 1],
                     "nb row" : 8,
@@ -98,7 +98,7 @@
                 "validator params" : {
                     "z shape" : [20],
                     "x shape" : [28, 28, 1],
-                    "log dir" : "log_lr_0_0001"
+                    "log dir" : "log_lr_0_0001_3"
                 }
             }
         ]

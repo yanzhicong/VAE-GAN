@@ -41,7 +41,6 @@ class RandomGenerate(BaseValidator):
 		self.log_dir = config.get('log dir', 'generated')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
 
-
 		self.z_shape = list(config['z shape'])
 		self.x_shape = list(config['x shape'])
 
@@ -57,22 +56,20 @@ class RandomGenerate(BaseValidator):
 		batch_size = self.nb_col_images * self.nb_row_images
 		batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
 		batch_x = model.generate(sess, batch_z)
-
-
-		print(batch_x.shape)
-
 		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(8, 8),
 								subplot_kw={'xticks': [], 'yticks': []})
 		fig.subplots_adjust(hspace=0.01, wspace=0.01)
 		for ind, ax in enumerate(axes.flat):
-
 			img = batch_x[ind]
-
-			if len(img.shape) == 3:
-				if img.shape[2] == 1:
-					img = cv2.merge([img, img, img])
-
-
+			if len(img.shape) == 3 and img.shape[2] == 1:
+				img = cv2.merge([img, img, img])
+			elif len(img.shape) == 2:
+				img = img.reshape(list(img.shape) + [1,])
+				img = cv2.merge([img, img, img])
+			elif len(img.shape) == 3 and img.shape[2] == 3:
+				img = img
+			else:
+				raise ValueError('Unsupport Shape : ' + str(img.shape))
 			ax.imshow(img, vmin=0.0, vmax=1.0)
 
 		plt.tight_layout()

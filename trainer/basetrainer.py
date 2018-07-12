@@ -81,11 +81,10 @@ class BaseTrainer(object):
 			validator_params['assets dir'] = self.config['assets dir']
 			validator = get_validator(validator_config['validator'], validator_params)
 
-			if validator_config.get('has summary', False):
+			if validator.has_summary:
 				validator.build_summary(self.model)
 
 			validator_steps = int(validator_config['validate steps'])
-
 			self.validator_list.append((validator_steps, validator))
 
 
@@ -103,7 +102,16 @@ class BaseTrainer(object):
 
 	def train_initialize(self, sess, model):
 		self.sess = sess
+
+		all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+
+
+		# for var in all_vars:
+		# 	print(var.name, ' --> ', var.get_shape(	))
+
 		sess.run(tf.global_variables_initializer())
+		sess.run(tf.local_variables_initializer())
+
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.load_checkpoint_dir):
 				print("Continue Train...")
@@ -159,7 +167,11 @@ class BaseTrainer(object):
 			if validator_steps != 0 and step % validator_steps == 0:
 				summary = validator.validate(model, validate_dataset, self.sess, step)
 				if summary is not None:
-					self.summary_writer.add_summary(summary, step)
+					if isinstance(summary, list):
+						for s, summ in summary:
+							self.summary_writer.add_summary(summ, s)
+					else:
+						self.summary_writer.add_summary(summary, step)
 		return step
 
 	'''

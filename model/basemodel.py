@@ -15,39 +15,6 @@ class BaseModel(object):
 		self.name = config['name']
 		self.is_summary = config.get('summary', False)
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
-		
-	# def save_images(self, samples, filename):
-	# 	'''
-	# 	Save images generated from random sample numbers
-	# 	'''
-	# 	assert self.attr_names is not None
-		
-	# 	num_samples = len(samples)
-	# 	attrs = np.identity(self.num_attrs)
-	# 	attrs = np.tile(attrs, (num_samples, 1)) #TODO: Is there a better method on keras?
-
-	# 	samples = np.tile(samples, (1, self.num_attrs))
-	# 	samples = samples.reshape((num_samples * self.num_attrs, -1))
-
-	# 	imgs = self.predict([samples, attrs]) * 0.5 + 0.5
-	# 	imgs = np.clip(imgs, 0.0, 1.0)
-		
-	# 	if imgs.shape[3] == 1:
-	# 		imgs = np.squeeze(imgs, axis=(3,))
-
-	# 	fig = plt.figure(figsize=(self.num_attrs, 10))
-	# 	grid = gridspec.GridSpec(num_samples, self.num_attrs, wspace=0.1, hspace=0.1)
-	# 	for i in range(num_samples * self.num_attrs):
-	# 		ax = plt.Subplot(fig, grid[i])
-	# 		if imgs.ndim == 4:
-	# 			ax.imshow(imgs[i, :, :, :], interpolation="none", vmin=0.0, vmax=1.0)
-	# 		else:
-	# 			ax.imshow(imgs[i, :, :], camp="gray", interpolation="none", vmin=0.0, vmax=1.0)
-	# 		ax.axis("off")
-	# 		fig.add_subplot(ax)
-
-	# 	fig.savefig(filename, dpi=200)
-	# 	plt.close(fig)
 
 
 	def checkpoint_load(self, sess, log_dir):

@@ -39,6 +39,9 @@ def get_validator(name, config):
     elif name == 'embedding_visualize':
         from .embedding_validator import EmbeddingValidator
         return EmbeddingValidator(config)
+    elif name == 'validate_segmentation':
+        from .valid_segmentation import ValidSegmentation
+        return ValidSegmentation(config)
     else:
         raise Exception("None validator named " + name)
 

@@ -39,6 +39,7 @@ from .basedataset import BaseDataset
 
 
 
+
 class PASCAL_VOC(BaseDataset):
 
 	def __init__(self, config):
@@ -50,7 +51,7 @@ class PASCAL_VOC(BaseDataset):
 			raise Exception('Pascal voc config error')
 
 		# colour map
-		self.label_colours = [(0,0,0)
+		self.color_map = [(0,0,0)
 		                # 0=background
 		                ,(128,0,0),(0,128,0),(128,128,0),(0,0,128),(128,0,128)
 		                # 1=aeroplane, 2=bicycle, 3=bird, 4=boat, 5=bottle
@@ -60,6 +61,7 @@ class PASCAL_VOC(BaseDataset):
 		                # 11=diningtable, 12=dog, 13=horse, 14=motorbike, 15=person
 		                ,(0,64,0),(128,64,0),(0,192,0),(128,192,0),(0,64,128)]
 		                # 16=potted plant, 17=sheep, 18=sofa, 19=train, 20=tv/monitor
+		self.nb_classes = len(self.color_map)
 
 
 
@@ -68,15 +70,16 @@ class PASCAL_VOC(BaseDataset):
 			if not os.path.exists(self._dataset_dir):
 				self._dataset_dir = '/mnt/data02/dataset/PASCAL_VOC/VOCdevkit/VOC2012'
 			if not os.path.exists(self._dataset_dir):
+				self._dataset_dir = 'E:\\dataset\\PASCAL_VOC\\VOCdevkit\\VOC2012'
+			if not os.path.exists(self._dataset_dir):
 				self._dataset_dir = config.get('dataset dir', '')
 			if not os.path.exists(self._dataset_dir):
 				raise Exception("PASCAL_VOC : the dataset dir " + self._dataset_dir + " is not exist")
 
 			self.name = 'pascal_voc'
-
 			self.task = config.get('task', 'segmentation_class')
-
 			self.train_image_list, self.train_mask_list = self.read_labelled_image_list(self.task, phase='train')
+			self.val_image_list, self.val_mask_list = self.read_labelled_image_list(self.task, phase='val')
 			self.test_image_list = self.read_labelled_image_list(self.task, phase='val')
 
 
@@ -89,14 +92,18 @@ class PASCAL_VOC(BaseDataset):
 			if not os.path.exists(self._dataset_dir):
 				raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 
-
 		self.output_shape = config.get('output shape', [256, 256, 3])
 		self.output_size = self.output_shape[0:2]
 		self.output_h = self.output_shape[0]
 		self.output_w = self.output_shape[1]
 		self.output_c = self.output_shape[2]
 		self.batch_size = int(config.get('batch_size', 128))
-		self.nb_classes = 10
+
+
+		self.is_random_scaling = config.get('random scaling', True)
+		self.is_random_mirroring = config.get('random mirroring', True)
+		self.is_random_cropping = config.get('random cropping', True)
+		self.scaling_range = config.get('scaling range', [0.5, 1.5])
 
 
 	def read_labelled_image_list(self, task='segmentation_class', phase='train'):
@@ -148,6 +155,10 @@ class PASCAL_VOC(BaseDataset):
 					np.random.shuffle(indices)		
 				return indices
 
+			if phase == 'val':
+				indices = np.array(range(len(self.val_image_list)))
+				return indices
+
 			elif phase == 'test':
 				indices = np.array(range(len(self.test_image_list)))
 				if self.shuffle_test:
@@ -160,42 +171,50 @@ class PASCAL_VOC(BaseDataset):
 			raise NotImplementedError
 
 
-	def read_image_by_index_supervised(self, ind):
+	def read_image_by_index_supervised(self, ind, phase='train'):
 		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
-			image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-			mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
+			if phase == 'train':
+				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+				mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
+			elif phase == 'val':
+				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+				mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
+
 			img = io.imread(image_filepath)
-			mask = io.imread(mask_filepath)
+			mask_c = io.imread(mask_filepath)
+			mask = self.mask_colormap_encode(mask_c, self.color_map)
 
+			if phase == 'train':
+				if self.is_random_scaling:
+					img, mask = self.random_scaling(img, mask=mask, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+				if self.is_random_mirroring:
+					img, mask = self.random_mirroring(img, mask=mask)
+				if self.is_random_cropping:
+					img, mask = self.random_crop_and_pad(img, mask=mask, size=self.output_shape)
+			elif phase == 'val':
+				if self.is_random_scaling:
+					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
+					img, mask = self.random_scaling(img, mask=mask, minval=scale, maxval=scale)
 
+			img = img.astype(np.float32) / 255.0
+			mask_onehot = self.to_categorical(mask, self.nb_classes)
 
-			return img, mask
-		else:
+			return img, mask_onehot
+		else:	
 			raise NotImplementedError
 
 
-	def read_image_by_index_unsupervised(self, ind):
-		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:		
+	def read_image_by_index_unsupervised(self, ind, phase='train'):
+		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+			if phase == 'train':
+				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+			elif phase == 'val':
+				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+			elif phase == 'test':
+				image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
 			image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
 			img = io.imread(image_filepath)
 			return img
 		else:
 			raise NotImplementedError
-
-
-	# def read_test_image_by_index(self, index):
-
-	# 	image_filepath = os.path.join(self._dataset_dir, self.test_image_list[index])
-	# 	mask_filepath = os.path.join(self._dataset_dir, self.mask_image_list[index])
-
-	# 	img = io.imread(image_filepath)
-	# 	mask = io.imread(mask_filepath)
-
-	# 	print(img.max())
-	# 	print(img.min())
-	# 	print(mask.max())
-	# 	print(mask.min())
-
-	# 	return img, mask
-
 

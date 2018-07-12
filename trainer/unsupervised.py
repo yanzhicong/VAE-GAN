@@ -75,6 +75,8 @@ class UnsupervisedTrainer(BaseTrainer):
 			# in multi thread model, the image data were read in by dataset.get_train_indices()
 			# and dataset.read_train_image_by_index()
 			while True:
+				if self.train_data_queue.empty():
+					print('info : train data buffer empty')
 				epoch, batch_x = self.train_data_queue.get()
 				step = self.train_inner_step(epoch, model, dataset, batch_x)
 				if step > int(self.config['train steps']):
@@ -96,3 +98,5 @@ class UnsupervisedTrainer(BaseTrainer):
 		self.train_data_inner_queue.task_done()
 		self.train_data_queue.task_done()
 		self.coord.join(threads)
+
+

@@ -47,22 +47,21 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
-class WGAN_GP(BaseModel):
+class InfoGAN(BaseModel):
 
 	def __init__(self, config,
 		**kwargs
 	):
 
-		super(WGAN_GP, self).__init__(config, **kwargs)
+		super(InfoGAN, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']
+		self.c_dim = config['c_dim']
 		self.config = config
 
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
-		self.use_gradient_penalty = config.get('use gradient penalty', True)
-		self.weight_clip_bound = config.get('weight clip bound', [-0.01, 0.01])
 
 		self.build_model()
 		self.build_summary()
@@ -70,14 +69,19 @@ class WGAN_GP(BaseModel):
 	def build_model(self):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
-		self.config['generator params']['name'] = 'Generator'
-
 		self.discriminator = get_discriminator(self.config['discriminator'], self.config['discriminator params'], self.is_training)
+
+		self.config['generator params']['name'] = 'Generator'
 		self.generator = get_generator(self.config['generator'], self.config['generator params'], self.is_training)
+
+
+		self.config['classifier params']['name'] = 'Classifier'
+		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.is_training)	
 
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
+		self.c = tf.placeholder(tf.float32, shape=[None, self.c_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
 		
@@ -94,18 +98,13 @@ class WGAN_GP(BaseModel):
 									{'dis_real' : dis_real, 'dis_fake' : dis_fake})
 							* self.config.get('adversarial loss weight', 1.0))
 
-		if self.use_gradient_penalty:
-			self.d_loss_gp = (get_loss('gradient penalty',
-										'l2',
-										{'x' : x_hat, 'y' : dis_hat})
-								* self.config.get('gradient penalty loss weight', 10.0))
-
-			self.d_loss = self.d_loss_gp + self.d_loss_adv
-		else:
-			self.d_loss = self.d_loss_adv
+		self.d_loss_gp = (get_loss('gradient penalty',
+									'l2',
+									{'x' : x_hat, 'y' : dis_hat})
+							* self.config.get('gradient penalty loss weight', 10.0))
 
 
-
+		self.d_loss = self.d_loss_gp + self.d_loss_adv
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : dis_fake})
 
 
@@ -115,12 +114,6 @@ class WGAN_GP(BaseModel):
 		# optimizer of discriminator 
 		# configured with global step and without global step update
 		# so we can keep the learning rate of discriminator the same as generator
-
-		if not self.use_gradient_penalty:
-			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
-                for var in self.discriminator.vars]
-
-
 		(self.d_train_op, 
 			self.d_learning_rate, 
 				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
@@ -145,9 +138,8 @@ class WGAN_GP(BaseModel):
 		if self.is_summary:
 			# summary scalars are logged per step
 			sum_list = []
-			if self.use_gradient_penalty:
-				sum_list.append(tf.summary.scalar('discriminator/adversarial', self.d_loss_adv))
-				sum_list.append(tf.summary.scalar('discriminator/gradient_penalty', self.d_loss_gp))
+			sum_list.append(tf.summary.scalar('discriminator/adversarial', self.d_loss_adv))
+			sum_list.append(tf.summary.scalar('discriminator/gradient_penalty', self.d_loss_gp))
 			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
 			sum_list.append(tf.summary.scalar('discriminator/lr', self.d_learning_rate))
 			self.d_sum_scalar = tf.summary.merge(sum_list)
@@ -170,7 +162,7 @@ class WGAN_GP(BaseModel):
 	@property
 	def vars(self):
 		return self.discriminator.vars + self.generator.vars
-	
+
 	'''
 		train operations
 	'''
@@ -190,10 +182,6 @@ class WGAN_GP(BaseModel):
 		summary_list = []
 
 		for i in range(dis_train_step):
-
-			if not self.use_gradient_penalty:
-				sess.run(self.clip_discriminator)
-
 			feed_dict = {
 				self.x_real : x_batch,
 				self.z : np.random.randn(x_batch.shape[0], self.z_dim),

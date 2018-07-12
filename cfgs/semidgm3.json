@@ -48,7 +48,6 @@
             "supervised loss weight" : 1.0,
             "unsupervised loss weight" : 0.02
         },
-
         // network define
         // 
         // x -(classifier)-> y

@@ -1,22 +1,24 @@
 {
-    "config name" : "cifar10_classify",
+    "config name" : "inceptionV3_1",
 
-    "dataset" : "cifar10",
+    "dataset" : "mnist",
     "dataset params" : {
-        "input shape" : [32, 32, 3],
+        // "semi-supervised" : true,
+        // "nb_labelled_image_per_class" : 100,
+        "output shape" : [28, 28, 1],
         "batch_size" : 128
     },
 
-    "assets dir" : "assets/cifar10/cifar10_2",
+    "assets dir" : "assets/mnist/result1",
 
     "ganmodel" : "classification",
     "ganmodel params" : {
-        "name" : "classification",
+        "name" : "mnist",
 
-        "input shape" : [32, 32, 3],
-        "nb_classes" : 10,
+        "input shape" : [28, 28, 1],
+        "nb classes" : 10,
 
-        "optimizer" : "sgd",  
+        "optimizer" : "sgd",
         "optimizer params" : {
             "lr" : 0.0002,
             "lr scheme" : "exponential",
@@ -25,44 +27,41 @@
                 "decay_rate" : 0.1
             }
         },
-        
         "classification loss" : "cross entropy",
 
         "summary" : true,
  
         "classifier" : "classifier",
         "classifier params" : {
-            "normalization" : "batch_norm",
+            "batch_norm" : "batch_norm",
 
             "including_conv" : true,
-            "nb_conv_blocks" : 4,
-            "nb_conv_layers" : [2, 2, 3, 3],
-            "nb_conv_filters" : [32, 64, 128, 256],
-            "nb_conv_ksize" : [3, 3, 3, 3],
-            "no_maxpooling" : false,
+            "nb_conv_blocks" : 3,
+            "nb_conv_layers" : [2, 2, 2],
+            "nb_conv_filters" : [32, 64, 128],
+            "nb_conv_ksize" : [3, 3, 3],
+            "no_maxpooling" : true,
 
             "including_top" : true,
-            "nb_fc_nodes" : [1024, 1024],
+            "nb_fc_nodes" : [600, 600],
 
             "output_dims" : 10,
             "output_activation" : "none",
 
-
-            // "conv1_0 activation" : "lrelu 0.2",
-
             "debug" : true
         }
+
     },
 
     "trainer" : "supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "learning_rate_0_0002",
+        "summary hyperparams string" : "learning_rate_0_0002_bs_32_full",
 
         "continue train" : false,
         "multi thread" : true,
-        "batch_size" : 8,
-        "train steps" : 30000,
+        "batch_size" : 32,
+        "train steps" : 20000,
         "summary steps" : 1000,
         "log steps" : 100,
         "save checkpoint steps" : 10000,

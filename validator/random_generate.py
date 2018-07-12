@@ -74,5 +74,4 @@ class RandomGenerate(BaseValidator):
 
 		plt.tight_layout()
 		plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))
-
 		return None

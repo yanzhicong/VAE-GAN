@@ -41,14 +41,9 @@ class Deeplab_v2(BaseNetwork):
 	Deeplab v2 pre-trained model (pre-trained on MSCOCO + PASCAL_train+val) ('deeplab_resnet.ckpt')
 	"""
 
-
 	def __init__(self, config, is_training):
 		BaseNetwork.__init__(self, config, is_training)
-
 		self.num_classes = int(config['nb classes'])
-
-
-
 
 
 	def __call__(self, inputs):

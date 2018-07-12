@@ -1,0 +1,63 @@
+{
+    "config name" : "pascal_voc_segmentation",
+
+    "dataset" : "pascal_voc",
+    "dataset params" : {
+        "output shape" : [320, 320, 3]
+    },
+
+    "assets dir" : "assets/pascal_voc/unet",
+
+    "ganmodel" : "segmentation",
+    "ganmodel params" : {
+        "name" : "segmentation",
+
+        "input shape" : [320, 320, 3],
+        "mask shape" : [320, 320, 21],
+        "nb classes" : 21,
+
+        "optimizer" : "adam",  
+        "optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 10000,
+                "decay_rate" : 0.2
+            }
+        },
+        
+        "segmentation loss" : "cross entropy",
+
+        "summary" : true,
+ 
+        "classifier" : "classifier_unet",
+        "classifier params" : {
+            "weightinit" : "normal 0.00 0.1",
+            "debug" : true
+        }
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+
+        "summary hyperparams string" : "learning_rate_0_0001",
+
+        "continue train" : false,
+        "multi thread" : true,
+        "batch_size" : 4,
+        "train steps" : 30000,
+        "summary steps" : 500,
+        "log steps" : 100,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "validate_segmentation",
+                "validate steps" : 100,
+                "validator params" : {
+                }
+            }
+        ]
+    }
+}
+

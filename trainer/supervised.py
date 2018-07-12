@@ -48,8 +48,9 @@ class SupervisedTrainer(BaseTrainer):
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
-			self.train_data_queue = queue.Queue(maxsize=50)
-			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*30)
+			self.buffer_depth = self.config.get('buffer_depth', 50)
+			self.train_data_queue = queue.Queue(maxsize=self.buffer_depth)
+			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 
 	def train(self, sess, dataset, model):
 		
@@ -57,8 +58,6 @@ class SupervisedTrainer(BaseTrainer):
 			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
 		else:
 			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		
-
 		
 		self.train_initialize(sess, model)
 
@@ -76,6 +75,8 @@ class SupervisedTrainer(BaseTrainer):
 			# in multi thread model, the image data were read in by dataset.get_train_indices()
 			# and dataset.read_train_image_by_index()
 			while True:
+				if self.train_data_queue.empty():
+					print('info : train data buffer empty')
 				epoch, batch_x, batch_y = self.train_data_queue.get()
 				step = self.train_inner_step(epoch, model, dataset, batch_x, batch_y)
 				if step > int(self.config['train steps']):
@@ -97,3 +98,5 @@ class SupervisedTrainer(BaseTrainer):
 		self.train_data_inner_queue.task_done()
 		self.train_data_queue.task_done()
 		self.coord.join(threads)
+
+

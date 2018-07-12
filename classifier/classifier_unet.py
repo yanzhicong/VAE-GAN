@@ -20,7 +20,7 @@ from network.basenetwork import BaseNetwork
 from network.unet import UNet
 
 
-class ClassifierSimple(BaseNetwork):
+class ClassifierUNet(BaseNetwork):
 	def __init__(self, config, is_training):
 		BaseNetwork.__init__(self, config, is_training)
 		self.network = UNet(config, is_training)

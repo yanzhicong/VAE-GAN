@@ -38,8 +38,8 @@ class BaseDataset(object, metaclass=ABCMeta):
 		
 		self.config = config
 
-		self.shuffle_train = self.config.get('shuffle_train', True)
-		self.shuffle_test = self.config.get('shuffle_test', False)
+		self.shuffle_train = self.config.get('shuffle train', True)
+		self.shuffle_test = self.config.get('shuffle test', False)
 		self.batch_size = self.config.get('batch_size', 16)
 
 	'''
@@ -162,49 +162,87 @@ class BaseDataset(object, metaclass=ABCMeta):
 			A binary matrix representation of the input. The classes axis
 			is placed last.
 		"""
-		y = np.array(y, dtype='int')
-		input_shape = y.shape
-		if input_shape and input_shape[-1] == 1 and len(input_shape) > 1:
-			input_shape = tuple(input_shape[:-1])
-		y = y.ravel()
-		num_classes = np.max(y) + 1
-		n = y.shape[0]
-		categorical = np.zeros((n, num_classes), dtype=np.float32)
-		categorical[np.arange(n), y] = 1
-		output_shape = input_shape + (num_classes,)
-		categorical = np.reshape(categorical, output_shape)
-		return categorical
+		if isinstance(y, int):
+			ret = np.zeros([num_classes,], dtype=np.float32)
+			ret[y] = 1.0
+			return ret
+		elif isinstance(y, np.ndarray):
+			input_shape = y.shape
+			y = y.ravel()
+			n = y.shape[0]
+			ret = np.zeros((n, num_classes), dtype=np.float32)
+			indices = np.where(y >= 0)[0]
+			ret[np.arange(n)[indices], y[indices]] = 1.0
+			ret = ret.reshape(list(input_shape) + [num_classes,])
+			return ret
 
-	def mask_to_categorical(self, mask, color_map):
-		h, w, c = mask.shape
+
+	def from_categorical(self, cat):
+		"""
+		"""
+		return np.argmax(cat, axis=-1)
+
+
+	def mask_colormap_encode(self, colored_mask, color_map, default_value=-1):
+		'''
+			from colored mask to 1-channel mask
+			Inputs : 
+				colored_mask : [h, w, c]
+			output : 
+				mask : [h, w]
+		'''
+		if len(colored_mask.shape) != 3 or colored_mask.shape[2] != 3:
+			raise ValueError('Unsupported color mask shape : ', colored_mask.shape)
+
+		h, w, c = colored_mask.shape
 		out_c = len(color_map)
+		colored_mask = colored_mask.reshape([h*w, c])
 
-		outputs = np.zeros((h, w, len(color_map)), dtype=np.uint8)
+		mask = np.ones((h * w,), dtype=np.uint8) * default_value
+
+		def color_match(mask, color):
+			return np.logical_and(
+					np.logical_and(
+						mask[:, 0] == color[0],
+						mask[:, 1] == color[1],
+					),
+						mask[:, 2] == color[2]
+				)
 
 		for ind, color in enumerate(color_map):
-			outputs[:, :, i]
+			mask[np.where(color_match(colored_mask, color))[0]] = ind
+		mask = mask.reshape([h, w])
+		return mask
 
 
-
-	def categorical_to_mask(self, cate_mask, color_map, output_channels=3):
-		h, w, c = cate_mask.shape
-		out_mask = np.zeros((h, w, output_channels), dtype=np.uint8)
-
+	def mask_colormap_decode(self, mask, color_map, default_color=[224, 224, 192]):
+		'''
+			from colored mask to 1-channel mask
+			Inputs : 
+				colored_mask : [h, w, c]
+			output : 
+				mask : [h, w]
+		'''
+		mask_shape = mask.shape
+		mask = mask.reshape([-1])
+		colored_mask = np.ones([int(np.product(mask_shape)), 3,], dtype=np.uint8) * (np.array(default_color).reshape([1, 3]))
+		for ind, color in enumerate(color_map):
+			colored_mask[np.where(mask == ind)[0], :] = np.array(color)
+		colored_mask = colored_mask.reshape(list(mask_shape) + [3, ])
+		return colored_mask
 
 
 	def random_scaling(self, img, minval=0.5, maxval=1.5, mask=None):
-
 		scale = np.random.uniform(minval, maxval)
-
 		h = int(img.shape[0])
 		w = int(img.shape[1])
+		c = int(img.shape[2])
 		h_new = int(img.shape[0] * scale)
 		w_new = int(img.shape[1] * scale)
 
-		img = cv2.resize(img,(w_new, h_new))
-
 		if mask is not None:
-			mask = cv2.resize(img, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
+			img = cv2.resize(img,(w_new, h_new))
+			mask = cv2.resize(mask, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
 			return img, mask
 		else:
 			return img
@@ -217,17 +255,68 @@ class BaseDataset(object, metaclass=ABCMeta):
 			if mask is not None:
 				mask = mask[:, ::-1]
 
-		eps = np.random.uniform(0.0, 10)
+		eps = np.random.uniform(0.0, 1.0)
 		if eps < 0.5:
 			img = img[::-1, :]
 			if mask is not None:
 				mask = mask[::-1, :]
-
 		if mask is not None:
 			return img, mask
 		else:
 			return img
 
+	def random_crop_and_pad(self, img, size, mask=None, center_range=[0.2, 0.8]):
+		h, w, c = img.shape
+		crop_h, crop_w = size[0:2]
 
-	def random_crop_and_pad(self, img, ):
-		pass
+		def pad_img_to_fit_bbox(img, x1, x2, y1, y2):
+			img = np.pad(img, (
+								(	np.abs(np.minimum(0, y1)), 
+								 	np.maximum(y2 - img.shape[0], 0)),
+					   			(	np.abs(np.minimum(0, x1)), 
+					   		 	 	np.maximum(x2 - img.shape[1], 0)), 
+					   			(0,0)), mode="constant")
+			_y1 = y1 + np.abs(np.minimum(0, y1))
+			_y2 = y2 + np.abs(np.minimum(0, y1))
+			_x1 = x1 + np.abs(np.minimum(0, x1))
+			_x2 = x2 + np.abs(np.minimum(0, x1))
+			return img, _x1, _x2, _y1, _y2
+
+		def imcrop(img, bbox): 
+			x1,y1,x2,y2 = bbox
+			if x1 < 0 or y1 < 0 or x2 > img.shape[1] or y2 > img.shape[0]:
+				img, x1, x2, y1, y2 = pad_img_to_fit_bbox(img, x1, x2, y1, y2)
+			return img[y1:y2, x1:x2, :]
+
+		if mask is not None and (mask.shape[0] != h or mask.shape[1] != w):
+			raise ValueError('mask shape error : ', mask.shape)
+
+		if mask is not None:
+			mask_crop_shape = list(mask.shape)
+			mask_crop_shape[0] = size[0]
+			mask_crop_shape[1] = size[1]
+			if len(mask.shape) == 2:
+				mask = mask.reshape(list(mask.shape) + [1,])
+			combined = np.concatenate([img, mask], axis=-1)
+		else:
+			combined = img
+
+		center_h = int(np.random.uniform(center_range[0], center_range[1]) * h)
+		center_w = int(np.random.uniform(center_range[0], center_range[1]) * w)
+
+		x1 = int(center_w - crop_w / 2.0)
+		y1 = int(center_h - crop_h / 2.0)
+		x2 = int(x1 + crop_w)
+		y2 = int(y1 + crop_h)
+		bbox = (x1, y1, x2, y2)
+
+		combined_crop = imcrop(combined, bbox)
+		img_crop = combined_crop[:, :, :c]
+
+		if mask is not None:
+			mask_crop = combined_crop[:, :, c:]
+			mask_crop = mask_crop.reshape(mask_crop_shape)
+			return img_crop, mask_crop
+		else:
+			return img_crop
+

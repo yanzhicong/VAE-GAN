@@ -1,0 +1,67 @@
+{
+    "config name" : "pascal_voc_segmentation",
+
+    "dataset" : "pascal_voc",
+    "dataset params" : {
+        "output shape" : [160, 160, 3],
+        "scaling range" : [0.25, 0.75]
+    },
+
+    "assets dir" : "assets/pascal_voc/unet2",
+
+    "ganmodel" : "segmentation",
+    "ganmodel params" : {
+        "name" : "segmentation",
+
+        "input shape" : [160, 160, 3],
+        "mask shape" : [160, 160, 21],
+        "nb classes" : 21,
+
+        "optimizer" : "adam",  
+        "optimizer params" : {
+            "lr" : 0.0001
+            // "lr scheme" : "exponential",
+            // "lr params" : {
+            //     "decay_steps" : 30000,
+            //     "decay_rate" : 0.2
+            // }
+        },
+        
+        "segmentation loss" : "cross entropy",
+
+        "summary" : true,
+ 
+        "classifier" : "classifier_unet",
+        "classifier params" : {
+            "normalization" : "none",
+            "weightsinit" : "xavier",
+            "conv_nb_blocks" : 3,
+            "debug" : true
+        }
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+
+        "summary hyperparams string" : "learning_rate_0_0001",
+
+        "continue train" : true,
+        "multi thread" : true,
+        "batch_size" : 1,
+        "train steps" : 100000,
+        "summary steps" : 500,
+        "log steps" : 100,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "validate_segmentation",
+                "validate steps" : 500,
+                "validator params" : {
+                    "log dir" : "val_seg_learning_rate_0_0001"
+                }
+            }
+        ]
+    }
+}
+

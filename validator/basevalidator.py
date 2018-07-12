@@ -34,6 +34,7 @@ class BaseValidator(object):
 	def __init__(self, config):
 
 		self.config = config
+		self.assets_dir = config['assets dir']
 		self.has_summary = False
 
 	def build_summary(self, model):

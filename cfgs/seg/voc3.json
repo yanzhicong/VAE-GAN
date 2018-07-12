@@ -1,0 +1,79 @@
+{
+    "config name" : "pascal_voc_segmentation",
+
+    "dataset" : "pascal_voc",
+    "dataset params" : {
+        "output shape" : [80, 80, 3],
+        "scaling range" : [0.125, 0.50]
+    },
+
+    "assets dir" : "assets/pascal_voc/unet3",
+
+    "ganmodel" : "segmentation",
+    "ganmodel params" : {
+        "name" : "segmentation",
+
+        "input shape" : [80, 80, 3],
+        "mask shape" : [80, 80, 21],
+        "nb classes" : 21,
+
+        "optimizer" : "adam",  
+        "optimizer params" : {
+            "lr" : 0.0001
+            // "lr scheme" : "exponential",
+            // "lr params" : {
+            //     "decay_steps" : 30000,
+            //     "decay_rate" : 0.2
+            // }
+        },
+        
+        "segmentation loss" : "cross entropy",
+
+        "summary" : true,
+ 
+        "classifier" : "classifier",
+        "classifier params" : {
+            "normalization" : "batch_norm",
+            "weightsinit" : "xavier",
+            "activation" : "relu",
+            "padding" : "SAME",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 1,
+            "conv_nb_layers" : [7],
+            "conv_nb_filters" : [128],
+            "conv_ksize" : [7],
+
+            "including_top" : false,
+
+            "output_dims" : 21,
+
+            "debug" : true
+        }
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+
+        "summary hyperparams string" : "learning_rate_0_0001",
+
+        "continue train" : false,
+        "multi thread" : true,
+        "batch_size" : 1,
+        "train steps" : 30000,
+        "summary steps" : 500,
+        "log steps" : 100,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "validate_segmentation",
+                "validate steps" : 500,
+                "validator params" : {
+                    "log dir" : "val_seg_learning_rate_0_0001"
+                }
+            }
+        ]
+    }
+}
+

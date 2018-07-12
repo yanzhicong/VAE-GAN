@@ -81,6 +81,35 @@ def classify_cross_entropy_loss(logits, labels, instance_weight=None):
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits) * instance_weight)
 
 
+def segmentation_cross_entropy_loss(logits, mask, instance_weight=None):
+
+	# print('segmentation_cross_entropy_loss')
+	# bs = logits.get_shape()[0]
+	# h = logits.get_shape()[1]
+	# w = logits.get_shape()[2]
+	# nb_classes = logits.get_shape()[3]
+	# logits = tf.reshape(logits, [-1, h*w, nb_classes])
+	# mask = tf.reshape(mask, [-1, h*w, nb_classes])
+	# print(logits.get_shape())
+	# print(mask.get_shape())
+	# loss = tf.nn.softmax_cross_entropy_with_logits(labels=mask, logits=logits)
+
+	# # probs = tf.nn.softmax(logits, axis=2)
+	# # print(probs.get_shape())
+
+
+	# # loss = tf.reduce_mean(tf.reduce_sum(- mask * tf.log(probs), axis=2), axis=1)
+
+	# # print(loss.get_shape())
+	# return tf.reduce_mean(loss)
+
+
+	if instance_weight is None:
+		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=mask, logits=logits))
+	else:
+		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=mask, logits=logits) * instance_weight)
+
+
 def regularization_l1_loss(var_list):
 	loss = 0
 	for var in var_list:
@@ -99,6 +128,7 @@ def feature_matching_l2_loss(fx, fy, fnames):
 	loss = 0
 	for feature_name in fnames:
 		loss += tf.reduce_mean(tf.square(fx - fy))
+
 
 def adv_down_wassterstein_loss(dis_real, dis_fake):
 	return - tf.reduce_mean(dis_real) + tf.reduce_mean(dis_fake)
@@ -131,6 +161,9 @@ loss_dict = {
 	},
 	'classification' : {
 		'cross entropy' : classify_cross_entropy_loss,
+	},
+	'segmentation' : {
+		'cross entropy' : segmentation_cross_entropy_loss,
 	},
 	'regularization' : {
 		'l2' : regularization_l2_loss,

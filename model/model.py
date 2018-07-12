@@ -37,6 +37,9 @@ def get_model(model_name, model_params):
     elif model_name == 'classification':
         from .classification import Classification
         return Classification(model_params)
+    elif model_name == 'segmentation':
+        from .segmentation import Segmentation
+        return Segmentation(model_params)
     elif model_name == 'stargan':
         from .stargan import StarGAN
         return StarGAN(model_params)

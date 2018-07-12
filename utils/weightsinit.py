@@ -27,8 +27,15 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 
-def get_weightsinit(name_config):
 
+def get_weightsinit(name_config):
+	'''
+		get tensorflow initializer function according to its name,
+		for example:
+			winit = get_weightsinit('normal 0.00 0.02') where 0.00 is mean and 0.02 is variance
+		or 
+			winit = get_weightsinit('zeros')
+	'''
 	split = name_config.split()
 	name = split[0]
 	if len(split) > 1:
@@ -42,14 +49,22 @@ def get_weightsinit(name_config):
 			init_mean = 0.0
 			init_var = 0.02
 		return tf.random_normal_initializer(init_mean, init_var)
+	elif name == 'uniform':
+		if len(split) == 3:
+			init_min == float(split[1])
+			init_max == float(split[2])
+		else:
+			init_min == 0.0
+			init_max == 1.0
+		return tf.random_uniform_initializer(init_min, init_max)
 
-	elif name == 'xvarial':
-		return None
+	elif name == 'xavier':
+		return tf.contrib.layers.xavier_initializer()
 
-	elif name == 'zeros':
+	elif name == 'zeros' or name == 'zero':
 		return tf.zeros_initializer()
 		
-	elif name == 'ones':
+	elif name == 'ones' or name == 'one':
 		return tf.ones_initializer()
 
 	else :

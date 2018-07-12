@@ -51,31 +51,44 @@ def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
         return _assign_moving_average(var, acc, decay)
 
 
-# def accuracy_top_5(labels,logits=None, probs=None, decay=0.01):
-#     if probs is not None:
-#         acc = tcm.accuracy(predictions=tf.argmax(probs, axis=-1), labels=tf.argmax(labels, axis=-1))
-#     elif logits is not None:
-#         acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1)) 
-#     else:
-#         raise Exception('in metric accuracy, the probability vector cannot be None')
 
-#     if decay == 1.0:
-#         return acc
-#     else:
-#         var = tf.Variable(0.0, name='acc_top_1')
-#         return _assign_moving_average(var, acc, decay)
+def segmentation_miou(mask, nb_classes, logits=None, probs=None):
+    if probs is not None:
+        pred = tf.argmax(probs, axis=-1)
+    elif logits is not None:
+        pred = tf.argmax(logits, axis=-1)
+    else:
+        raise Exception('logits and probs are none')
+
+    mask_ori = tf.argmax(mask, axis=-1)
+    weights = tf.logical_and(tf.greater_equal(mask, -0.5), tf.less_equal(mask, nb_classes))
+    weights = tf.cast(weights, tf.int32)
+
+    miou, miou_update_op = tcm.streaming_mean_iou(pred, mask_ori, num_classes=nb_classes, weights=weights,
+                            # metrics_collections=[tf.GraphKeys.GLOBAL_VARIABLES]
+                            )
+
+
+    with tf.control_dependencies([miou_update_op]):
+        miou = tf.identity(miou)
+    return miou
+
+
 
 metric_dict = {
     'accuracy' :  {
         'top1' : accuracy_top_1
+    },
+    'segmentation' : {
+        'miou' : segmentation_miou
     }
 }
-
 
 def get_metric(metric_name, metric_type, metric_params):
     if metric_name in metric_dict:
         if metric_type in metric_dict[metric_name]:
             return metric_dict[metric_name][metric_type](**metric_params)
     raise Exception("None metric named " + metric_name + ' of type ' + metric_type)
+
 
 

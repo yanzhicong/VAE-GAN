@@ -31,17 +31,13 @@ sys.path.append('../')
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
 
-
 from .basenetwork import BaseNetwork
 
 arg_scope = tf.contrib.framework.arg_scope
-
-
 
 
 class UNet(BaseNetwork):
@@ -51,22 +47,20 @@ class UNet(BaseNetwork):
 		self.config = config
 		self.reuse = False
 
-
 	def __call__(self, x):
-		act_fn = get_activation(self.config.get('activation', 'relu'))
 
-		norm_fn = get_normalization(self.config.get('normalization', 'batch_norm'))
-		norm_params = self.norm_params.copy()
-		norm_params.update(self.config.get('normalization params', {}))
-
-		winit_fn = get_weightsinit(self.config.get('weightsinit', 'normal 0.00 0.02'))
-
-		nb_conv_blocks = self.config.get('nb_conv_blocks', 4)
-		nb_conv_layers = self.config.get('nb_conv_layers', [2, 2, 2, 2, 2])
-		nb_conv_filters = self.config.get('nb_conv_filters', [64, 128, 256, 512, 1024])
-		nb_conv_ksize = self.config.get('nb_conv_ksize', [3 for i in range(nb_conv_blocks+1)])
+		conv_nb_blocks = self.config.get('conv_nb_blocks', 4)
+		conv_nb_layers = self.config.get('conv_nb_layers', [2, 2, 2, 2, 2])
+		conv_nb_filters = self.config.get('conv_nb_filters', [64, 128, 256, 512, 1024])
+		conv_ksize = self.config.get('conv_ksize', [3 for i in range(conv_nb_blocks+1)])
 		no_maxpooling = self.config.get('no_maxpooling', False)
 		no_upsampling = self.config.get('no_upsampling', False)
+
+
+		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
+
+		debug = self.config.get('debug', False)
 
 		with tf.variable_scope(self.name):
 			if self.reuse:
@@ -75,64 +69,57 @@ class UNet(BaseNetwork):
 				assert tf.get_variable_scope().reuse is False
 				self.reuse = True
 
-
 			block_end = {}
-			end_points = {}
+			self.end_points = {}
 
-			with arg_scope([tcl.conv2d, tcl.conv2d_transpose], 
-						padding='SAME',
-						activation_fn=act_fn,
-						normalizer_fn=norm_fn,
-						normalizer_params=norm_params,
-						weights_initializer=winit_fn):
+			if debug:
+				print('UNet : (' + str(self.name) + ')')
+				print('downsapmle network : ')
 
-				for block_ind in range(nb_conv_blocks):
-					for layer_ind in range(nb_conv_layers[block_ind]):
+			for block_ind in range(conv_nb_blocks):
+				for layer_ind in range(conv_nb_layers[block_ind]):
 
-						_conv_layer_name = 'conv_ds%d_%d'%(block_ind+1, layer_ind)
-						_maxpool_layer_name = 'maxpool_ds%d'%(block_ind+1)
+					conv_name = 'conv_ds%d_%d'%(block_ind+1, layer_ind)
+					maxpool_name = 'maxpool_ds%d'%(block_ind+1)
 
-						if layer_ind == nb_conv_layers[block_ind]-1:
-							if no_maxpooling:
-								block_end[block_ind] = x
-								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=2, 
-										scope=_conv_layer_name)
-								end_points[_conv_layer_name] = x
-							else:
-								x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=1, 
-										scope=_conv_layer_name)
-								block_end[block_ind] = x
-								end_points[_conv_layer_name] = x
-								x = tcl.max_pool2d(x, 2, stride=2, padding='SAME')
-								end_points[_maxpool_layer_name] = x
+					if layer_ind == conv_nb_layers[block_ind]-1:
+						if no_maxpooling:
+							block_end[block_ind] = x
+							x = self.conv2d(conv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=2, **self.conv_args, disp=debug)
 						else:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=1, 
-									scope=_conv_layer_name)
-							end_points[_conv_layer_name] = x
+							x = self.conv2d(conv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=1, **self.conv_args, disp=debug)
+							block_end[block_ind] = x
+							x = self.maxpool2d(maxpool_name, x, 2, stride=2, padding='SAME')
+					else:
+						x = self.conv2d(conv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=1, **self.conv_args, disp=debug)
 
-				for layer_ind in range(nb_conv_layers[nb_conv_blocks]):
-					_conv_layer_name = 'conv_bn%d_%d'%(nb_conv_blocks, layer_ind)
-					x = tcl.conv2d(x, nb_conv_filters[nb_conv_blocks], nb_conv_ksize[nb_conv_blocks], stride=1, 
-							scope=_conv_layer_name)
-					end_points[_conv_layer_name] = x
+			if debug:
+				print('bottleneck network : ')
+			for layer_ind in range(conv_nb_layers[conv_nb_blocks]):
+				conv_name = 'conv_bn%d'%(layer_ind)
+				x = self.conv2d(conv_name, x, conv_nb_filters[conv_nb_blocks], conv_ksize[conv_nb_blocks], stride=1, **self.conv_args, disp=debug)
 
-				for block_ind in range(nb_conv_blocks)[::-1]:
-					for layer_ind in range(nb_conv_layers[block_ind]):
-						_conv_layer_name = 'conv_us%d_%d'%(block_ind+1, layer_ind)
-						if layer_ind == 0:
-							x = tcl.conv2d_transpose(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=2, 
-										scope=_conv_layer_name)
-							end_points[_conv_layer_name] = x
-							x = tf.concat([x, block_end[block_ind]], axis=3)
-							end_points[_conv_layer_name + '_concat'] = x
+			if debug:
+				print('upsample network : ')
 
-						else:
-							x = tcl.conv2d(x, nb_conv_filters[block_ind], nb_conv_ksize[block_ind], stride=1, 
-									scope=_conv_layer_name)
-							end_points[_conv_layer_name] = x
+			for block_ind in range(conv_nb_blocks)[::-1]:
+				for layer_ind in range(conv_nb_layers[block_ind]):
+					deconv_name = 'deconv_us%d'%block_ind
+					conv_name = 'conv_us%d_%d'%(block_ind+1, layer_ind)
+					if layer_ind == 0:
+						x = self.deconv2d(deconv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=2, **self.conv_args, disp=debug)
+						x = self.concat(deconv_name + '_concat', [x, block_end[block_ind]])
+						x = self.conv2d(conv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=1, **self.conv_args, disp=debug)
+					else:
+						x = self.conv2d(conv_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], stride=1, **self.conv_args, disp=debug)
 
+			if debug:
+				print('output network : ')
+			if output_dims != 0:
+				x = self.conv2d('conv_out', x, output_dims, 1, stride=1, **self.out_conv_args, disp=debug)
 
+			if debug:
+				print('')
 
+			return x, self.end_points
 
-
-			return x, end_points

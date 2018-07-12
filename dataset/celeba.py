@@ -34,24 +34,18 @@ from .basedataset import BaseDataset
 
 
 
-class CeleBA(BaseDataset):
+class CelebA(BaseDataset):
 
 	def __init__(self, config):
 		
-		super(CeleBA, self).__init__(config)
+		super(CelebA, self).__init__(config)
 		self.config = config
 
-		self._dataset_dir = 'D:/Data/MNIST'
-		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = 'C:/Data/MNIST'
-		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = '/mnt/data01/dataset/MNIST'
-		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
+		self._dataset_dir = '/mnt/data01/dataset/CelebA'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
 		if not os.path.exists(self._dataset_dir):
-			raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
+			raise Exception("CelebA : the dataset dir " + self._dataset_dir + " is not exist")
 
 		self.name = 'mnist'
 		self.input_shape = config.get('output shape', [28, 28, 1])
@@ -89,7 +83,6 @@ class CeleBA(BaseDataset):
 		else:
 			self.x_train_l = self.x_train
 			self.y_train_l = self.y_train
-
 
 	def _get_labelled_image_indices(self, nb_images_per_class):
 		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)

@@ -153,7 +153,6 @@ class DEVGG(BaseNetwork):
 					x = self.fc('fc_out', x, output_dims, **self.out_fc_args, disp=debug)
 					if output_shape is not None:
 						x = tf.reshape(x, [-1,] + list(output_shape))
-
 			if debug:
 				print('')
 

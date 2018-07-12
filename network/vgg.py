@@ -53,7 +53,7 @@ class VGG(BaseNetwork):
 		no fc layers.
 		the fc layers params(in @params:config):
 			'including_top':	
-			'nb_fc_nodes':
+			'fc_nb_nodes':
 
 
 		the output nodes is defined by 'output_dims', if there is fc layers, the output tensor shape is [batchsize, output_dims]
@@ -83,7 +83,7 @@ class VGG(BaseNetwork):
 
 		# fully connected parameters
 		including_top = self.config.get('including_top', True)
-		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 1024])
+		fc_nb_nodes = self.config.get('fc_nb_nodes', [1024, 1024])
 
 		# output stage parameters
 		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
@@ -134,7 +134,7 @@ class VGG(BaseNetwork):
 			# construct top fully connected layer
 			if including_top: 
 				x = tcl.flatten(x)
-				for ind, nb_nodes in enumerate(nb_fc_nodes):
+				for ind, nb_nodes in enumerate(fc_nb_nodes):
 					x = self.fc('fc%d'%ind, x, nb_nodes, **self.fc_args, disp=debug)
 
 			if debug:

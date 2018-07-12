@@ -177,7 +177,6 @@ class BaseTrainer(object):
 	'''
 		multi thread util functions
 		for example:
-
 	'''
 	def read_data_inner_loop(self, 
 				coord, dataset, data_inner_queue, 
@@ -193,7 +192,10 @@ class BaseTrainer(object):
 					if i % nb_threads == t_ind:
 						# read img and label by its index
 						img, label = dataset.read_image_by_index_supervised(ind)
-						if img is not None:
+						if isinstance(img, list) and isinstance(label, list):
+							for _img, _label in zip(img, label):
+								data_inner_queue.put((epoch, img, label))
+						elif img is not None:
 							data_inner_queue.put((epoch, img, label))
 				else:
 					break
@@ -202,9 +204,11 @@ class BaseTrainer(object):
 				if not coord.should_stop():
 					if i % nb_threads == t_ind:
 						# read img by its index
-
 						img = dataset.read_image_by_index_unsupervised(ind)
-						if img is not None:
+						if isinstance(img, list):
+							for _img in img:
+								data_inner_queue.put((epoch, _img))
+						elif img is not None:
 							data_inner_queue.put((epoch, img))
 				else:
 					break		

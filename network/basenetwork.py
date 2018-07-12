@@ -37,7 +37,6 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 
-
 class BaseNetwork(object):
 	def __init__(self, config, is_training):
 		self.name = config['name']
@@ -84,7 +83,6 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'padding':padding
 		}
-
 
 		self.out_conv_args = {
 			'act_fn':output_act_fn,

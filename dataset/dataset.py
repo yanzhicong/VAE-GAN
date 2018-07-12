@@ -39,6 +39,10 @@ def get_dataset(name, config):
 	elif name == 'pascal_voc':
 		from .pascal_voc import PASCAL_VOC
 		return PASCAL_VOC(config)
+	
+	elif name == 'production':
+		from .production import ChipProduction
+		return ChipProduction(config)
 
 	else:
 		raise Exception('None dataset named ' + name)

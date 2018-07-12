@@ -32,9 +32,14 @@ def get_generator(name, config, is_training):
 		from .generator_simple import GeneratorSimple
 		return GeneratorSimple(config, is_training)
 
-	if name == 'cifar10 generator' or name == 'generator_cifar10':
+	elif name == 'cifar10 generator' or name == 'generator_cifar10':
 		from .generator_cifar10 import GeneratorCifar10
 		return GeneratorCifar10(config, is_training)
+
+	elif name == 'generator_conv':
+		from .generator_conv import G_conv
+		return G_conv(config, is_training)
+	
 	else:
 		raise Exception("None Generator named " + name)
 

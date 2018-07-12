@@ -85,8 +85,6 @@ class BaseDataset(object, metaclass=ABCMeta):
 			
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y
-
-
 	'''
 
 	'''
@@ -265,9 +263,17 @@ class BaseDataset(object, metaclass=ABCMeta):
 		else:
 			return img
 
+
 	def random_crop_and_pad(self, img, size, mask=None, center_range=[0.2, 0.8]):
+		'''
+			randomly crop and pad image to the given size
+			Arguments : 
+				img : array of shape(h, w, c)
+				size : [crop_image_width, crop_image_height]
+
+		'''
 		h, w, c = img.shape
-		crop_h, crop_w = size[0:2]
+		crop_w, crop_h = size[0:2]
 
 		def pad_img_to_fit_bbox(img, x1, x2, y1, y2):
 			img = np.pad(img, (

@@ -3,8 +3,8 @@
 
     "dataset" : "mnist",
     "dataset params" : {
-        // "semi-supervised" : true,
-        // "nb_labelled_image_per_class" : 100,
+        "semi-supervised" : true,
+        "nb_labelled_image_per_class" : 100,
         "output shape" : [28, 28, 1],
         "batch_size" : 128
     },
@@ -36,14 +36,14 @@
             "batch_norm" : "batch_norm",
 
             "including_conv" : true,
-            "nb_conv_blocks" : 3,
-            "nb_conv_layers" : [2, 2, 2],
-            "nb_conv_filters" : [32, 64, 128],
-            "nb_conv_ksize" : [3, 3, 3],
+            "conv_nb_blocks" : 3,
+            "conv_nb_layers" : [2, 2, 2],
+            "conv_nb_filters" : [32, 64, 128],
+            "conv_nb_ksize" : [3, 3, 3],
             "no_maxpooling" : true,
 
             "including_top" : true,
-            "nb_fc_nodes" : [600, 600],
+            "fc_nb_nodes" : [600, 600],
 
             "output_dims" : 10,
             "output_activation" : "none",
@@ -56,7 +56,7 @@
     "trainer" : "supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "learning_rate_0_0002_bs_32_full",
+        "summary hyperparams string" : "learning_rate_0_0002",
 
         "continue train" : false,
         "multi thread" : true,

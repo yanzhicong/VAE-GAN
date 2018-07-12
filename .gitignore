@@ -4,6 +4,4 @@ dataset/dataset_extra_files*
 *.pyc
 .vscode*
 sftp-config.json
-dataset/production.py
-test/test_production.py
 lib/*

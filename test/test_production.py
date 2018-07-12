@@ -1,0 +1,30 @@
+import os
+import sys
+
+sys.path.append('.')
+sys.path.append('../')
+
+import tensorflow as tf
+import matplotlib.pyplot as plt
+
+from dataset.production import Production
+
+
+
+
+
+
+if __name__ == '__main__':
+	config = {
+		'batch_size' : 16,
+		'output shape' : [64, 64, 3]
+	}
+
+	dataset = Production(config)
+
+	# for ind, x_batch, y_batch in dataset.iter_train_images_supervised():
+		# plt.figure(0)
+		# plt.imshow(x_batch[0, :, :, :])
+		# plt.pause(1)
+
+	

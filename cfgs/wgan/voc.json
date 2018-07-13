@@ -1,71 +1,76 @@
 {
     "config name" : "wgan_gp",
 
-    "dataset" : "cifar10",
+    "dataset" : "pascal_voc",
     "dataset params" : {
-        "output_shape" : [32, 32, 3],
-        "scalar range" : [-1.0, 1.0]
+        "output shape" : [64, 64, 3],
+        "scaling range" : [0.15, 0.25],
+        "crop range" : [0.3, 0.7],
+        "task" :  "classification",
+        "random mirroring" : false
     },
 
-    "assets dir" : "assets/wgan_gp/wgan_gp5",
+    "assets dir" : "assets/wgan_gp/voc",
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
 
-        "input shape" : [32, 32, 3],
+        "input shape" : [64, 64, 3],
         "z_dim" : 100,
 
-        "discriminator optimizer" : "adam",
+        "discriminator optimizer" : "rmsprop",
         "discriminator optimizer params" : {
             "lr" : 0.0001,
-            "lr scheme" : "constant"
-            // "lr params" : {
-            //     "decay_steps" : 20000,
-            //     "decay_rate" : 0.5
-            // }
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 20000,
+                "decay_rate" : 0.5
+            }
         },
 
-        "generator optimizer" : "adam",
+        "generator optimizer" : "rmsprop",
         "generator optimizer params" : {
             "lr" : 0.0001,
-            "lr scheme" : "constant"
-            // "lr params" : {
-            //     "decay_steps" : 20000,
-            //     "decay_rate" : 0.5
-            // }
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 20000,
+                "decay_rate" : 0.5
+            }
         },
 
         "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
-        "generator" : "generator",
+        "generator" : "generator_conv",
         "generator params" : {
-            "normalization" : "fused_batch_norm", //
+            "normalization" : "batch_norm", //
+            "weightsinit" : "normal 0.00 0.02",
 
             "including_bottom" : true,
             "fc_nb_nodes" : [],
-            "fc_output_reshape" : [4, 4, 512],   
+            "fc_output_reshape" : [4, 4, 1024],   
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 4,
-            "deconv_nb_layers" : [1, 1, 1, 1],
-            "deconv_nb_filters" : [256, 128, 64, 64],
+            "deconv_nb_blocks" : 5,
+            "deconv_nb_layers" : [1, 1, 1, 1, 0],     // output size = 4 * 2^(5-1)
+            "deconv_nb_filters" : [512, 256, 128, 64],
             "deconv_ksize" : [5, 5, 5, 5],
             
-            "output_dims" : 3,
-            "output_activation" : "tanh",
+            "output_dims" : 1,
+            "output_activation" : "sigmoid",
             "debug" : true
         },
 
-        "discriminator" : "discriminator",
+        "discriminator" : "discriminator_conv",
         "discriminator params" : {
-            "activation" : "lrelu 0.2",
+            "activation" : "lrelu 0.1",
             "normalization" : "none",
+            "weightsinit" : "normal 0.00 0.02",
 
             "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [1, 1, 1, 0],
-            "conv_nb_filters" : [128, 256, 512],
+            "conv_nb_blocks" : 5,
+            "conv_nb_layers" : [1, 1, 1, 1, 0],
+            "conv_nb_filters" : [64, 128, 256, 512],
             "conv_ksize" : [5, 5, 5, 5],
             "no_maxpooling" : true,
 
@@ -89,7 +94,7 @@
         "train steps" : 100000,
 
         "summary steps" : 1000,
-        "log steps" : 1000,
+        "log steps" : 100,
         "save checkpoint steps" : 10000,
 
         "batch_size" : 64,
@@ -98,12 +103,11 @@
         "validators" : [
             {
                 "validator" : "random_generate",
-                "validate steps" : 1000,
+                "validate steps" : 200,
                 "validator params" : {
                     "log dir" : "generated_lr_0_0001",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
-                    "scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
                 }

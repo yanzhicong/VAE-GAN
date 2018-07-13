@@ -22,7 +22,6 @@
 # SOFTWARE.
 # ==============================================================================
 
-
 def get_validator(name, config):
     if name == 'hidden_variable_validator':
         from .hidden_variable_validator import HiddenVariableValidator
@@ -42,6 +41,9 @@ def get_validator(name, config):
     elif name == 'validate_segmentation':
         from .valid_segmentation import ValidSegmentation
         return ValidSegmentation(config)
+    elif name == 'gan_toy_plot':
+        from .gan_toy_plot import GanToyPlot
+        return GanToyPlot(config)
     else:
         raise Exception("None validator named " + name)
 

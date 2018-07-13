@@ -35,6 +35,8 @@ def get_activation(name_config):
         return tf.nn.softmax
     elif name == 'sigmoid':
         return tf.nn.sigmoid
+    elif name == 'tanh':
+        return tf.nn.tanh
     elif name == 'softplus':
         return tf.nn.softplus
     elif name == 'elu':

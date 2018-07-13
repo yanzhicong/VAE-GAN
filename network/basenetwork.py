@@ -57,7 +57,7 @@ class BaseNetwork(object):
 		norm_fn = self.config.get('normalization', 'batch_norm')
 		norm_params = self.norm_params.copy()
 		norm_params.update(self.config.get('normalization params', {}))
-		winit_fn = self.config.get('weightsinit', 'normal 0.00 0.02')
+		winit_fn = self.config.get('weightsinit', 'xavier')
 		padding = self.config.get('padding', 'SAME')
 		output_act_fn = self.config.get('output_activation', 'none')
 

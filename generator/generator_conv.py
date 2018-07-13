@@ -50,7 +50,7 @@ class G_conv(BaseNetwork):
 		network_config['name'] = self.name
 		self.reuse = False
 		self.size = 64//16
-		self.channel = 1
+		self.channel = 3
 		
 	def __call__(self, i):
 		with tf.variable_scope(self.name):

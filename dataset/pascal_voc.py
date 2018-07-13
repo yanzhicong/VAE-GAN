@@ -88,7 +88,7 @@ class PASCAL_VOC(BaseDataset):
 
 			self.name = 'pascal_voc'
 
-			if self.task in ['segmentation', 'segmentation_class', 'segmentation_object']
+			if self.task in ['segmentation', 'segmentation_class', 'segmentation_object']:
 				self.train_image_list, self.train_mask_list = self.read_image_list(self.task, phase='train')
 				self.val_image_list, self.val_mask_list = self.read_image_list(self.task, phase='val')
 				self.test_image_list = self.read_image_list(self.task, phase='val')
@@ -116,6 +116,10 @@ class PASCAL_VOC(BaseDataset):
 		self.is_random_mirroring = config.get('random mirroring', True)
 		self.is_random_cropping = config.get('random cropping', True)
 		self.scaling_range = config.get('scaling range', [0.5, 1.5])
+
+		self.crop_range = self.config.get('crop range', [0.1, 0.9])
+		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
+		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
 
 	def read_image_list(self, task='segmentation_class', phase='train'):
 
@@ -171,12 +175,12 @@ class PASCAL_VOC(BaseDataset):
 				with open(image_list_file, 'r') as infile:
 					for line_ind, line in enumerate(infile):
 						is_object = int(line[:-1].split()[-1])
-					if is_object == 1:
-						image_class_array[line_ind, class_ind] = 1
+						if is_object == 1:
+							image_class_array[line_ind, class_ind] = 1
 			return input_image_filepath_list, image_class_array
 
 	'''
-
+	
 	'''
 	def get_image_indices(self, phase, method='supervised'):
 		'''
@@ -200,7 +204,7 @@ class PASCAL_VOC(BaseDataset):
 			else:
 				raise Exception("None phase named " + str(phase))
 
-		elif self.task in ['classification']
+		elif self.task in ['classification']:
 			if phase == 'train':
 				indices = np.array(range(len(self.train_image_list)))
 				if self.shuffle_train:
@@ -209,7 +213,6 @@ class PASCAL_VOC(BaseDataset):
 				indices = np.array(range(len(self.val_image_list)))
 				if self.shuffle_test:
 					np.random.shuffle(indices)
-			
 			return indices
 			
 
@@ -236,7 +239,7 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img, mask = self.random_mirroring(img, mask=mask)
 				if self.is_random_cropping:
-					img, mask = self.random_crop_and_pad(img, mask=mask, size=self.output_shape)
+					img, mask = self.random_crop_and_pad(img, mask=mask, size=self.output_shape, center_range=self.crop_range)
 			elif phase == 'val':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
@@ -263,8 +266,8 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img = self.random_mirroring(img)
 				if self.is_random_cropping:
-					img = self.random_crop_and_pad(img, size=self.output_shape)
-			elif phase == 'val' or phase == 'test:
+					img = self.random_crop_and_pad(img, size=self.output_shape, center_range=self.crop_range)
+			elif phase == 'val' or phase == 'test':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
 					img = self.random_scaling(img, minval=scale, maxval=scale)
@@ -298,8 +301,8 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img = self.random_mirroring(img)
 				if self.is_random_cropping:
-					img = self.random_crop_and_pad(img, size=self.output_shape)
-			elif phase == 'val' or phase == 'test:
+					img = self.random_crop_and_pad(img, size=self.output_shape, center_range=self.crop_range)
+			elif phase == 'val' or phase == 'test':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
 					img = self.random_scaling(img, minval=scale, maxval=scale)

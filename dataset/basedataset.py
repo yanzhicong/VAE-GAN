@@ -243,6 +243,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 			mask = cv2.resize(mask, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
 			return img, mask
 		else:
+			img = cv2.resize(img,(w_new, h_new))
 			return img
 
 

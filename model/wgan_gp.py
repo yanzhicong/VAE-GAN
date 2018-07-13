@@ -71,7 +71,6 @@ class WGAN_GP(BaseModel):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
 		self.config['generator params']['name'] = 'Generator'
-
 		self.discriminator = get_discriminator(self.config['discriminator'], self.config['discriminator params'], self.is_training)
 		self.generator = get_generator(self.config['generator'], self.config['generator params'], self.is_training)
 
@@ -81,17 +80,25 @@ class WGAN_GP(BaseModel):
 
 		self.x_fake = self.generator(self.z)
 		
-		dis_real = self.discriminator(self.x_real)
-		dis_fake = self.discriminator(self.x_fake)
+		self.dis_real = self.discriminator(self.x_real)
+		self.dis_fake = self.discriminator(self.x_fake)
 
 		# loss config
-		eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
+
+		x_dims = len(self.input_shape)
+		if x_dims == 1:
+			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1], minval=0.0, maxval=1.0)
+		elif x_dims == 3:
+			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
+		else:
+			raise NotImplementedError
+
 		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
 		self.d_loss_adv = (get_loss('adversarial down', 
 									'wassterstein', 
-									{'dis_real' : dis_real, 'dis_fake' : dis_fake})
+									{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
 							* self.config.get('adversarial loss weight', 1.0))
 
 		if self.use_gradient_penalty:
@@ -106,7 +113,7 @@ class WGAN_GP(BaseModel):
 
 
 
-		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : dis_fake})
+		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
 		# optimizer config
@@ -234,6 +241,13 @@ class WGAN_GP(BaseModel):
 		x_batch = sess.run([self.x_fake], feed_dict = feed_dict)[0]
 		return x_batch
 
+	def discriminate(self, sess, x_batch):
+		feed_dict = {
+			self.x_real : x_batch, 
+			self.is_training : False
+		}
+		dis_x = sess.run([self.dis_real], feed_dict = feed_dict)[0][:, 0]
+		return dis_x
 
 	'''
 		summary operation

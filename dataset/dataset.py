@@ -44,6 +44,10 @@ def get_dataset(name, config):
 		from .production import ChipProduction
 		return ChipProduction(config)
 
+	elif name == 'gan_toy' or name == 'gan toy' or name == 'toy gan':
+		from .gan_toy import GanToy
+		return GanToy(config)
+
 	else:
 		raise Exception('None dataset named ' + name)
 

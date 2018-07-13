@@ -49,6 +49,7 @@ class Cifar10(BaseDataset):
 
 		self.name = 'cifar10'
 		self.output_shape = config.get('output shape', [32, 32, 3])
+		self.scalar_range = config.get('scalar range', [0.0, 1.0])
 		self.batch_size = int(config.get('batch_size', 128))
 		self.nb_classes = 10
  
@@ -69,6 +70,7 @@ class Cifar10(BaseDataset):
 			train_label.append(image_label)
 
 		self.x_train = np.vstack(train_data).reshape([-1, 3, 32, 32]).transpose([0, 2, 3, 1]).astype(np.float32) / 255.0
+		self.x_train = self.x_train * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 		self.y_train = np.hstack(train_label)
 
 		test_data, test_label = self.read_data(test_batch_file, self._dataset_dir)

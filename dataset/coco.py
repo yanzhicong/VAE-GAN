@@ -33,7 +33,6 @@ import pickle
 from .basedataset import BaseDataset
 
 
-
 class MSCOCO(BaseDataset):
 
 	def __init__(self, config):

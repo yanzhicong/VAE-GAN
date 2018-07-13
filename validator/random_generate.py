@@ -47,12 +47,14 @@ class RandomGenerate(BaseValidator):
 		self.nb_col_images = int(config.get('nb col', 8))
 		self.nb_row_images = int(config.get('nb row', 8))
 
+		self.scalar_range = config.get('scalar range', [0.0, 1.0])
+
 		self.config = config
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
 
-	def validate(self, model, dataset, sess, step):
 
+	def validate(self, model, dataset, sess, step):
 		batch_size = self.nb_col_images * self.nb_row_images
 		batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
 		batch_x = model.generate(sess, batch_z)
@@ -70,7 +72,8 @@ class RandomGenerate(BaseValidator):
 				img = img
 			else:
 				raise ValueError('Unsupport Shape : ' + str(img.shape))
-			ax.imshow(img, vmin=0.0, vmax=1.0)
+			img = ((img - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])).astype(np.float32)
+			ax.imshow(img)
 
 		plt.tight_layout()
 		plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))

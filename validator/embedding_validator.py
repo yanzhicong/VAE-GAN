@@ -82,7 +82,7 @@ class EmbeddingValidator(BaseValidator):
 		indices = np.random.choice(indices, size=1000)
 
 		for ind in indices:
-			test_x, test_y = dataset.read_test_image_by_index(ind)
+			test_x = dataset.read_image_by_index_unsupervised(ind, phase='test')
 			test_x = test_x.reshape([-1,])
 			plot_array_list.append(test_x)
 

@@ -100,6 +100,8 @@ class DEVGG(BaseNetwork):
 		# output stage parameters
 		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
 		output_shape = self.config.get('output_shape', None)
+		output_stride = self.config.get('output_stride', 1)
+		output_ksize = self.config.get('output_ksize', 1)
 		debug = self.config.get('debug', False)
 
 		self.end_points={}
@@ -148,7 +150,7 @@ class DEVGG(BaseNetwork):
 					print('\toutput network : ')
 			if output_dims != 0:
 				if including_deconv:
-					x = self.conv2d('conv_out', x, output_dims, 1, 1, **self.out_conv_args, disp=debug)
+					x = self.deconv2d('conv_out', x, output_dims, output_ksize, stride=output_stride, **self.out_conv_args, disp=debug)
 				else:
 					x = self.fc('fc_out', x, output_dims, **self.out_fc_args, disp=debug)
 					if output_shape is not None:

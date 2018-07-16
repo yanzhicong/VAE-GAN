@@ -88,12 +88,12 @@ class GeneratorCifar10(object):
 									normalizer_params=norm_params,
 									padding='SAME', weights_initializer=winit_fn, scope='deconv0')
 
-			x = tcl.conv2d(x, 256, 3,
-									stride=1, 
-									activation_fn=act_fn, 
-									normalizer_fn=norm_fn, 
-									normalizer_params=norm_params,
-									padding='SAME', weights_initializer=winit_fn, scope='conv0')
+			# x = tcl.conv2d(x, 256, 3,
+			# 						stride=1, 
+			# 						activation_fn=act_fn, 
+			# 						normalizer_fn=norm_fn, 
+			# 						normalizer_params=norm_params,
+			# 						padding='SAME', weights_initializer=winit_fn, scope='conv0')
 
 
 			x = tcl.conv2d_transpose(x, 128, 3,

@@ -58,11 +58,19 @@ class GanToy(BaseDataset):
 				(  1.0/np.sqrt(2), -1.0/np.sqrt(2)),
 				( -1.0/np.sqrt(2), -1.0/np.sqrt(2))
 			]
-			self.centers = [ (scale*x, scale*y) for x, y in centers]
+			self.centers = np.array([ (scale*x, scale*y) for x, y in centers])
+			self.centers = np.tile(self.centeres, (1000, 1))
+			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
+		elif self.dataset == '25gaussians':
+			# for i in range(25):
+			centers = [(x, y) for x in range(-2, 3) 
+							  for y in range(-2, 3)]
+			self.centers = np.tile(centers, (1000, 1))
+			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
 
 
 	def get_image_indices(self, phase=None, method=None):
-		indices = np.arange(len(self.centers) * 1000)
+		indices = np.arange(self.centers.shape[0])
 		if self.shuffle_train:
 			np.random.shuffle(indices)
 		return indices
@@ -71,10 +79,8 @@ class GanToy(BaseDataset):
 		raise NotImplementedError
 
 	def read_image_by_index_unsupervised(self, ind, phase=None):
-		ind = ind % len(self.centers)
-		data = np.array(self.centers[ind])
-		data = data + np.random.randn(*data.shape) * self.variance
-		return data
+		ind = ind % self.centers.shape[0]
+		return self.centers[ind]
 
 	def iter_train_images_supervised(self):
 		raise NotImplementedError
@@ -82,12 +88,7 @@ class GanToy(BaseDataset):
 	def iter_train_images_unsupervised(self):
 		indices = np.array(self.get_image_indices())
 		centers = np.array(self.centers)
-
 		for i in range(int(len(indices) // self.batch_size)):
 			batch_ind = indices[i*self.batch_size : (i+1)*self.batch_size]
 			batch_x = centers[batch_ind, :]
-			batch_x = batch_x + np.random.randn(*(batch_x.shape)) * 0.02
-
 			yield i, batch_x
-
-

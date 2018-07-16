@@ -3,9 +3,10 @@
 
     "dataset" : "gan toy",
     "dataset params" : {
+        "dataset" : "25gaussians"
     },
 
-    "assets dir" : "assets/wgan_gp/toy",
+    "assets dir" : "assets/wgan_gp/toy2",
     "ganmodel" : "wgan_gp",
     "ganmodel params" : {
         "name" : "wgan_gp",
@@ -15,22 +16,28 @@
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
             "lr" : 0.0001,
-            "lr scheme" : "constant"
+            "lr scheme" : "constant",
+            "beta1" : 0.5,      // important params, please do not use the default param 0.9
+            "beta2" : 0.9       // important params, please do not use the default param 0.99
         },
 
         "generator optimizer" : "adam",
         "generator optimizer params" : {
             "lr" : 0.0001,
-            "lr scheme" : "constant"
+            "lr scheme" : "constant",
+            "beta1" : 0.5,
+            "beta2" : 0.9
         },
 
-        "gradient penalty loss weight" : 10.0,
+
+        "gradient penalty loss weight" : 1.0,
         "summary" : true,
  
         "generator" : "generator",
         "generator params" : {
             "activation" : "relu",
             "normalization" : "none", //
+            "weightsinit" : "he_normal",
 
             "including_bottom" : true,
             "fc_nb_nodes" : [512, 512, 512],
@@ -46,6 +53,7 @@
         "discriminator params" : {
             "activation" : "relu",
             "normalization" : "none",
+            "weightsinit" : "he_normal",
 
             "including_conv" : false,
 
@@ -62,7 +70,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001",
+        "summary hyperparams string" : "gp_w_1_0",
 
         "multi thread" : true,
         "continue train" : false,
@@ -77,9 +85,10 @@
         "validators" : [
             {
                 "validator" : "gan_toy_plot",
-                "validate steps" : 10,
+                "validate steps" : 100,
                 "validator params" : {
-                    "log dir" : "gan_toy"
+                    "plot range" : 4,
+                    "log dir" : "gan_toy_gp_w_1_0"
                 }
             }
             // {
@@ -91,6 +100,8 @@
             //         "log dir" : "log_lr_0_0001"
             //     }
             // }
+
+
         ]
     }
 }

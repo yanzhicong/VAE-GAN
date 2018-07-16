@@ -5,3 +5,4 @@ dataset/dataset_extra_files*
 .vscode*
 sftp-config.json
 lib/*
+validator/inception_score/imagenet*

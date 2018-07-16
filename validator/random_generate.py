@@ -49,31 +49,47 @@ class RandomGenerate(BaseValidator):
 
 		self.scalar_range = config.get('scalar range', [0.0, 1.0])
 
+		self.fix_z = config.get('fix z', False)
+
+		if self.fix_z:
+			batch_size = self.nb_col_images * self.nb_row_images
+			self.batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
+
 		self.config = config
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
 
 
+	def plot_image(self, ax, img):
+		if len(img.shape) == 3 and img.shape[2] == 1:
+			img = cv2.merge([img, img, img])
+		elif len(img.shape) == 2:
+			img = img.reshape(list(img.shape) + [1,])
+			img = cv2.merge([img, img, img])
+		elif len(img.shape) == 3 and img.shape[2] == 3:
+			img = img
+		else:
+			raise ValueError('Unsupport Shape : ' + str(img.shape))
+		img = ((img - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])).astype(np.float32)
+		ax.imshow(img)
+
+
 	def validate(self, model, dataset, sess, step):
-		batch_size = self.nb_col_images * self.nb_row_images
-		batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
+
+		if self.fix_z:
+			batch_z = self.batch_z
+		else:
+			batch_size = self.nb_col_images * self.nb_row_images
+			batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
 		batch_x = model.generate(sess, batch_z)
+
+
 		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(8, 8),
 								subplot_kw={'xticks': [], 'yticks': []})
 		fig.subplots_adjust(hspace=0.01, wspace=0.01)
 		for ind, ax in enumerate(axes.flat):
 			img = batch_x[ind]
-			if len(img.shape) == 3 and img.shape[2] == 1:
-				img = cv2.merge([img, img, img])
-			elif len(img.shape) == 2:
-				img = img.reshape(list(img.shape) + [1,])
-				img = cv2.merge([img, img, img])
-			elif len(img.shape) == 3 and img.shape[2] == 3:
-				img = img
-			else:
-				raise ValueError('Unsupport Shape : ' + str(img.shape))
-			img = ((img - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])).astype(np.float32)
-			ax.imshow(img)
+			self.plot_image(ax, img)
 
 		plt.tight_layout()
 		plt.savefig(os.path.join(self.log_dir, '%07d.png'%step))

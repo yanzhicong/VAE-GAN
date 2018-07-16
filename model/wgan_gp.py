@@ -112,29 +112,38 @@ class WGAN_GP(BaseModel):
 			self.d_loss = self.d_loss_adv
 
 
-
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
 
-		# optimizer of discriminator 
-		# configured with global step and without global step update
-		# so we can keep the learning rate of discriminator the same as generator
 
 		if not self.use_gradient_penalty:
 			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
-                for var in self.discriminator.vars]
+				for var in self.discriminator.vars]
+
+		# self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
+		# self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
+
+		# self.d_learning_rate = tf.convert_to_tensor(0.0001)
+		# self.g_learning_rate = tf.convert_to_tensor(0.0001)
+
+		# self.d_train_op = self.d_optimizer
+		# self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
+
+		# self.d_global_step = self.global_step
+		# self.g_global_step = self.global_step
 
 
+		# optimizer of discriminator configured without global step update
+		# so we can keep the learning rate of discriminator the same as generator
 		(self.d_train_op, 
 			self.d_learning_rate, 
 				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
 																self.config['discriminator optimizer params'],
 																self.d_loss, self.discriminator.vars,
 																self.global_step)
-		
 		(self.g_train_op, 
 			self.g_learning_rate, 
 				self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
@@ -189,10 +198,10 @@ class WGAN_GP(BaseModel):
 
 		step = sess.run(self.global_step)
 
-		if step < self.discriminator_warm_up_steps:
-			dis_train_step = self.discriminator_training_steps * 20
-		else:
-			dis_train_step = self.discriminator_training_steps
+		# if step < self.discriminator_warm_up_steps:
+		# 	dis_train_step = self.discriminator_training_steps * 20
+		# else:
+		dis_train_step = self.discriminator_training_steps
 		
 		summary_list = []
 

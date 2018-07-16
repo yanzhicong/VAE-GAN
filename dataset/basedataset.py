@@ -39,6 +39,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 		self.config = config
 
 		self.shuffle_train = self.config.get('shuffle train', True)
+		self.shuffle_val = self.config.get('shuffle val', False)
 		self.shuffle_test = self.config.get('shuffle test', False)
 		self.batch_size = self.config.get('batch_size', 16)
 
@@ -90,6 +91,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 	'''
 	def get_image_indices(self, phase, method='supervised'):
 		'''
+
 		'''
 		if phase == 'train':
 			if method == 'supervised':
@@ -98,10 +100,14 @@ class BaseDataset(object, metaclass=ABCMeta):
 				indices = np.array(range(self.x_train_u.shape[0]))
 			else:
 				raise Exception("None method named " + str(method))
-			
 			if self.shuffle_train:
 				np.random.shuffle(indices)
-		
+			return indices
+
+		elif phase == 'val':
+			indices = np.array(range(self.x_test.shape[0]))
+			if self.shuffle_test:
+				np.random.shuffle(indices)
 			return indices
 
 		elif phase == 'test':
@@ -113,20 +119,30 @@ class BaseDataset(object, metaclass=ABCMeta):
 		else:
 			raise Exception("None phase named " + str(phase))
 
-	def read_image_by_index_supervised(self, index):
-		label = np.zeros((self.nb_classes,))
-		label[self.y_train_l[index]] = 1.0
-		return self.x_train_l[index].reshape(self.output_shape), label
+	def read_image_by_index_supervised(self, index, phase='train'):
+		if phase == 'train':
+			label = np.zeros((self.nb_classes,))
+			label[self.y_train_l[index]] = 1.0
+			return self.x_train_l[index].reshape(self.output_shape), label
+		elif phase == 'val':
+			label = np.zeros((self.nb_classes, ))
+			label[self.y_test[index]] = 1.0
+			return self.x_test[index].reshape(self.output_shape), label
+		else:
+			raise ValueError
 
-	def read_image_by_index_unsupervised(self, index):
-		return self.x_train_u[index].reshape(self.output_shape)
+	def read_image_by_index_unsupervised(self, index, phase='train'):
+		if phase == 'train':
+			return self.x_train_u[index].reshape(self.output_shape)
+		elif phase == 'val' or phase == 'test':
+			return self.x_test[index].reshape(self.output_shape)
+		else:
+			raise ValueError
 
-	def read_test_image_by_index(self, index):
-		label = np.zeros((self.nb_classes,))
-		label[self.y_test[index]] = 1.0
-		return self.x_test[index].reshape(self.output_shape), label
-
-
+	# def read_test_image_by_index(self, index):
+	# 	label = np.zeros((self.nb_classes,))
+	# 	label[self.y_test[index]] = 1.0
+	# 	return self.x_test[index].reshape(self.output_shape), label
 
 	@property
 	def nb_labelled_images(self):

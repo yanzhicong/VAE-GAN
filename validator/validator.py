@@ -44,6 +44,9 @@ def get_validator(name, config):
     elif name == 'gan_toy_plot':
         from .gan_toy_plot import GanToyPlot
         return GanToyPlot(config)
+    elif name == 'inception_score':
+        from .inception_score import InceptionScore
+        return InceptionScore(config)
     else:
         raise Exception("None validator named " + name)
 

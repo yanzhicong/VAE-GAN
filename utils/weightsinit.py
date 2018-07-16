@@ -57,6 +57,12 @@ def get_weightsinit(name_config):
 			init_min == 0.0
 			init_max == 1.0
 		return tf.random_uniform_initializer(init_min, init_max)
+		
+	elif name == 'he_uniform':
+		return tf.keras.initializers.he_uniform()
+
+	elif name == 'he_normal':
+		return tf.keras.initializers.he_normal()
 
 	elif name == 'xavier':
 		return tf.contrib.layers.xavier_initializer()

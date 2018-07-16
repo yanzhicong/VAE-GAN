@@ -40,12 +40,13 @@ from .basedataset import BaseDataset
 
 
 
-class PASCAL_VOC(BaseDataset):
+class KITTI(BaseDataset):
 
 	def __init__(self, config):
 		
-		super(PASCAL_VOC, self).__init__(config)
+		super(KITTI, self).__init__(config)
 		self.config = config
+		
 		self.year = str(config.get('year', 2012))
 		if self.year not in ['2012', '2007']:
 			raise Exception('Pascal voc config error')

@@ -29,6 +29,8 @@ sys.path.append('./')
 sys.path.append('../')
 
 import tensorflow as tf
+from tensorflow import layers as tl
+# import tensorflow.layers as tl
 import tensorflow.contrib.layers as tcl
 
 
@@ -111,13 +113,37 @@ class BaseNetwork(object):
 
 		_padding = self.config.get(name + ' padding', padding)
 
-		x = tcl.conv2d(x, nb_filters, ksize, stride=stride,  
-											activation_fn=l_act_fn,
-											normalizer_fn=l_norm_fn,
-											normalizer_params=norm_params,
-											weights_initializer=l_winit_fn,
-											padding=_padding,
-											scope=name)
+		# x = tcl.conv2d(x, nb_filters, ksize, stride=stride,  
+		# 									activation_fn=l_act_fn,
+		# 									normalizer_fn=l_norm_fn,
+		# 									normalizer_params=norm_params,
+		# 									weights_initializer=l_winit_fn,
+		# 									padding=_padding,
+		# 									scope=name)
+
+		x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
+					padding=_padding, 
+					use_bias=True,
+					kernel_initializer=l_winit_fn,
+					trainable=True,
+					name=name)
+
+		with tf.variable_scope(name):
+
+	
+
+
+			if l_norm_fn is not None:
+				norm_params = norm_params or {}
+				x = l_norm_fn(x, **norm_params)
+
+
+			if l_act_fn is not None:
+				x = l_act_fn(x)
+
+
+
+
 		if disp:
 			print('\t\tConv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
 		if collect_end_points:
@@ -138,13 +164,32 @@ class BaseNetwork(object):
 
 		_padding = self.config.get(name + ' padding', padding)
 
-		x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
-											activation_fn=l_act_fn,
-											normalizer_fn=l_norm_fn,
-											normalizer_params=norm_params,
-											weights_initializer=l_winit_fn,
-											padding=_padding,
-											scope=name)
+		# x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
+		# 									use_bias=True,
+		# 									activation_fn=l_act_fn,
+		# 									normaliz123er_fn=l_norm_fn,
+		# 									normalizer_fn=l_norm_fn,
+		# 									normalizer_params=norm_params,
+		# 									weights_initializer=l_winit_fn,
+		# 									padding=_padding,
+		# 									scope=name)
+
+
+		x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
+						padding=_padding, use_bias=True, kernel_initializer=l_winit_fn,
+						trainable=True, name=name)
+
+		with tf.variable_scope(name):
+
+			if l_norm_fn is not None:
+				norm_params = norm_params or {}
+				x = l_norm_fn(x, **norm_params)
+
+
+			if l_act_fn is not None:
+				x = l_act_fn(x)
+
+
 		if disp:
 			print('\t\tDeonv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
 		if collect_end_points:
@@ -162,14 +207,33 @@ class BaseNetwork(object):
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		l_winit_fn = get_weightsinit(_winit_fn)
 
-		x = tcl.fully_connected(x, nb_nodes, 
-				activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
-				weights_initializer=l_winit_fn, scope=name)
+		# x = tcl.fully_connected(x, nb_nodes, 
+		# 		activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
+		# 		weights_initializer=l_winit_fn, scope=name)
+
+
+		x = tl.dense(x, nb_nodes, use_bias=True, kernel_initializer=l_winit_fn,
+					trainable=True, name=name)
+
+		with tf.variable_scope(name):
+
+			if l_norm_fn is not None:
+				norm_params = norm_params or {}
+				x = l_norm_fn(x, **norm_params)
+
+			if l_act_fn is not None:
+				x = l_act_fn(x)
+
+
 		if disp:
 			print('\t\tFC(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn))
 		if collect_end_points:
 			self.end_points[name] = x
 		return x
+
+
+
+
 
 	def concat(self, name, x_list, disp=True, collect_end_points=True):
 		x = tf.concat(x_list, axis=3)

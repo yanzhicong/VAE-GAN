@@ -204,7 +204,7 @@ def fused_batch_norm2(inputs,
 	if not isinstance(moving_vars_collection, list):
 		moving_vars_collection = list([moving_vars_collection])
 
-	# print('fused batch norm2 , input : ', inputs.get_shape())
+	moving_vars_collection.append(tf.GraphKeys.GLOBAL_VARIABLES)
 
 	inputs_shape = inputs.get_shape()
 	inputs_rank = inputs_shape.ndims
@@ -250,14 +250,13 @@ def fused_batch_norm2(inputs,
 
 	elif inputs_rank == 2:
 
-		# print('old batch norm')
-
-		mean, variance = tf.nn.moments(inputs, [0], keep_dims=True)
-		shape = mean.get_shape().as_list()
-		offset = tf.get_variable('offset', shape=shape, trainable=trainable, initializer=tf.zeros_initializer()) 
-		scale = tf.get_variable('scale', shape=shape, trainable=trainable, initializer=tf.ones_initializer())
-		result = tf.nn.batch_normalization(inputs, mean, variance, offset, scale, 1e-5)
-		return result
+		with tf.variable_scope('BatchNorm') as sc:
+			mean, variance = tf.nn.moments(inputs, [0], keep_dims=True)
+			shape = mean.get_shape().as_list()
+			offset = tf.get_variable('offset', shape=shape, trainable=trainable, initializer=tf.zeros_initializer()) 
+			scale = tf.get_variable('scale', shape=shape, trainable=trainable, initializer=tf.ones_initializer())
+			result = tf.nn.batch_normalization(inputs, mean, variance, offset, scale, 1e-5)
+			return result
 
 
 

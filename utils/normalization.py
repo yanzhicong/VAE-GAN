@@ -191,11 +191,85 @@ def fused_batch_norm(inputs,
 
 
 
+
+
+
+def fused_batch_norm2(inputs, 
+					decay=0.99,
+					epsilon=1e-5,
+					is_training=True,
+					moving_vars_collection=None,
+					trainable=True):
+
+	if not isinstance(moving_vars_collection, list):
+		moving_vars_collection = list([moving_vars_collection])
+
+	# print('fused batch norm2 , input : ', inputs.get_shape())
+
+	inputs_shape = inputs.get_shape()
+	inputs_rank = inputs_shape.ndims
+
+	if inputs_rank == 4:
+
+		# print('fused batch norm')
+		params_shape = inputs_shape[-1:]
+
+		with tf.variable_scope('BatchNorm') as sc:
+			offset = tf.get_variable('offset', shape=params_shape, trainable=trainable, initializer=tf.zeros_initializer())
+			scale = tf.get_variable('scale', shape=params_shape, trainable=trainable, initializer=tf.ones_initializer())
+			moving_mean = tf.get_variable('moving_mean', shape=params_shape, trainable=False, initializer=tf.zeros_initializer(),
+												collections=moving_vars_collection)
+			moving_variance = tf.get_variable('moving_variance', shape=params_shape, trainable=False, initializer=tf.ones_initializer(),
+												collections=moving_vars_collection)
+
+		def fused_batch_norm_training():
+			return tf.nn.fused_batch_norm(inputs, scale, offset, epsilon=epsilon, data_format='NHWC')
+
+		def fused_batch_norm_inference():
+			batch_size = tf.cast(tf.shape(inputs)[0], 'float32')
+			mean, variance = tf.nn.moments(inputs, axes=[0, 1, 2])
+			mean = ( (1.0/batch_size) * moving_mean + ((batch_size-1.0)/batch_size) * mean )
+			variance = ( (1.0/batch_size) * moving_variance + ((batch_size-1.0)/batch_size) * variance )
+			return tf.nn.batch_normalization(inputs, mean, variance, offset, scale, epsilon), mean, variance
+
+		outputs, batch_mean, batch_var = tf.cond(pred=is_training,
+												true_fn=fused_batch_norm_training,
+												false_fn=fused_batch_norm_inference)
+
+		def no_updates():
+			return outputs
+		def force_updates():
+			update_moving_mean = tf.assign_add(moving_mean, (1.0-decay)*(batch_mean-moving_mean))
+			update_moving_variance = tf.assign_add(moving_variance, (1.0-decay)*(batch_var-moving_variance))
+			with tf.control_dependencies([update_moving_mean, update_moving_variance]):
+				return tf.identity(outputs)
+		outputs = tf.cond(pred=is_training, true_fn=force_updates, false_fn=no_updates)
+
+		return outputs
+
+
+	elif inputs_rank == 2:
+
+		# print('old batch norm')
+
+		mean, variance = tf.nn.moments(inputs, [0], keep_dims=True)
+		shape = mean.get_shape().as_list()
+		offset = tf.get_variable('offset', shape=shape, trainable=trainable, initializer=tf.zeros_initializer()) 
+		scale = tf.get_variable('scale', shape=shape, trainable=trainable, initializer=tf.ones_initializer())
+		result = tf.nn.batch_normalization(inputs, mean, variance, offset, scale, 1e-5)
+		return result
+
+
+
+
+
 def get_normalization(name):
 	if name == 'batch_norm':
 		return my_batch_norm
 	elif name == 'fused_batch_norm':
 		return fused_batch_norm
+	elif name == 'fused_batch_norm2':
+		return fused_batch_norm2
 	elif name == 'none':
 		return None
 	else:

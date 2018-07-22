@@ -27,6 +27,7 @@ import sys
 sys.path.append('.')
 sys.path.append("../")
 
+
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
@@ -39,7 +40,7 @@ from discriminator.discriminator import get_discriminator
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
-from utils.optimzier import get_optimizer_by_config
+from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 
 

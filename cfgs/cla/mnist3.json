@@ -4,12 +4,12 @@
     "dataset" : "mnist",
     "dataset params" : {
         "semi-supervised" : true,
-        "nb_labelled_images_per_class" : 100,
+        "nb_labelled_images_per_class" : 50,
         "output shape" : [28, 28, 1],
         "batch_size" : 128
     },
 
-    "assets dir" : "assets/mnist/result1",
+    "assets dir" : "assets/mnist/result3",
 
     "model" : "classification",
     "model params" : {
@@ -57,7 +57,7 @@
     "trainer" : "supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "learning_rate_0_001_adam",
+        "summary hyperparams string" : "nb_samples_50_adam",
 
         "continue train" : true,
         "multi thread" : true,

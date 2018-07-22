@@ -39,11 +39,13 @@ from utils.normalization import get_normalization
 
 
 from network.vgg import VGG
+from network.basenetwork import BaseNetwork
 
-
-class EncoderSimple(object):
+class EncoderSimple(BaseNetwork):
 
 	def __init__(self, config, is_training):
+
+		
 		self.name = config.get('name', 'EncoderSimple')
 		self.config = config
 

@@ -5,8 +5,8 @@
     "dataset params" : {
     },
 
-    "ganmodel" : "cvaegan",
-    "ganmodel params" : {
+    "model" : "cvaegan",
+    "model params" : {
 
         "input_shape" : [128, 128, 3],
         "nb_classes" : 10,

@@ -13,9 +13,10 @@ def get_lrelu(params):
 
     def lrelu(x, leak=leak, name="lrelu"):
         with tf.variable_scope(name):
-            f1 = 0.5 * (1 + leak)
-            f2 = 0.5 * (1 - leak)
-            return f1 * x + f2 * abs(x)
+            # f1 = 0.5 * (1 + leak)
+            # f2 = 0.5 * (1 - leak)
+            return tf.maximum(x, x*leak)
+            # return f1 * x + f2 * abs(x)
     return lrelu
 
 

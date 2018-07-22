@@ -4,119 +4,109 @@
     "dataset" : "mnist",
     "dataset params" : {
         "semi-supervised" : true,               //
-        "output_shape" : [28, 28, 1],            //
-        "nb_labelled_images_per_class" : 100    //
+        "output shape" : [28, 28, 1],            //
+        "nb_labelled_images_per_class" : 10    //
     },
 
     // the validator output, tensorboard output and tensorflow checkpoint will be
     // saved under this directory
-    "assets dir" : "assets/semidgm/semidgm4",
+    "assets dir" : "assets/semidgm2/mnist",
 
     // "semi-supervised learning with deep generative models"
-    // implemention is in models/semi_dgm2.py
-    "model" : "semidgm",
+    // implemention is in models/semi_dgm3.py
+    "model" : "semidgm2",
     "model params" : {
         "name" : "semidgm",
 
         // shape params config
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "nb_classes" : 10,
-        "hz_dim" : 20,
+        "hz_dim" : 10,
         "hx_dim" : 50,
 
         // optimizers config
         // other optimizers are in utils/optimizer.py
-        "m1 optimizer" : "rmsprop",
-        "m1 optimizer params" : {
+        "optimizer" : "adam",
+        "optimizer params" : {
             "lr" : 0.001,
-            "lr scheme" : "exponential",
-            "lr params" : {
-                "decay_steps" : 2000,
-                "decay_rate" : 0.8
-            }
-        },
-
-
-        "m2 optimizer" : "rmsprop",
-        "m2 optimizer params" : {
-            "lr" : 0.001,
-            "lr scheme" : "exponential",
-            "lr params" : {
-                "decay_steps" : 2000,
-                "decay_rate" : 0.8
-            }
+            "lr scheme" : "constant",
+            // "lr params" : {
+            //     "decay_steps" : 2000,
+            //     "decay_rate" : 0.8
+            // },
+            "beta1" : 0.5,
+            "beta2" : 0.9
         },
 
         // learning rate scheme
         // other learning rate schemes are in utils/learning_rate.py
 
-        "m1 train steps" : 4000,
-
         "summary" : true,
         "debug" : true,
 
-        // the weight of different losses
-        // default loss weight is 1.0
-        "m1 loss weights" : {
+        "loss weights" : {
             "kl z loss weight" : 0.001,
-            "reconstruction loss weight" : 1.0
-        },
-        "m2 loss weights" : {
-            "kl z loss weight" : 0.0001,
-            "kl y loss weight" : 1,
-            "reconstruction loss weight" : 0.1,
+            "kl y loss weight" : 10,
+            "reconstruction loss weight" : 1,
             "classification loss weight" : 1.0,
             "regularization loss weight" : 0.0060,
 
             "supervised loss weight" : 1.0,
-            "unsupervised loss weight" : 0.04
+            "unsupervised loss weight" : 0.004
         },
+
 
         // network define
-        //
-        // x -(encoder)-> hx -(decoder)-> x
-        //                hx -(classifier)-> y
+        // 
+        // x -(classifier)-> y
+        // x -(encoder)-> hx 
         //                [hx, y] -(encoder)-> hz 
-        //                                    [hz, y] -(decoder)-> hx
+        //                                    [hz, y] -(decoder)-> x
         "x encoder" : "EncoderSimple",
         "x encoder params" : {
-            "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [600, 600],
-            "output_distribution": "gaussian"
-        },
 
-        "hx decoder" : "DecoderSimple",
-        "hx decoder params" : {
-            "batch_norm" : "none",
-            "nb_fc_nodes" : [600, 600],
-            "including_deconv" : false,
-            "fc_output_reshape" : [28, 28, 1],
-            "output_activation" : "sigmoid"
+            "including_conv" : false,
+            // "conv_nb_blocks" : 0,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "output_distribution": "none",
+            "output_dims" : 50
         },
 
         "hx y encoder" : "EncoderSimple",
         "hx y encoder params" : {
-            "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [40, 40],
-            "output_distribution": "gaussian"
+
+            "including_conv" : false,
+            "nb_conv_blocks" : 0,
+
+            "including_top" : true,
+            "nb_fc_nodes" : [40, 20],
+
+            "output_distribution": "gaussian",
+            "output_dims" : 10
         },
 
         "hz y decoder" : "DecoderSimple",
         "hz y decoder params" : {
             "nb_deconv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [40, 40],
+            "nb_fc_nodes" : [600, 600],
+            "output_dims" : 784,
             "including_deconv" : false,
+            "fc_output_reshape" : [28, 28, 1],
             "output_activation" : "sigmoid"
         },
 
-        "hx classifier" : "ClassifierSimple",
-        "hx classifier params" : {
+        "x classifier" : "ClassifierSimple",
+        "x classifier params" : {
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
-            "nb_fc_nodes" : [30],
+            "nb_fc_nodes" : [600, 600, 400],
+            "output_dims" : 10,
             "output_activation" : "none"
         }
     },
@@ -126,22 +116,21 @@
     "trainer params" : {
 
         // "continue train" : true,
-        // "load checkpoint assets dir" : "assets/semidgm/semidgm_m1", // load checkpoint from other assets dir
+        // "load checkpoint assets dir" : "assets/semidgm2/semidgm_m1", // load checkpoint from other assets dir
 
         "summary dir" : "log",
-        "summary hyperparams string" : "unsupervised_loss_weight_0_04",
+        "summary hyperparams string" : "unsupervised_loss_weight_0_004",
+
 
         "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
-        // "save checkpoint steps" : 5000,         //save checkpoint interval steps (default 0 is not to save)
+        // "save checkpoint steps"  : 5000,        //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
 
         "train steps" : 20000,                  //maximum total train steps
 
         "pretrain steps" : [
-            ["unsupervised", 4000]
-            ,
-            ["supervised", 3000]
-        ], 
+            ["supervised", 10000]
+        ],
 
         "supervised step" : 1,
         "unsupervised step" : 5,

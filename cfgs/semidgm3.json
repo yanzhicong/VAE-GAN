@@ -14,8 +14,8 @@
 
     // "semi-supervised learning with deep generative models"
     // implemention is in models/semi_dgm3.py
-    "ganmodel" : "semidgm3",
-    "ganmodel params" : {
+    "model" : "semidgm3",
+    "model params" : {
         "name" : "semidgm",
 
         // shape params config

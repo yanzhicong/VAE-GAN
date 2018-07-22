@@ -7,7 +7,7 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10",
+    "assets dir" : "assets/wgan_gp/cifar10_3",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
@@ -34,45 +34,14 @@
         "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
-        "generator" : "generator",
+        "generator" : "generator_cifar10",
         "generator params" : {
-            "normalization" : "fused_batch_norm2", //
 
-            "including_bottom" : true,
-            "fc_nb_nodes" : [],
-            "fc_output_reshape" : [4, 4, 512],
-
-            "including_deconv" : true,
-            "deconv_nb_blocks" : 3,
-            "deconv_nb_layers" : [1, 1, 0],
-            "deconv_nb_filters" : [256, 128, 64],
-            "deconv_ksize" : [5, 5, 5],
-            
-            "output_dims" : 3,
-            "output_stride" : 2,
-            "output_ksize" : 5,
-            "output_activation" : "tanh",
-            "debug" : true
         },
 
-        "discriminator" : "discriminator",
+        "discriminator" : "discriminator_cifar10",
         "discriminator params" : {
-            "activation" : "lrelu 0.2",
-            "normalization" : "none",
-
-            "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [1, 1, 1, 0],
-            "conv_nb_filters" : [128, 256, 512],
-            "conv_ksize" : [5, 5, 5, 5],
-            "no_maxpooling" : true,
-
-            "including_top" : true,
-            "fc_nb_nodes" : [],
-
-            "output_dims" : 1,
-            "output_activation" : "none",
-            "debug" : true
+            
         }
     },
 
@@ -84,7 +53,7 @@
 
         "multi thread" : true,
         "continue train" : true,
-        "train steps" : 100000,
+        "train steps" : 150000,
 
         "summary steps" : 1000,
         "log steps" : 1000,

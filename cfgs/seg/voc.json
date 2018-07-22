@@ -8,8 +8,8 @@
 
     "assets dir" : "assets/pascal_voc/unet",
 
-    "ganmodel" : "segmentation",
-    "ganmodel params" : {
+    "model" : "segmentation",
+    "model params" : {
         "name" : "segmentation",
 
         "input shape" : [320, 320, 3],

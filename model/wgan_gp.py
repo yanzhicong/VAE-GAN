@@ -115,13 +115,36 @@ class WGAN_GP(BaseModel):
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
+
+
+		print('discriminator vars')
+		for var in self.discriminator.vars:
+			print(var.name, var.get_shape())
+
+
+		print('generator vars')
+		for var in self.generator.vars:
+			print(var.name, var.get_shape())
+
+		print('generator vars to save and restore')
+		for var in self.generator.vars_to_save_and_restore:
+			print(var.name, var.get_shape())
+
+
+		print('generator all vars')
+		for var in self.generator.all_vars:
+			print(var.name, var.get_shape())
+
+
+
+
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
-
 
 		if not self.use_gradient_penalty:
 			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
 				for var in self.discriminator.vars]
+
 
 		# self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
 		# self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
@@ -134,7 +157,6 @@ class WGAN_GP(BaseModel):
 
 		# self.d_global_step = self.global_step
 		# self.g_global_step = self.global_step
-
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator

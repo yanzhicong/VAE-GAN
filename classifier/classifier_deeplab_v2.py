@@ -33,8 +33,6 @@ from network.unet import UNet
 	# 	x, end_points = self.network(i)
 	# 	return x, end_points
 
-
-
 class Deeplab_v2(BaseNetwork):
 	"""
 	Deeplab v2 pre-trained model (pre-trained on MSCOCO) ('deeplab_resnet_init.ckpt')

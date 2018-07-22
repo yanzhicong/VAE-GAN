@@ -73,8 +73,8 @@ if __name__ == '__main__':
 	with tf.Session(config=tfconfig) as sess:
 
 		# build model
-		config['ganmodel params']['assets dir'] = config['assets dir']
-		model = get_model(config['ganmodel'], config['ganmodel params'])
+		config['model params']['assets dir'] = config['assets dir']
+		model = get_model(config['model'], config['model params'])
 
 		# start testing
 		config['tester params']['assets dir'] = config['assets dir']

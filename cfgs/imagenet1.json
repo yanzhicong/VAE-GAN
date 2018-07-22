@@ -9,8 +9,8 @@
 
     "assets dir" : "assets/inceptionV3_1",
 
-    "ganmodel" : "classification",
-    "ganmodel params" : {
+    "model" : "classification",
+    "model params" : {
         "name" : "inception",
 
         "input_shape" : [299, 299, 3],

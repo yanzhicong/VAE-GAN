@@ -7,8 +7,8 @@
 
     "assets dir" : "assets/cvae_3_2",
 
-    "ganmodel" : "cvae",
-    "ganmodel params" : {
+    "model" : "cvae",
+    "model params" : {
         "name" : "cvae",
 
         "input_shape" : [32, 32, 3],

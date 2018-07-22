@@ -25,6 +25,8 @@
 import os
 import sys
 import argparse
+import time
+from datetime import datetime
 from shutil import copyfile
 
 import tensorflow as tf
@@ -59,8 +61,9 @@ if __name__ == '__main__':
 	# just copy the config_file.json to ./cfgs folder and run python3 train.py --config=(config_file)
 	if not os.path.exists(config['assets dir']):
 		os.makedirs(config['assets dir'])
+	cfg_filename = datetime.now().strftime('config_file_%y-%m-%d_%H-%M-%S.json')
 	copyfile(os.path.join('./cfgs', args.config_file + '.json'), 
-			os.path.join(config['assets dir'], 'config_file.json'))
+			os.path.join(config['assets dir'], cfg_filename))
 
 	# prepare dataset
 	dataset = get_dataset(config['dataset'], config['dataset params'])
@@ -71,8 +74,8 @@ if __name__ == '__main__':
 	with tf.Session(config=tfconfig) as sess:
 
 		# build model
-		config['ganmodel params']['assets dir'] = config['assets dir']
-		model = get_model(config['ganmodel'], config['ganmodel params'])
+		config['model params']['assets dir'] = config['assets dir']
+		model = get_model(config['model'], config['model params'])
 
 		# start training
 		config['trainer params']['assets dir'] = config['assets dir']

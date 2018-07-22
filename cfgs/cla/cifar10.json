@@ -9,8 +9,8 @@
 
     "assets dir" : "assets/cifar10/cifar10_2",
 
-    "ganmodel" : "classification",
-    "ganmodel params" : {
+    "model" : "classification",
+    "model params" : {
         "name" : "classification",
 
         "input shape" : [32, 32, 3],

@@ -8,8 +8,8 @@
 
     "assets dir" : "assets/vae_1",
 
-    "ganmodel" : "vae",
-    "ganmodel params" : {
+    "model" : "vae",
+    "model params" : {
         "name" : "vae",
 
         "input_shape" : [28, 28, 1],

@@ -80,13 +80,13 @@ class Classification(BaseModel):
 		self.test_logits = self.classifier(self.test_x)
 		self.test_y = tf.nn.softmax(self.test_logits)
 		
-		print('vars')
-		for var in self.classifier.vars:
-			print(var.name, ' --> ', var.get_shape())
+		# print('vars')
+		# for var in self.classifier.vars:
+		# 	print(var.name, ' --> ', var.get_shape())
 
-		print('vars_to_save_and_restore')
-		for var in self.classifier.vars_to_save_and_restore:
-			print(var.name, ' --> ', var.get_shape())
+		# print('vars_to_save_and_restore')
+		# for var in self.classifier.vars_to_save_and_restore:
+		# 	print(var.name, ' --> ', var.get_shape())
 
 		(self.train_op, 
 			self.learning_rate, 
@@ -154,6 +154,24 @@ class Classification(BaseModel):
 		}
 		y = sess.run([self.test_y], feed_dict = feed_dict)[0]
 		return y
+
+	def reduce_features(self, sess, x_batch, feature_name):
+		assert(isinstance(feature_name, str) or isinstance(feature_name, list))
+		if isinstance(feature_name, str):
+			feature_name_list = [feature_name,]
+		else:
+			feature_name_list = feature_name
+		feature_list = [self.end_points[f] for f in feature_name_list]
+		feed_dict = {
+			self.x : x_batch,
+			self.is_training : False
+		}
+		features = sess.run(feature_list, feed_dict=feed_dict)
+
+		if isinstance(feature_name, str):
+			features = features[0]
+		return features
+
 
 	'''
 		summary operations

@@ -31,38 +31,35 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
-
 
 from .basenetwork import BaseNetwork
 
 arg_scope = tf.contrib.framework.arg_scope
 
-
 class DEVGG(BaseNetwork):
-
 	'''
 		a flexible generative model network class, can be customized easily.
 		from z(one-dimensional or three-dimensional) to x(three-dimensional)
 
-		the convolution layers are divied into blocks, in the end of each blocks there is a max pooling behind.
-		the max pooling params is always ksize=2 and strides=2, and padding of convolution layers is always 'SAME'
+	
+		at first some fc layers are constructed. if 'including_bottom' is false, then there is 
+		no fc layers.
+		the fc layers params(in @params:config):
+			'including_bottom':
+			'fc_nb_nodes':
+
+		the deconvolution layers are divied into blocks, in the end of each blocks the deconv layer stride is 2 and other deconv layer stride is 1.
 		the convolution layers params(in @params:config):
 
+			'including_deconv':
 			'deconv_nb_blocks':
 			'deconv_nb_filters':
 			'deconv_nb_layers':
 			'deconv_ksize':
-			'no_maxpooling':
 
-		the fc layers are appended behind the convolution layers. if 'including_top' is false, then there is 
-		no fc layers.
-		the fc layers params(in @params:config):
-			'including_top':
-			'fc_nb_nodes':
 
 		the interval layers params(both convolution layer and fc layer):
 			'activation':
@@ -76,6 +73,9 @@ class DEVGG(BaseNetwork):
 		output params:
 			'output_dims':
 			'output_activation':
+			'output_stride':
+			'output_ksize':
+			'output_shape':
 	'''
 
 	def __init__(self, config, is_training):

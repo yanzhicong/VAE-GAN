@@ -19,6 +19,7 @@
             "lr scheme" : "constant",
             "beta1" : 0.5,      // important params, please do not use the default param 0.9
             "beta2" : 0.9       // important params, please do not use the default param 0.99
+                                // use smaller parameters can stablize the training process.
         },
 
         "generator optimizer" : "adam",

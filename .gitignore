@@ -1,6 +1,6 @@
 *pycache*
 assets*
-dataset/dataset_extra_files*
+dataset/extra_files*
 *.pyc
 .vscode*
 sftp-config.json

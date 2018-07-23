@@ -7,7 +7,7 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10_3",
+    "assets dir" : "assets/wgan_gp/cifar10",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
@@ -38,7 +38,7 @@
  
         "generator" : "generator",
         "generator params" : {
-            "normalization" : "fused_batch_norm2", //
+            "normalization" : "fused_batch_norm3", //
 
             "including_bottom" : true,
             "fc_nb_nodes" : [],

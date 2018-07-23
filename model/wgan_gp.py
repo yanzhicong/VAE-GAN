@@ -76,6 +76,8 @@ class WGAN_GP(BaseModel):
 
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+
+		# self.batch_size = self.config.get('batch_size', )
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
@@ -113,8 +115,6 @@ class WGAN_GP(BaseModel):
 
 
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
-
-
 
 
 		print('discriminator vars')

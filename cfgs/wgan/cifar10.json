@@ -31,6 +31,8 @@
             "beta2" : 0.9
         },
 
+        "discriminator training steps" : 3,
+
         "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
@@ -80,7 +82,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001",
+        "summary hyperparams string" : "lr_0_0001_iter4",
 
         "multi thread" : true,
         "continue train" : true,

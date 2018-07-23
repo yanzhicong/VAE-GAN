@@ -85,7 +85,7 @@
         "summary hyperparams string" : "lr_0_0001_iter4",
 
         "multi thread" : true,
-        "continue train" : true,
+        "continue train" : false,
         "train steps" : 100000,
 
         "summary steps" : 1000,

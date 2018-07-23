@@ -130,7 +130,7 @@ class InceptionScore(BaseValidator):
 
 		all_samples = []
 
-		for i in range(10)
+		for i in range(10):
 			batch_z = np.random.randn(*([self.nb_samples, ] + self.z_shape))
 			batch_x = model.generate(sess, batch_z)
 			img = (((batch_x - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])) * 255.0).astype('int32')

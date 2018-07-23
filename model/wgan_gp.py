@@ -78,7 +78,7 @@ class WGAN_GP(BaseModel):
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 
 		self.batch_size = self.config.get('batch_size', 128)
-		self.z_var = tf.random_normal([batch_size, self.z_dim])
+		self.z_var = tf.random_normal([self.batch_size, self.z_dim])
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)

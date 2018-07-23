@@ -128,10 +128,16 @@ class InceptionScore(BaseValidator):
 
 	def validate(self, model, dataset, sess, step):
 
-		batch_z = np.random.randn(*([self.nb_samples, ] + self.z_shape))
-		batch_x = model.generate(sess, batch_z)
-		img = (((batch_x - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])) * 255.0).astype('int32')
-		inc_score, inc_score_std = self.get_inception_score(list(img))
+		all_samples = []
+
+		for i in range(10)
+			batch_z = np.random.randn(*([self.nb_samples, ] + self.z_shape))
+			batch_x = model.generate(sess, batch_z)
+			img = (((batch_x - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])) * 255.0).astype('int32')
+			all_samples.append(img)
+
+		all_samples = np.concatenate(all_samples, axis=[0])
+		inc_score, inc_score_std = self.get_inception_score(list(all_samples))
 
 		print('inception score : ', inc_score)
 		print('inception score std : ', inc_score_std)

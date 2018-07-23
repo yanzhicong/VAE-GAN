@@ -7,7 +7,7 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10",
+    "assets dir" : "assets/wgan_gp/cifar10_3",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
@@ -82,7 +82,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001_iter5_bs128",
+        "summary hyperparams string" : "lr_0_0001_iter5_bs128_bn3",
 
         "multi thread" : true,
         "continue train" : false,

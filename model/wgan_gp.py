@@ -77,7 +77,8 @@ class WGAN_GP(BaseModel):
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 
-		# self.batch_size = self.config.get('batch_size', )
+		self.batch_size = self.config.get('batch_size', 128)
+		self.z_var = tf.random_normal([batch_size, self.z_dim])
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
@@ -232,9 +233,11 @@ class WGAN_GP(BaseModel):
 			if not self.use_gradient_penalty:
 				sess.run(self.clip_discriminator)
 
+			random_z = sess.run([self.z_var])[0]
+
 			feed_dict = {
 				self.x_real : x_batch,
-				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
+				self.z : random_z,
 				self.is_training : True
 			}
 			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_train_op,
@@ -244,8 +247,11 @@ class WGAN_GP(BaseModel):
 															summary=self.d_sum_scalar)
 		summary_list.append((step_d, summary_d))
 
+
+		random_z = sess.run([self.z_var])[0]
+
 		feed_dict = {
-			self.z : np.random.randn(x_batch.shape[0], self.z_dim),
+			self.z : random_z,
 			self.is_training : True
 		}
 

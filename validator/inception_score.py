@@ -136,7 +136,7 @@ class InceptionScore(BaseValidator):
 			img = (((batch_x - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])) * 255.0).astype('int32')
 			all_samples.append(img)
 
-		all_samples = np.concatenate(all_samples, axis=[0])
+		all_samples = np.concatenate(all_samples, axis=0)
 		inc_score, inc_score_std = self.get_inception_score(list(all_samples))
 
 		print('inception score : ', inc_score)

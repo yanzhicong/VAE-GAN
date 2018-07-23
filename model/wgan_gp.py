@@ -146,32 +146,32 @@ class WGAN_GP(BaseModel):
 				for var in self.discriminator.vars]
 
 
-		# self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
-		# self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
+		self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
+		self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
 
-		# self.d_learning_rate = tf.convert_to_tensor(0.0001)
-		# self.g_learning_rate = tf.convert_to_tensor(0.0001)
+		self.d_learning_rate = tf.convert_to_tensor(0.0001)
+		self.g_learning_rate = tf.convert_to_tensor(0.0001)
 
-		# self.d_train_op = self.d_optimizer
-		# self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
+		self.d_train_op = self.d_optimizer
+		self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
 
-		# self.d_global_step = self.global_step
-		# self.g_global_step = self.global_step
+		self.d_global_step = self.global_step
+		self.g_global_step = self.global_step
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator
-		(self.d_train_op, 
-			self.d_learning_rate, 
-				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-																self.config['discriminator optimizer params'],
-																self.d_loss, self.discriminator.vars,
-																self.global_step)
-		(self.g_train_op, 
-			self.g_learning_rate, 
-				self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
-																self.config['generator optimizer params'],
-																self.g_loss, self.generator.vars,
-																self.global_step, self.global_step_update)
+		# (self.d_train_op, 
+		# 	self.d_learning_rate, 
+		# 		self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+		# 														self.config['discriminator optimizer params'],
+		# 														self.d_loss, self.discriminator.vars,
+		# 														self.global_step)
+		# (self.g_train_op, 
+		# 	self.g_learning_rate, 
+		# 		self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
+		# 														self.config['generator optimizer params'],
+		# 														self.g_loss, self.generator.vars,
+		# 														self.global_step, self.global_step_update)
 
 		# model saver
 		self.saver = tf.train.Saver(self.discriminator.vars_to_save_and_restore 

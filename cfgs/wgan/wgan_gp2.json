@@ -8,8 +8,8 @@
 
 
     "assets dir" : "assets/wgan_gp2/result1",
-    "ganmodel" : "wgan_gp",
-    "ganmodel params" : {
+    "model" : "wgan_gp",
+    "model params" : {
         "name" : "wgan_gp",
 
         "input shape" : [28, 28, 1],

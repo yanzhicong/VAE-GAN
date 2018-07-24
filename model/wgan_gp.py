@@ -77,12 +77,10 @@ class WGAN_GP(BaseModel):
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 
-		self.batch_size = self.config.get('batch_size', 128)
-		self.z_var = tf.random_normal([self.batch_size, self.z_dim])
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
-		
+
 		self.dis_real = self.discriminator(self.x_real)
 		self.dis_fake = self.discriminator(self.x_fake)
 
@@ -104,40 +102,36 @@ class WGAN_GP(BaseModel):
 									{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
 							* self.config.get('adversarial loss weight', 1.0))
 
+
 		if self.use_gradient_penalty:
 			self.d_loss_gp = (get_loss('gradient penalty',
 										'l2',
 										{'x' : x_hat, 'y' : dis_hat})
 								* self.config.get('gradient penalty loss weight', 10.0))
-
 			self.d_loss = self.d_loss_gp + self.d_loss_adv
 		else:
 			self.d_loss = self.d_loss_adv
 
-
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
-		print('discriminator vars')
-		for var in self.discriminator.vars:
-			print(var.name, var.get_shape())
+		# print('discriminator vars')
+		# for var in self.discriminator.vars:
+		# 	print(var.name, var.get_shape())
 
 
-		print('generator vars')
-		for var in self.generator.vars:
-			print(var.name, var.get_shape())
+		# print('generator vars')
+		# for var in self.generator.vars:
+		# 	print(var.name, var.get_shape())
 
-		print('generator vars to save and restore')
-		for var in self.generator.vars_to_save_and_restore:
-			print(var.name, var.get_shape())
-
-
-		print('generator all vars')
-		for var in self.generator.all_vars:
-			print(var.name, var.get_shape())
+		# print('generator vars to save and restore')
+		# for var in self.generator.vars_to_save_and_restore:
+		# 	print(var.name, var.get_shape())
 
 
-
+		# print('generator all vars')
+		# for var in self.generator.all_vars:
+		# 	print(var.name, var.get_shape())
 
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
@@ -146,33 +140,32 @@ class WGAN_GP(BaseModel):
 			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
 				for var in self.discriminator.vars]
 
+		# self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
+		# self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
 
-		self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
-		self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
+		# self.d_learning_rate = tf.convert_to_tensor(0.0001)
+		# self.g_learning_rate = tf.convert_to_tensor(0.0001)
 
-		self.d_learning_rate = tf.convert_to_tensor(0.0001)
-		self.g_learning_rate = tf.convert_to_tensor(0.0001)
+		# self.d_train_op = self.d_optimizer
+		# self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
 
-		self.d_train_op = self.d_optimizer
-		self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
-
-		self.d_global_step = self.global_step
-		self.g_global_step = self.global_step
+		# self.d_global_step = self.global_step
+		# self.g_global_step = self.global_step
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator
-		# (self.d_train_op, 
-		# 	self.d_learning_rate, 
-		# 		self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-		# 														self.config['discriminator optimizer params'],
-		# 														self.d_loss, self.discriminator.vars,
-		# 														self.global_step)
-		# (self.g_train_op, 
-		# 	self.g_learning_rate, 
-		# 		self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
-		# 														self.config['generator optimizer params'],
-		# 														self.g_loss, self.generator.vars,
-		# 														self.global_step, self.global_step_update)
+		(self.d_train_op, 
+			self.d_learning_rate, 
+				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+																self.config['discriminator optimizer params'],
+																self.d_loss, self.discriminator.vars,
+																self.global_step)
+		(self.g_train_op, 
+			self.g_learning_rate, 
+				self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
+																self.config['generator optimizer params'],
+																self.g_loss, self.generator.vars,
+																self.global_step, self.global_step_update)
 
 		# model saver
 		self.saver = tf.train.Saver(self.discriminator.vars_to_save_and_restore 
@@ -218,8 +211,9 @@ class WGAN_GP(BaseModel):
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-
-		step = sess.run(self.global_step)
+		
+		# print(x_batch.min(), x_batch.max())
+		# step = sess.run(self.global_step)
 
 		# if step < self.discriminator_warm_up_steps:
 		# 	dis_train_step = self.discriminator_training_steps * 20
@@ -233,13 +227,12 @@ class WGAN_GP(BaseModel):
 			if not self.use_gradient_penalty:
 				sess.run(self.clip_discriminator)
 
-			random_z = sess.run([self.z_var])[0]
-
 			feed_dict = {
 				self.x_real : x_batch,
-				self.z : random_z,
+				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 				self.is_training : True
 			}
+
 			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_train_op,
 															step=self.d_global_step,
 															learning_rate=self.d_learning_rate,
@@ -247,11 +240,8 @@ class WGAN_GP(BaseModel):
 															summary=self.d_sum_scalar)
 		summary_list.append((step_d, summary_d))
 
-
-		random_z = sess.run([self.z_var])[0]
-
 		feed_dict = {
-			self.z : random_z,
+			self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
 
@@ -263,6 +253,7 @@ class WGAN_GP(BaseModel):
 		summary_list.append((step_g, summary_g))
 
 		return step_g, {'d':lr_d, 'g':lr_g}, {'d':loss_d,'g':loss_g}, summary_list, 
+
 
 	'''
 		test operation

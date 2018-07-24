@@ -7,7 +7,7 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10_3",
+    "assets dir" : "assets/wgan_gp/cifar10_2",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
@@ -46,9 +46,9 @@
 
             "including_deconv" : true,
             "deconv_nb_blocks" : 3,
-            "deconv_nb_layers" : [1, 1, 0],
-            "deconv_nb_filters" : [256, 128, 64],
-            "deconv_ksize" : [5, 5, 5],
+            "deconv_nb_layers" : [1, 1, 0, 0],
+            "deconv_nb_filters" : [256, 128, 64, 32],
+            "deconv_ksize" : [5, 5, 5, 5],
             
             "output_dims" : 3,
             "output_stride" : 2,
@@ -82,7 +82,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001_iter5_bs128_bn3",
+        "summary hyperparams string" : "lr_0_0001_bs128_bn3",
 
         "multi thread" : true,
         "continue train" : false,
@@ -109,6 +109,19 @@
                 }
             },
             {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "log dir" : "generated_lr_0_0001_fixed",
+                    "z shape" : [100],
+                    "x shape" : [32, 32, 3],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb row" : 16,
+                    "nb col" : 16,
+                    "fix z" : true
+                }
+            },
+            {
                 "validator" : "embedding_visualize",
                 "validate steps" : 5000,
                 "validator params" : {
@@ -119,7 +132,7 @@
             },
             {
                 "validator" : "inception_score",
-                "validate steps" : 500,
+                "validate steps" : 1000,
                 "validator params" : {
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],

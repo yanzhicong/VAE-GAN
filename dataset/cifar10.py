@@ -75,6 +75,7 @@ class Cifar10(BaseDataset):
 
 		test_data, test_label = self.read_data(test_batch_file, self._dataset_dir)
 		self.x_test = np.reshape(test_data, [-1, 3, 32, 32]).transpose([0, 2, 3, 1]).astype(np.float32) / 255.0
+		self.x_test = self.x_test * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 		self.y_test = test_label
 
 

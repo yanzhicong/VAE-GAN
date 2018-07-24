@@ -109,6 +109,7 @@ class InceptionScore(BaseValidator):
 		self.config = config
 		self.nb_samples = config.get('num_samples', 100)
 		self.z_shape = config['z shape']
+		self.rounds = config.get('rounds', 10)
 		self.scalar_range = config.get('scalar range', [0.0, 1.0])		# model output range,
 																		# for sigmoid activation model is [0.0, 1.0],
 																		# and for tanh activation model is [-1.0, 1.0]
@@ -130,7 +131,7 @@ class InceptionScore(BaseValidator):
 
 		all_samples = []
 
-		for i in range(10):
+		for i in range(self.rounds):
 			batch_z = np.random.randn(*([self.nb_samples, ] + self.z_shape))
 			batch_x = model.generate(sess, batch_z)
 			img = (((batch_x - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0])) * 255.0).astype('int32')

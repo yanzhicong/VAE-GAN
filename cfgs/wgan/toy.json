@@ -7,8 +7,8 @@
     },
 
     "assets dir" : "assets/wgan_gp/toy2",
-    "ganmodel" : "wgan_gp",
-    "ganmodel params" : {
+    "model" : "wgan_gp",
+    "model params" : {
         "name" : "wgan_gp",
         "input shape" : [2],
         "z_dim" : 2,

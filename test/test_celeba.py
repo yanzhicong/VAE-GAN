@@ -1,4 +1,3 @@
-
 import os
 import sys
 
@@ -8,7 +7,7 @@ sys.path.append('../')
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from dataset.pascal_voc import PASCAL_VOC
+from dataset.celeba import CelebA
 
 if __name__ == '__main__':
 
@@ -22,30 +21,26 @@ if __name__ == '__main__':
 
 	config = {
 		"output shape" : [256, 256, 3],
-		"scaling range" : [0.5, 1.5],
-		"crop range" : [0.3, 0.7],
-		"task" : "segmentation_class_aug",
+        "scalar range" : [0, 1]
 		# "random mirroring" : False
 	}
 
 
-	dataset = PASCAL_VOC(config)
+	dataset = CelebA(config)
 	indices = dataset.get_image_indices(phase='train')
 
 	print(indices.shape)
 
 	for ind in indices:
 
-		img, mask = dataset.read_image_by_index_supervised(ind)
+		img, attr = dataset.read_image_by_index_supervised(ind)
 
 		print(img.shape)
-		print(mask.shape)
-		print(mask.max(), mask.min())
+		print(attr.shape)
+		print(attr.max(), attr.min())
 
 		plt.figure(0)
 		plt.imshow(img)
-		plt.figure(1)
-		plt.imshow(mask)
 		plt.pause(4)
 
 

@@ -48,7 +48,7 @@ class SupervisedTrainer(BaseTrainer):
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
-			self.buffer_depth = self.config.get('buffer_depth', 50)
+			self.buffer_depth = self.config.get('buffer depth', 50)
 			self.train_data_queue = queue.Queue(maxsize=self.buffer_depth)
 			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 

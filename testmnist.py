@@ -9,11 +9,12 @@ sys.path.append('./lib')
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.tensorboard.plugins import projector
+
 
 from cfgs.networkconfig import get_config
 from dataset.dataset import get_dataset
 from model.model import get_model
-# from trainer.trainer import get_trainer
 
 
 
@@ -24,8 +25,7 @@ if __name__ == '__main__':
 	os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 	# load config file
-	config = get_config("cla/mnist4")
-
+	config = get_config("cla/mnist2")
 
 	# prepare dataset
 	config['dataset params']['semi-supervised'] = False
@@ -71,7 +71,6 @@ if __name__ == '__main__':
 		data_f = np.array(data_f)	# features
 
 		accuracy = (np.argmax(data_y, axis=1) == np.argmax(data_p, axis=1)).sum() / float(data_y.shape[0])
-
 		print('accuray : %f'%accuracy)
 
 		def cluster_predict(nb_cluster):
@@ -84,7 +83,36 @@ if __name__ == '__main__':
 			data_cl = np.array([ cluster_labels[labels[i]] for i in range(data_y.shape[0])])
 			accuracy = (np.argmax(data_y, axis=1) == data_cl).sum() / float(data_y.shape[0])
 			print('nb_cluster %d accuray : %f'%(nb_cluster, accuracy))
-		
+
+
+		assets_dir = config['assets dir']
+		log_dir = config.get('log dir', 'embedding_feature_10per_classes')
+		log_dir = os.path.join(assets_dir, log_dir)
+
+		if not os.path.exists(log_dir):
+			os.mkdir(log_dir)
+		with open(os.path.join(log_dir, 'metadata.tsv'), 'w') as f:
+			f.write("Index\tLabel\tPredict\tCorrect\n")
+			for i in range(data_x.shape[0]):
+				l = np.argmax(data_y[i])
+				p = np.argmax(data_p[i])
+				f.write("%d\t%d\t%d\n"%(i, l, p, 1 if l==p else 0))
+
+		summary_writer = tf.summary.FileWriter(log_dir)
+		config = projector.ProjectorConfig()
+		embedding = config.embeddings.add()
+		embedding.tensor_name = "test"
+		embedding.metadata_path = "metadata.tsv"
+		projector.visualize_embeddings(summary_writer, config)
+
+		plot_array_var = tf.get_variable('test', shape=data_f.shape)
+		saver = tf.train.Saver([plot_array_var])
+		sess.run(plot_array_var.assign(data_f))
+		saver.save(sess, os.path.join(log_dir, 'model.ckpt'), 
+							global_step=0, 
+							write_meta_graph=False,
+							strip_default_attrs=True)
+
 		cluster_predict(nb_cluster=10)
 		cluster_predict(nb_cluster=15)
 		cluster_predict(nb_cluster=17)
@@ -93,8 +121,8 @@ if __name__ == '__main__':
 		cluster_predict(nb_cluster=23)
 		cluster_predict(nb_cluster=25)
 		cluster_predict(nb_cluster=27)
-		cluster_predict(nb_cluster=30)	
-		cluster_predict(nb_cluster=40)	
+		cluster_predict(nb_cluster=30)
+		cluster_predict(nb_cluster=40)
 		cluster_predict(nb_cluster=50)
 		cluster_predict(nb_cluster=75)
 		cluster_predict(nb_cluster=100)

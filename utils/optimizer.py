@@ -129,7 +129,6 @@ def get_optimizer_by_config(name, config, target, variables,
             ).minimize(target, var_list=variables)
 
 
-
     if global_step_update is not None:
         return tf.group([optimize_op, global_step_update]), learning_rate, global_step
     else:

@@ -30,10 +30,6 @@
         "optimizer params" : {
             "lr" : 0.001,
             "lr scheme" : "constant",
-            // "lr params" : {
-            //     "decay_steps" : 2000,
-            //     "decay_rate" : 0.8
-            // },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
@@ -62,9 +58,10 @@
         // x -(encoder)-> hx 
         //                [hx, y] -(encoder)-> hz 
         //                                    [hz, y] -(decoder)-> x
-        "x encoder" : "EncoderSimple",
+        "x encoder" : "encoder",
         "x encoder params" : {
-            "batch_norm" : "none",
+            "normalization" : "none",
+            "weightsinit" : "he_uniform",
 
             "including_conv" : false,
             // "conv_nb_blocks" : 0,
@@ -76,12 +73,13 @@
             "output_dims" : 50
         },
 
-        "hx y encoder" : "EncoderSimple",
+        "hx y encoder" : "encoder",
         "hx y encoder params" : {
-            "batch_norm" : "none",
+            "normalization" : "none",
+            "weightsinit" : "he_uniform",
 
             "including_conv" : false,
-            "nb_conv_blocks" : 0,
+            "conv_nb_blocks" : 0,
 
             "including_top" : true,
             "nb_fc_nodes" : [40, 20],
@@ -90,10 +88,14 @@
             "output_dims" : 10
         },
 
-        "hz y decoder" : "DecoderSimple",
+        "hz y decoder" : "decoder",
         "hz y decoder params" : {
+
+            "normalization" : "none",
+            "weightsinit" : "he_uniform",
+
+
             "nb_deconv_blocks" : 0,
-            "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
             "output_dims" : 784,
             "including_deconv" : false,
@@ -101,11 +103,13 @@
             "output_activation" : "sigmoid"
         },
 
-        "x classifier" : "ClassifierSimple",
+        "x classifier" : "classifier",
         "x classifier params" : {
+            "normalization" : "none",
+            "weightsinit" : "he_uniform",
+
             "nb_conv_blocks" : 0,
-            "batch_norm" : "none",
-            "nb_fc_nodes" : [600, 600, 400],
+            "nb_fc_nodes" : [600, 600, 600],
             "output_dims" : 10,
             "output_activation" : "none"
         }
@@ -121,7 +125,6 @@
         "summary dir" : "log",
         "summary hyperparams string" : "unsupervised_loss_weight_0_004",
 
-
         "summary steps" : 100,                  //save tensorboard summary interval steps (default 0 is not to save)
         // "save checkpoint steps"  : 5000,        //save checkpoint interval steps (default 0 is not to save)
         "log steps" : 100,                      //print log interval steps (default 0 is not to print)
@@ -129,6 +132,7 @@
         "train steps" : 20000,                  //maximum total train steps
 
         "pretrain steps" : [
+            ["unsupervised", 4000],
             ["supervised", 10000]
         ],
 

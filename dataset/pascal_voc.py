@@ -33,11 +33,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from skimage import io
-# import pickle
+import pickle
 
 from .basedataset import BaseDataset
-
-
 
 
 class PASCAL_VOC(BaseDataset):
@@ -47,12 +45,26 @@ class PASCAL_VOC(BaseDataset):
 		super(PASCAL_VOC, self).__init__(config)
 		self.config = config
 		self.year = str(config.get('year', 2012))
-		if self.year not in ['2012', '2007']:
-			raise Exception('Pascal voc config error')
-
 		self.task = config.get('task', 'segmentation_class')
 
-		if self.task in ['segmentation', 'segmentation_class', 'segmentation_object']:
+		assert(self.year in ['2012', '2007'])
+		assert(self.task in [
+			'segmentation_class_aug',
+			'segmentation_class', 'segmentation',
+			'segmentation_object',
+			'classification'
+		])
+
+
+
+		if self.task == 'segmentation_class_aug':
+			self.color_map = [
+
+			]
+
+			self.nb_classes = len(self.color_map)
+
+		elif self.task in ['segmentation', 'segmentation_class', 'segmentation_object']:
 			# colour map
 			self.color_map = [(0,0,0)
 							# 0=background
@@ -86,7 +98,17 @@ class PASCAL_VOC(BaseDataset):
 
 			self.name = 'pascal_voc'
 
-			if self.task in ['segmentation', 'segmentation_class', 'segmentation_object']:
+
+			if self.task == 'segmentation_class_aug':
+				
+				self.nb_val_samples = self.config.get('nb validate samples', 2000)
+				self.train_image_list, self.train_mask_list = self.read_augmented_image_list(phase='train', nb_val_samples=self.nb_val_samples)
+				self.val_image_list, self.val_mask_list = self.read_augmented_image_list(phase='val', nb_val_samples=self.nb_val_samples)
+
+
+
+
+			elif self.task in ['segmentation', 'segmentation_class', 'segmentation_object']:
 				self.train_image_list, self.train_mask_list = self.read_image_list(self.task, phase='train')
 				self.val_image_list, self.val_mask_list = self.read_image_list(self.task, phase='val')
 				self.test_image_list = self.read_image_list(self.task, phase='val')
@@ -120,7 +142,6 @@ class PASCAL_VOC(BaseDataset):
 		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
 
 	def read_image_list(self, task='segmentation_class', phase='train'):
-
 		if task == 'segmentation_class' or task == 'segmentation' or task == 'segmentation_object':
 			if phase not in ['train', 'val', 'test', 'trainval']:
 				raise Exception('pascal voc erro : no phase named ' + str(phase))
@@ -177,13 +198,67 @@ class PASCAL_VOC(BaseDataset):
 							image_class_array[line_ind, class_ind] = 1
 			return input_image_filepath_list, image_class_array
 
+
+	def read_augmented_image_list(self, phase='train', nb_val_samples=2000):
+		aug_masks_dir = os.path.join(self._dataset_dir, 'SegmentationClassAug')
+		if not os.path.exists(aug_masks_dir):
+			raise Exception('The SegmentationClassAug folder is not exists in the dataset, please download it')
+		if phase not in ['train', 'val']:
+			raise ValueError('phase error')
+
+		mask_list = os.listdir(aug_masks_dir)
+
+		nb_val_samples = np.minimum(len(mask_list), nb_val_samples)
+		self.extra_file_path = os.path.join('./dataset/extra_files', self.name)
+		if not os.path.exists(self.extra_file_path):
+			os.makedirs(self.extra_file_path)
+
+		if phase == 'train':
+			indices_filepath = os.path.join(self.extra_file_path, 'segmentation_class_aug_val_indices_%d.pkl'%nb_val_samples)
+		else:
+			indices_filepath = os.path.join(self.extra_file_path, 'segmentation_class_aug_train_indices_%d.pkl'%nb_val_samples)
+
+		if not os.path.exists(indices_filepath):
+			image_indices = list(range(len(mask_list)))
+			val_indices = np.random.choice(image_indices, size=nb_val_samples, replace=False)
+			train_indices = image_indices.copy()
+			for ind in val_indices:
+				train_indices.remove(ind)
+			pickle.dump(val_indices, open(os.path.join(self.extra_file_path, 'segmentation_class_aug_val_indices_%d.pkl'%nb_val_samples), 'wb'))
+			pickle.dump(train_indices, open(os.path.join(self.extra_file_path, 'segmentation_class_aug_train_indices_%d.pkl'%nb_val_samples), 'wb'))
+
+		indices = pickle.load(open(indices_filepath, 'rb'))
+		mask_list = [mask_list[ind] for ind in indices]
+
+		mask_filepath_list = ['SegmentationClassAug/' + fp for fp in mask_list]
+		image_filepath_list = ['JPEGImages/' + fp.split('.')[0] + '.jpg' for fp in mask_list]
+
+		return image_filepath_list, mask_filepath_list
+
 	'''
 	
 	'''
 	def get_image_indices(self, phase, method='supervised'):
 		'''
 		'''
-		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+		assert(phase in ['train', 'val', 'trainval', 'test'])
+		assert(method in ['supervised', 'unsupervised'])
+		
+		if self.task == 'segmentation_class_aug':
+			if phase == 'train':
+				indices = np.array(range(len(self.train_image_list)))
+				if self.shuffle_train:
+					np.random.shuffle(indices)
+				return indices
+			elif phase == 'val':
+				indices = np.array(range(len(self.val_image_list)))
+				if self.shuffle_val:
+					np.random.shuffle(indices)
+				return indices
+			else:
+				raise ValueError('None phase named ' + str(phase))
+
+		elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
 			if phase == 'train':
 				indices = np.array(range(len(self.train_image_list)))
 				if self.shuffle_train:
@@ -218,7 +293,21 @@ class PASCAL_VOC(BaseDataset):
 
 
 	def read_image_by_index_supervised(self, ind, phase='train'):
-		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+		if self.task == 'segmentation_class_aug':
+			if phase == 'train':
+				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+				mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
+			elif phase == 'val':
+				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+				mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
+
+			img = io.imread(image_filepath)
+			mask_c = io.imread(mask_filepath)
+
+			return img, mask_c
+
+
+		elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
 			if phase == 'train':
 				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
 				mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
@@ -236,7 +325,7 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img, mask = self.random_mirroring(img, mask=mask)
 				if self.is_random_cropping:
-					img, mask = self.random_crop_and_pad(img, mask=mask, size=self.output_shape, center_range=self.crop_range)
+					img, mask = self.random_crop_and_pad_image(img, mask=mask, size=self.output_shape, center_range=self.crop_range)
 			elif phase == 'val':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
@@ -263,7 +352,7 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img = self.random_mirroring(img)
 				if self.is_random_cropping:
-					img = self.random_crop_and_pad(img, size=self.output_shape, center_range=self.crop_range)
+					img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
 			elif phase == 'val' or phase == 'test':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
@@ -275,14 +364,21 @@ class PASCAL_VOC(BaseDataset):
 
 
 	def read_image_by_index_unsupervised(self, ind, phase='train'):
-		if self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+		if self.task == 'segmentation_class_aug':
+			if phase == 'train':
+				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+			elif phase == 'val':
+				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+			img = io.imread(image_filepath)
+			return img
+
+		elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
 			if phase == 'train':
 				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
 			elif phase == 'val':
 				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
 			elif phase == 'test':
 				image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
-			image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
 			img = io.imread(image_filepath)
 			return img
 
@@ -298,7 +394,7 @@ class PASCAL_VOC(BaseDataset):
 				if self.is_random_mirroring:
 					img = self.random_mirroring(img)
 				if self.is_random_cropping:
-					img = self.random_crop_and_pad(img, size=self.output_shape, center_range=self.crop_range)
+					img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
 			elif phase == 'val' or phase == 'test':
 				if self.is_random_scaling:
 					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2

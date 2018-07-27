@@ -35,7 +35,7 @@
  
         "classifier" : "classifier",
         "classifier params" : {
-            "batch_norm" : "fused_batch_norm",
+            "normalization" : "fused_batch_norm",
 
             "including_conv" : true,
             "conv_nb_blocks" : 3,
@@ -57,10 +57,11 @@
     "trainer" : "supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "nb_samples_50_adam",
+        "summary hyperparams string" : "learning_rate_0_001_adam",
 
-        "continue train" : true,
+        "continue train" : false,
         "multi thread" : true,
+        "buffer depth" : 200,
         "batch_size" : 32,
         "train steps" : 20000,
         "summary steps" : 1000,

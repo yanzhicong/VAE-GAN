@@ -66,11 +66,12 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsupervised_step = self.config.get('unsupervised step', 1)
 
 		# train data queue
-		self.supervised_image_queue = queue.Queue(maxsize=100)
-		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 300)
+		self.buffer_depth = self.config.get('buffer depth', 100)
+		self.supervised_image_queue = queue.Queue(maxsize=self.buffer_depth)
+		self.supervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 
-		self.unsupervised_image_queue = queue.Queue(maxsize=100)
-		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size * 300)
+		self.unsupervised_image_queue = queue.Queue(maxsize=self.buffer_depth)
+		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 
 
 		self.debug = self.config.get('debug', False)

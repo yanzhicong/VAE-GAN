@@ -49,6 +49,30 @@ from .basemodel import BaseModel
 
 class WGAN_GP(BaseModel):
 
+	"""
+		Implementation of "Improved Training of Wasserstein GANs"
+		Ishaan Gulrajani, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, Aaron Courville
+		
+		@article{DBLP:journals/corr/GulrajaniAADC17,
+			author    = {Ishaan Gulrajani and
+						Faruk Ahmed and
+						Mart{\'{\i}}n Arjovsky and
+						Vincent Dumoulin and
+						Aaron C. Courville},
+			title     = {Improved Training of Wasserstein GANs},
+			journal   = {CoRR},
+			volume    = {abs/1704.00028},
+			year      = {2017},
+			url       = {http://arxiv.org/abs/1704.00028},
+			archivePrefix = {arXiv},
+			eprint    = {1704.00028},
+			timestamp = {Wed, 07 Jun 2017 14:42:35 +0200},
+			biburl    = {https://dblp.org/rec/bib/journals/corr/GulrajaniAADC17},
+			bibsource = {dblp computer science bibliography, https://dblp.org}
+		}
+	"""
+
+
 	def __init__(self, config,
 		**kwargs
 	):
@@ -71,21 +95,19 @@ class WGAN_GP(BaseModel):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
 		self.config['generator params']['name'] = 'Generator'
-		self.discriminator = get_discriminator(self.config['discriminator'], self.config['discriminator params'], self.is_training)
-		self.generator = get_generator(self.config['generator'], self.config['generator params'], self.is_training)
+
+		self.discriminator = self.build_discriminator('discriminator')
+		self.generator = self.build_generator('generator')
 
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
-
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
-
 		self.dis_real = self.discriminator(self.x_real)
 		self.dis_fake = self.discriminator(self.x_fake)
 
 		# loss config
-
 		x_dims = len(self.input_shape)
 		if x_dims == 1:
 			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1], minval=0.0, maxval=1.0)
@@ -93,7 +115,6 @@ class WGAN_GP(BaseModel):
 			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
 		else:
 			raise NotImplementedError
-
 		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
@@ -115,23 +136,6 @@ class WGAN_GP(BaseModel):
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
-		# print('discriminator vars')
-		# for var in self.discriminator.vars:
-		# 	print(var.name, var.get_shape())
-
-
-		# print('generator vars')
-		# for var in self.generator.vars:
-		# 	print(var.name, var.get_shape())
-
-		# print('generator vars to save and restore')
-		# for var in self.generator.vars_to_save_and_restore:
-		# 	print(var.name, var.get_shape())
-
-
-		# print('generator all vars')
-		# for var in self.generator.all_vars:
-		# 	print(var.name, var.get_shape())
 
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
@@ -139,18 +143,6 @@ class WGAN_GP(BaseModel):
 		if not self.use_gradient_penalty:
 			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
 				for var in self.discriminator.vars]
-
-		# self.g_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.g_loss, var_list=self.generator.vars)
-		# self.d_optimizer = tf.train.AdamOptimizer(learning_rate=0.0001, beta1=0.5, beta2=0.9).minimize(self.d_loss, var_list=self.discriminator.vars)
-
-		# self.d_learning_rate = tf.convert_to_tensor(0.0001)
-		# self.g_learning_rate = tf.convert_to_tensor(0.0001)
-
-		# self.d_train_op = self.d_optimizer
-		# self.g_train_op = tf.group([self.g_optimizer, self.global_step_update])
-
-		# self.d_global_step = self.global_step
-		# self.g_global_step = self.global_step
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator
@@ -168,8 +160,8 @@ class WGAN_GP(BaseModel):
 																self.global_step, self.global_step_update)
 
 		# model saver
-		self.saver = tf.train.Saver(self.discriminator.vars_to_save_and_restore 
-									+ self.generator.vars_to_save_and_restore
+		self.saver = tf.train.Saver(self.discriminator.store_vars 
+									+ self.generator.store_vars
 									+ [self.global_step])
 
 
@@ -209,19 +201,9 @@ class WGAN_GP(BaseModel):
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		raise NotImplementedError
 
-
 	def train_on_batch_unsupervised(self, sess, x_batch):
-		
-		# print(x_batch.min(), x_batch.max())
-		# step = sess.run(self.global_step)
-
-		# if step < self.discriminator_warm_up_steps:
-		# 	dis_train_step = self.discriminator_training_steps * 20
-		# else:
 		dis_train_step = self.discriminator_training_steps
-		
 		summary_list = []
-
 		for i in range(dis_train_step):
 
 			if not self.use_gradient_penalty:

@@ -56,6 +56,9 @@ class BaseTrainer(object):
 			'batch_size':
 	'''
 	def __init__(self, config, model):
+
+		assert(isinstance(config, dict))
+		
 		self.config = config
 		self.model = model
 
@@ -129,7 +132,7 @@ class BaseTrainer(object):
 				model : 
 				dataset : 
 			return :
-				the current train step
+				step : the current train step
 		'''
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(self.sess, batch_x)
@@ -174,9 +177,11 @@ class BaseTrainer(object):
 						self.summary_writer.add_summary(summary, step)
 		return step
 
+
 	'''
-		multi thread util functions
+		multi thread util functions for read dataset images
 		for example:
+
 	'''
 	def read_data_inner_loop(self, 
 				coord, dataset, data_inner_queue, 
@@ -207,7 +212,8 @@ class BaseTrainer(object):
 						img = dataset.read_image_by_index_unsupervised(ind)
 						if isinstance(img, list):
 							for _img in img:
-								data_inner_queue.put((epoch, _img))
+								if _img is not None:
+									data_inner_queue.put((epoch, _img))
 						elif img is not None:
 							data_inner_queue.put((epoch, img))
 				else:

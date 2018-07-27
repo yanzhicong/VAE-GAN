@@ -1,18 +1,19 @@
 {
     "config name" : "wgan_gp",
 
-    "dataset" : "production",
+    "dataset" : "celeba",
     "dataset params" : {
-        "output shape" : [64, 64, 1],
-        "scalar range" : [-1.0, 1.0]
+        "output shape" : [128, 128, 3],
+        "scalar range" : [-1.0, 1.0],
+        "unsupervised" : true
     },
 
-    "assets dir" : "assets/wgan_gp/product",
+    "assets dir" : "assets/wgan_gp/celeba128",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
 
-        "input shape" : [64, 64, 1],
+        "input shape" : [128, 128, 3],
         "z_dim" : 100,
 
         "discriminator optimizer" : "adam",
@@ -31,14 +32,13 @@
             "beta2" : 0.9
         },
 
-
         "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
         "generator" : "generator",
         "generator params" : {
             "activation" : "relu",
-            "normalization" : "batch_norm", //
+            "normalization" : "fused_batch_norm", //
             "weightsinit" : "he_uniform",
 
             "including_bottom" : true,
@@ -48,10 +48,10 @@
             "including_deconv" : true,
             "deconv_nb_blocks" : 5,
             "deconv_nb_layers" : [1, 1, 1, 1, 0],     // output size = 4 * 2^(5-1)
-            "deconv_nb_filters" : [512, 256, 128, 64, 64],
+            "deconv_nb_filters" : [512, 256, 128, 64, 32],
             "deconv_ksize" : [5, 5, 5, 5, 5],
             
-            "output_dims" : 1,
+            "output_dims" : 3,
             "output_stride" : 2,
             "output_ksize" : 5,
             "output_activation" : "tanh",
@@ -65,10 +65,10 @@
             "weightsinit" : "he_uniform",
 
             "including_conv" : true,
-            "conv_nb_blocks" : 5,
-            "conv_nb_layers" : [1, 1, 1, 1, 0],
-            "conv_nb_filters" : [64, 128, 256, 512],
-            "conv_ksize" : [5, 5, 5, 5],
+            "conv_nb_blocks" : 6,
+            "conv_nb_layers" : [1, 1, 1, 1, 1, 0],
+            "conv_nb_filters" : [64, 128, 256, 512, 512],
+            "conv_ksize" : [5, 5, 5, 5, 5],
             "no_maxpooling" : true,
 
             "including_top" : true,
@@ -104,7 +104,7 @@
                 "validator params" : {
                     "log dir" : "generated_lr_0_0001",
                     "z shape" : [100],
-                    "x shape" : [64, 64, 1],
+                    "x shape" : [128, 128, 3],
                     "scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
@@ -116,7 +116,7 @@
                 "validator params" : {
                     "log dir" : "generated_lr_0_0001_fixed",
                     "z shape" : [100],
-                    "x shape" : [64, 64, 1],
+                    "x shape" : [128, 128, 3],
                     "scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8,
@@ -128,7 +128,7 @@
                 "validate steps" : 5000,
                 "validator params" : {
                     "z shape" : [100],
-                    "x shape" : [64, 64, 1],
+                    "x shape" : [128, 128, 3],
                     "log dir" : "log_lr_0_0001"
                 }
             }

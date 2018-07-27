@@ -23,7 +23,6 @@
 # ==============================================================================
 
 
-
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import tensorflow.contrib.metrics as tcm
@@ -34,7 +33,6 @@ def _assign_moving_average(variable, value, decay):
         decay = tf.convert_to_tensor(decay, name='decay')
         update_delta = (variable - value) * decay
         return tf.assign_sub(variable, update_delta, name=scope)
-
 
 def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
     if probs is not None:
@@ -49,7 +47,6 @@ def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
     else:
         var = tf.Variable(0.0, name='acc_top_1')
         return _assign_moving_average(var, acc, decay)
-
 
 
 def segmentation_miou(mask, nb_classes, logits=None, probs=None):
@@ -68,11 +65,9 @@ def segmentation_miou(mask, nb_classes, logits=None, probs=None):
                             # metrics_collections=[tf.GraphKeys.GLOBAL_VARIABLES]
                             )
 
-
     with tf.control_dependencies([miou_update_op]):
         miou = tf.identity(miou)
     return miou
-
 
 
 metric_dict = {

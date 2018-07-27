@@ -87,7 +87,7 @@ class Segmentation(BaseModel):
 														target=self.loss, variables=self.classifier.vars)
 
 		# model saver
-		self.saver = tf.train.Saver(self.classifier.vars_to_save_and_restore + [self.global_step,])
+		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
 
 
 	def build_summary(self):
@@ -105,7 +105,7 @@ class Segmentation(BaseModel):
 			self.sum_scalar2 = tf.summary.merge(sum_list)
 
 			# summary hists are logged by calling self.summary()
-			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars_to_save_and_restore]
+			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
 			self.sum_hist = tf.summary.merge(sum_list)
 
 		else:

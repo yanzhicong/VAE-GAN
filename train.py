@@ -31,7 +31,6 @@ from shutil import copyfile
 
 import tensorflow as tf
 
-
 sys.path.append('./')
 sys.path.append('./lib')
 sys.path.append('../')

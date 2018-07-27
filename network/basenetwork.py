@@ -30,7 +30,6 @@ sys.path.append('../')
 
 import tensorflow as tf
 from tensorflow import layers as tl
-# import tensorflow.layers as tl
 import tensorflow.contrib.layers as tcl
 
 
@@ -43,11 +42,11 @@ class BaseNetwork(object):
 	def __init__(self, config, is_training):
 		self.name = config['name']
 		self.is_training = is_training
-		self.batch_norm_params_collection = 'BATCH_NORM_MOVING_VARS'
+		self.moving_variables_collection = 'BATCH_NORM_MOVING_VARS'
 
 		self.norm_params = {
 			'is_training' : self.is_training,
-			'moving_vars_collection' : self.batch_norm_params_collection
+			'moving_vars_collection' : self.moving_variables_collection
 		}
 		self.config = config
 
@@ -171,7 +170,6 @@ class BaseNetwork(object):
 		# x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
 		# 									use_bias=True,
 		# 									activation_fn=l_act_fn,
-		# 									normaliz123er_fn=l_norm_fn,
 		# 									normalizer_fn=l_norm_fn,
 		# 									normalizer_params=norm_params,
 		# 									weights_initializer=l_winit_fn,
@@ -260,12 +258,16 @@ class BaseNetwork(object):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
 	@property
-	def vars_to_save_and_restore(self):
-		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) + tf.get_collection(self.batch_norm_params_collection, scope=self.name)
+	def trainable_vars(self):
+		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
+
+	@property
+	def store_vars(self):
+		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) + tf.get_collection(self.moving_variables_collection, scope=self.name)
 
 	@property
 	def moving_vars(self):
-		return tf.get_collection(self.batch_norm_params_collection, scope=self.name)
+		return tf.get_collection(self.moving_variables_collection, scope=self.name)
 
 	@property
 	def all_vars(self):

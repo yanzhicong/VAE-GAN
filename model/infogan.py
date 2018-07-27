@@ -129,8 +129,8 @@ class InfoGAN(BaseModel):
 																self.global_step, self.global_step_update)
 
 		# model saver
-		self.saver = tf.train.Saver(self.discriminator.vars_to_save_and_restore 
-									+ self.generator.vars_to_save_and_restore
+		self.saver = tf.train.Saver(self.discriminator.store_vars 
+									+ self.generator.store_vars
 									+ [self.global_step])
 
 

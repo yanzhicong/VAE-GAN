@@ -96,13 +96,9 @@ def segmentation_cross_entropy_loss(logits, mask, instance_weight=None):
 
 	# # probs = tf.nn.softmax(logits, axis=2)
 	# # print(probs.get_shape())
-
-
 	# # loss = tf.reduce_mean(tf.reduce_sum(- mask * tf.log(probs), axis=2), axis=1)
-
 	# # print(loss.get_shape())
 	# return tf.reduce_mean(loss)
-
 
 	if instance_weight is None:
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=mask, logits=logits))
@@ -144,6 +140,15 @@ def gradient_penalty_l2_loss(x, y):
 	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[i for i in range(1, g_rank)]))
 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
 	return gradient_penalty
+
+
+# def gradient_penalty_l2_per_pixel_loss(x, y):
+# 	gradients = tf.gradients(y, xs=[x])[0]
+# 	g_rank = len(gradients.get_shape())
+# 	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[g_rank-1]))
+# 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
+# 	return gradient_penalty
+
 
 loss_dict = {
 	'kl' : {

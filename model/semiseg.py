@@ -155,7 +155,7 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 		###########################################################################
 		# model saver
-		self.saver = tf.train.Saver(self.vars_to_save_and_restore + [self.d_su_global_step, self.g_su_global_step])
+		self.saver = tf.train.Saver(self.store_vars + [self.d_su_global_step, self.g_su_global_step])
 
 	def build_summary(self):
 

@@ -27,6 +27,10 @@ def get_dataset(name, config):
 	if name == 'imagenet':
 		from .imagenet import ImageNet
 		return ImageNet(config)
+
+	elif name == 'celeba':
+		from .celeba import CelebA
+		return CelebA(config)
 		
 	elif name == 'mnist':
 		from .mnist import MNIST

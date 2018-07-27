@@ -37,8 +37,6 @@ import tensorflow.contrib.layers as tcl
 from tensorflow.contrib.tensorboard.plugins import projector
 
 
-from utils.metric import get_metric
-
 from .basevalidator import BaseValidator
 
 class EmbeddingValidator(BaseValidator):
@@ -52,16 +50,21 @@ class EmbeddingValidator(BaseValidator):
 
 		self.z_shape = list(config['z shape'])
 		self.x_shape = list(config['x shape'])
+		self.nb_samples = config.get('nb samples', 1000)
+		self.batch_size = config.get('batch_size', 100)
+
+		self.nb_samples = self.nb_samples // self.batch_size * self.batch_size
+
 
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
 
 		with open(os.path.join(self.log_dir, 'metadata.tsv'), 'w') as f:
 			f.write("Index\tLabel\n")
-			for i in range(1000):
+			for i in range(self.nb_samples):
 				f.write("%d\t%d\n"%(i, 0))
-			for i in range(1000):
-				f.write("%d\t%d\n"%(i+1000, 1))
+			for i in range(self.nb_samples):
+				f.write("%d\t%d\n"%(i+self.nb_samples, 1))
 
 		summary_writer = tf.summary.FileWriter(self.log_dir)
 		config = projector.ProjectorConfig()
@@ -70,28 +73,34 @@ class EmbeddingValidator(BaseValidator):
 		embedding.metadata_path = "metadata.tsv"
 		projector.visualize_embeddings(summary_writer, config)
 
-		self.plot_array_var = tf.get_variable('test', shape=[2000, int(np.product(self.x_shape))])
+		self.plot_array_var = tf.get_variable('test', shape=[self.nb_samples*2, int(np.product(self.x_shape))])
 		self.saver = tf.train.Saver([self.plot_array_var])
 
 
 	def validate(self, model, dataset, sess, step):
 
 		plot_array_list = []
-
 		indices = dataset.get_image_indices(phase='test')
-		indices = np.random.choice(indices, size=1000)
+		indices = np.random.choice(indices, size=self.nb_samples)
 
-		for ind in indices:
+		for i, ind in enumerate(indices):
 			test_x = dataset.read_image_by_index_unsupervised(ind, phase='test')
-			test_x = test_x.reshape([-1,])
-			plot_array_list.append(test_x)
+			if isinstance(test_x, list):
+				for x in test_x:
+					x = x.reshape([-1,])
+					plot_array_list.append(x)
+					if len(plot_array_list) >= self.nb_samples:
+						break
+			elif test_x is not None:
+				test_x = test_x.reshape([-1,])
+				plot_array_list.append(test_x)
+			if len(plot_array_list) >= self.nb_samples:
+				break
 
-		batch_size = 100
-
-		for i in range(1000 // batch_size):
-			batch_z = np.random.randn(*([100,] + self.z_shape))
+		for i in range(self.nb_samples // self.batch_size):
+			batch_z = np.random.randn(*([self.nb_samples,] + self.z_shape))
 			batch_x = model.generate(sess, batch_z)
-			for i in range(batch_size):
+			for i in range(self.batch_size):
 				plot_array_list.append(batch_x[i].reshape([-1]))
 
 		plot_array_list = np.array(plot_array_list)
@@ -102,3 +111,4 @@ class EmbeddingValidator(BaseValidator):
 							global_step=step, 
 							write_meta_graph=False,
 							strip_default_attrs=True)
+

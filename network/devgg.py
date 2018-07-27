@@ -150,7 +150,7 @@ class DEVGG(BaseNetwork):
 					print('\toutput network : ')
 			if output_dims != 0:
 				if including_deconv:
-					x = self.deconv2d('conv_out', x, output_dims, output_ksize, stride=output_stride, **self.out_conv_args, disp=debug)
+					x = self.deconv2d('deconv_out', x, output_dims, output_ksize, stride=output_stride, **self.out_conv_args, disp=debug)
 				else:
 					x = self.fc('fc_out', x, output_dims, **self.out_fc_args, disp=debug)
 					if output_shape is not None:

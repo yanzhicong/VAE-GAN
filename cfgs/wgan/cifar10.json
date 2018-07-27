@@ -7,7 +7,7 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10_2",
+    "assets dir" : "assets/wgan_gp/cifar10_4",
     "model" : "wgan_gp",
     "model params" : {
         "name" : "wgan_gp",
@@ -38,7 +38,9 @@
  
         "generator" : "generator",
         "generator params" : {
+            "activation" : "relu",
             "normalization" : "fused_batch_norm3", //
+            "weightsinit" : "he_uniform",
 
             "including_bottom" : true,
             "fc_nb_nodes" : [],
@@ -54,6 +56,8 @@
             "output_stride" : 2,
             "output_ksize" : 5,
             "output_activation" : "tanh",
+
+            "fc1 weightsinit" : "glorot_uniform",
             "debug" : true
         },
 
@@ -61,6 +65,7 @@
         "discriminator params" : {
             "activation" : "lrelu 0.2",
             "normalization" : "none",
+            "weightsinit" : "he_uniform",
 
             "including_conv" : true,
             "conv_nb_blocks" : 4,
@@ -74,6 +79,10 @@
 
             "output_dims" : 1,
             "output_activation" : "none",
+
+
+            "fc_out weightsinit" : "glorot_uniform",
+            // "conv1_0 weightsinit" : "normal 0.0 0.15",
             "debug" : true
         }
     },
@@ -82,7 +91,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001_bs128_bn3",
+        "summary hyperparams string" : "bs128_he_uniform",
 
         "multi thread" : true,
         "continue train" : false,

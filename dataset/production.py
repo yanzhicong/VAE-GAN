@@ -57,17 +57,20 @@ class ChipProduction(BaseDataset):
 		self.subapp_list = [u'SI-XGA-B-BLand2-WX163L2CxxV02', u'SI-RT-DUMMY', u'SI-LT-DUMMY']
 		self.output_subapp_list = ['composed']
 
+		self.scalar_range = config.get('scalar range', [0.0, 1.0])
+
 		self.crop_range = self.config.get('crop range', [0.1, 0.9])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
 		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
 
+
 	def get_image_indices(self, phase, method='unsupervised'):
 		return np.arange(len(self.lot_number_list))
 
-	def read_image_by_index_supervised(self, ind):
+	def read_image_by_index_supervised(self, ind, phase=None):
 		raise NotImplementedError
 
-	def read_image_by_index_unsupervised(self, ind):
+	def read_image_by_index_unsupervised(self, ind, phase=None):
 		lot_number = self.lot_number_list[ind]
 		image_dict = self.get_aligned_dataset_in_lot2(lot_number)
 
@@ -91,7 +94,9 @@ class ChipProduction(BaseDataset):
 					mixed_image = image0.reshape(list(image0.shape) + [1,])
 					# mixed_image = mixed_image.transpose([1, 2, 0])
 					for i in range(self.batch_size):
-						img = self.random_crop_and_pad(mixed_image, size=self.output_size, center_range=self.crop_range)
+						img = self.random_crop_and_pad_image(mixed_image, size=self.output_size, center_range=self.crop_range)
+						img = img / 255.0 
+						img = img * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 						output_image_list.append(img)
 			return output_image_list
 		else:
@@ -217,3 +222,5 @@ class ChipProduction(BaseDataset):
 		else:
 			diffrate = diff / sdiff
 			return (s - smin) * diffrate+min
+
+

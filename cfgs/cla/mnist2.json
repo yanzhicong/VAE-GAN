@@ -4,7 +4,7 @@
     "dataset" : "mnist",
     "dataset params" : {
         // "semi-supervised" : true,
-        // "nb_labelled_images_per_class" : 1000,
+        // "nb_labelled_images_per_class" : 10,
         "output shape" : [28, 28, 1],
         "batch_size" : 128
     },
@@ -35,7 +35,7 @@
  
         "classifier" : "classifier",
         "classifier params" : {
-            "batch_norm" : "fused_batch_norm",
+            "normalization" : "fused_batch_norm",
 
             "including_conv" : true,
             "conv_nb_blocks" : 3,
@@ -59,10 +59,10 @@
 
         "summary hyperparams string" : "learning_rate_0_001_adam",
 
-        "continue train" : true,
+        "continue train" : false,
         "multi thread" : true,
         "batch_size" : 32,
-        "train steps" : 40000,
+        "train steps" : 20000,
         "summary steps" : 1000,
         "log steps" : 100,
         "save checkpoint steps" : 10000,

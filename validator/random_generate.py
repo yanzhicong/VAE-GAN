@@ -75,14 +75,12 @@ class RandomGenerate(BaseValidator):
 
 
 	def validate(self, model, dataset, sess, step):
-
 		if self.fix_z:
 			batch_z = self.batch_z
 		else:
 			batch_size = self.nb_col_images * self.nb_row_images
 			batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
 		batch_x = model.generate(sess, batch_z)
-
 
 		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(8, 8),
 								subplot_kw={'xticks': [], 'yticks': []})

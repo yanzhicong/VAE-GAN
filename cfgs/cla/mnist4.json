@@ -35,7 +35,7 @@
  
         "classifier" : "classifier",
         "classifier params" : {
-            "batch_norm" : "fused_batch_norm",
+            "normalization" : "fused_batch_norm",
 
             "including_conv" : true,
             "conv_nb_blocks" : 3,
@@ -59,7 +59,7 @@
 
         "summary hyperparams string" : "learning_rate_0_001_adam",
 
-        "continue train" : true,
+        "continue train" : false,
         "multi thread" : true,
         "batch_size" : 32,
         "train steps" : 20000,

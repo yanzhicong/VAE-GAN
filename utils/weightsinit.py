@@ -49,27 +49,30 @@ def get_weightsinit(name_config):
 			init_mean = 0.0
 			init_var = 0.02
 		return tf.random_normal_initializer(init_mean, init_var)
-	elif name == 'uniform':
+	elif name == 'uniform' or name == 'uni':
 		if len(split) == 3:
-			init_min == float(split[1])
-			init_max == float(split[2])
+			init_min = float(split[1])
+			init_max = float(split[2])
 		else:
-			init_min == 0.0
-			init_max == 1.0
+			init_min = 0.0
+			init_max = 1.0
 		return tf.random_uniform_initializer(init_min, init_max)
 		
 	elif name == 'he_uniform':
 		return tf.keras.initializers.he_uniform()
-
 	elif name == 'he_normal':
 		return tf.keras.initializers.he_normal()
+
+	elif name == 'glorot_uniform' or name == 'glorot_uni':
+		return tf.keras.initializers.glorot_uniform()
+	elif name == 'glorot_normal':
+		return tf.keras.initializers.glorot_normal()
 
 	elif name == 'xavier':
 		return tf.contrib.layers.xavier_initializer()
 
 	elif name == 'zeros' or name == 'zero':
 		return tf.zeros_initializer()
-		
 	elif name == 'ones' or name == 'one':
 		return tf.ones_initializer()
 

@@ -51,17 +51,15 @@ class Classification(BaseModel):
 		super(Classification, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input shape']
-		# self.z_dim = config['z_dim']
 		self.nb_classes = config['nb classes']
 		self.config = config
 		self.build_model()
-		if self.is_summary:
-			self.build_summary()
+		self.build_summary()
 
 	def build_model(self):
 
 		self.config['classifier params']['name'] = 'classifier'
-		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.is_training)
+		self.classifier = self.build_classifier('classifier')
 
 		# for training
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
@@ -84,8 +82,8 @@ class Classification(BaseModel):
 		# for var in self.classifier.vars:
 		# 	print(var.name, ' --> ', var.get_shape())
 
-		# print('vars_to_save_and_restore')
-		# for var in self.classifier.vars_to_save_and_restore:
+		# print('store_vars')
+		# for var in self.classifier.store_vars:
 		# 	print(var.name, ' --> ', var.get_shape())
 
 		(self.train_op, 
@@ -94,25 +92,30 @@ class Classification(BaseModel):
 														target=self.loss, variables=self.classifier.vars)
 
 		# model saver
-		self.saver = tf.train.Saver(self.classifier.vars_to_save_and_restore + [self.global_step,])
+		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
 
 
 	def build_summary(self):
-		# summary scalars are logged per step
-		sum_list = []
-		sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-		sum_list.append(tf.summary.scalar('train loss', self.loss))
-		sum_list.append(tf.summary.scalar('train acc', self.train_acc))
-		self.sum_scalar = tf.summary.merge(sum_list)
+		if self.is_summary:
+			# summary scalars are logged per step
+			sum_list = []
+			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
+			sum_list.append(tf.summary.scalar('train loss', self.loss))
+			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
+			self.sum_scalar = tf.summary.merge(sum_list)
 
-		for key, var in self.end_points.items():
-			sum_list.append(tf.summary.histogram('netout/' + key, var))
+			for key, var in self.end_points.items():
+				sum_list.append(tf.summary.histogram('netout/' + key, var))
 
-		self.sum_scalar2 = tf.summary.merge(sum_list)
+			self.sum_scalar2 = tf.summary.merge(sum_list)
 
-		# summary hists are logged by calling self.summary()
-		sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.vars_to_save_and_restore]
-		self.sum_hist = tf.summary.merge(sum_list)
+			# summary hists are logged by calling self.summary()
+			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
+			self.sum_hist = tf.summary.merge(sum_list)
+		else:
+			self.sum_scalar = None
+			self.sum_scalar2 = None
+			self.sum_hist = None
 
 	'''
 		train operations

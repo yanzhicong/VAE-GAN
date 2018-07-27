@@ -43,6 +43,11 @@ class BaseDataset(object, metaclass=ABCMeta):
 		self.shuffle_test = self.config.get('shuffle test', False)
 		self.batch_size = self.config.get('batch_size', 16)
 
+		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
+
+
+
+
 	'''
 		method for direct access images
 		E.g.
@@ -281,7 +286,31 @@ class BaseDataset(object, metaclass=ABCMeta):
 			return img
 
 
-	def random_crop_and_pad(self, img, size, mask=None, center_range=[0.2, 0.8]):
+	def crop_and_pad_image(self, img, bbox):
+		'''
+			crop and pad image
+		'''
+		def pad_img_to_fit_bbox(img, x0, x1, y0, y1):
+			img = np.pad(img, (
+								(	np.abs(np.minimum(0, y0)), 
+								 	np.maximum(y1 - img.shape[0], 0)),
+					   			(	np.abs(np.minimum(0, x0)), 
+					   		 	 	np.maximum(x1 - img.shape[1], 0)), 
+					   			(0,0)), mode="constant")
+			_y0 = y0 + np.abs(np.minimum(0, y0))
+			_y1 = y1 + np.abs(np.minimum(0, y0))
+			_x0 = x0 + np.abs(np.minimum(0, x0))
+			_x1 = x1 + np.abs(np.minimum(0, x0))
+			return img, _x0, _x1, _y0, _y1
+		def imcrop(img, bbox): 
+			x0,y0,x1,y1 = bbox
+			if x0 < 0 or y0 < 0 or x1 > img.shape[1] or y1 > img.shape[0]:
+				img, x0, x1, y0, y1 = pad_img_to_fit_bbox(img, x0, x1, y0, y1)
+			return img[y0:y1, x0:x1, :]
+		return imcrop(img, bbox)
+
+
+	def random_crop_and_pad_image(self, img, size, mask=None, center_range=[0.2, 0.8]):
 		'''
 			randomly crop and pad image to the given size
 			Arguments : 
@@ -292,24 +321,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 		h, w, c = img.shape
 		crop_w, crop_h = size[0:2]
 
-		def pad_img_to_fit_bbox(img, x1, x2, y1, y2):
-			img = np.pad(img, (
-								(	np.abs(np.minimum(0, y1)), 
-								 	np.maximum(y2 - img.shape[0], 0)),
-					   			(	np.abs(np.minimum(0, x1)), 
-					   		 	 	np.maximum(x2 - img.shape[1], 0)), 
-					   			(0,0)), mode="constant")
-			_y1 = y1 + np.abs(np.minimum(0, y1))
-			_y2 = y2 + np.abs(np.minimum(0, y1))
-			_x1 = x1 + np.abs(np.minimum(0, x1))
-			_x2 = x2 + np.abs(np.minimum(0, x1))
-			return img, _x1, _x2, _y1, _y2
 
-		def imcrop(img, bbox): 
-			x1,y1,x2,y2 = bbox
-			if x1 < 0 or y1 < 0 or x2 > img.shape[1] or y2 > img.shape[0]:
-				img, x1, x2, y1, y2 = pad_img_to_fit_bbox(img, x1, x2, y1, y2)
-			return img[y1:y2, x1:x2, :]
 
 		if mask is not None and (mask.shape[0] != h or mask.shape[1] != w):
 			raise ValueError('mask shape error : ', mask.shape)
@@ -333,7 +345,7 @@ class BaseDataset(object, metaclass=ABCMeta):
 		y2 = int(y1 + crop_h)
 		bbox = (x1, y1, x2, y2)
 
-		combined_crop = imcrop(combined, bbox)
+		combined_crop = self.crop_and_pad_image(combined, bbox)
 		img_crop = combined_crop[:, :, :c]
 
 		if mask is not None:
@@ -343,3 +355,24 @@ class BaseDataset(object, metaclass=ABCMeta):
 		else:
 			return img_crop
 
+
+
+	def scale_output(self, data):
+		'''
+			input data is in range of [0.0, 1.0]
+			this function rescale the data to the range of config parameters "scalar range"
+		'''
+
+		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
+			return data
+		else:
+			return data * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
+
+	def unscale_output(self, data):
+		'''
+			the reverse function of scale_output
+		'''
+		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
+			return data
+		else:
+			return (data - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0]) 

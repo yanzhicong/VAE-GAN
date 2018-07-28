@@ -28,6 +28,7 @@ import sys
 import queue
 import threading
 import numpy as np
+from time import *
 
 sys.path.append('.')
 sys.path.append('../')
@@ -102,19 +103,18 @@ class BaseTrainer(object):
 			print('\tsave_checkpoint_steps : ', self.save_checkpoint_steps)
 			print('\tbatch_size : ', self.batch_size)
 
+		self.moving_time_pre_step = 0.0
+		self.moving_time_decay = 0.03
+
+
 
 	def train_initialize(self, sess, model):
 		self.sess = sess
-
-		all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-
-
+		# all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 		# for var in all_vars:
 		# 	print(var.name, ' --> ', var.get_shape(	))
-
 		sess.run(tf.global_variables_initializer())
 		sess.run(tf.local_variables_initializer())
-
 		if self.config.get('continue train', False):
 			if model.checkpoint_load(sess, self.load_checkpoint_dir):
 				print("Continue Train...")
@@ -134,6 +134,9 @@ class BaseTrainer(object):
 			return :
 				step : the current train step
 		'''
+
+		start_time = clock()
+
 		if batch_y is None:
 			step, lr, loss, summary = model.train_on_batch_unsupervised(self.sess, batch_x)
 			self.unsu_step = step
@@ -144,6 +147,10 @@ class BaseTrainer(object):
 			self.su_step = step
 			self.su_lr = lr
 			self.su_loss = loss
+
+		time_elapsed = clock() - start_time
+		self.moving_time_pre_step = time_elapsed * self.moving_time_decay + (1.0 - self.moving_time_decay) * self.moving_time_pre_step
+	
 
 		if self.summary_steps != 0 and summary is not None:
 			if isinstance(summary, list):
@@ -156,7 +163,8 @@ class BaseTrainer(object):
 			print("epoch : " + str(epoch)       
 					+ ", step : " + str(step)
 					+ ", lr : " + str(lr) 
-					+ ", loss : " + str(loss))
+					+ ", loss : " + str(loss)
+					+ " (%0.3fs/step)"%(self.moving_time_pre_step))
 
 		if self.summary_steps != 0 and (step % self.summary_steps == 0 or step == 1):
 			summary = model.summary(self.sess)
@@ -175,6 +183,7 @@ class BaseTrainer(object):
 							self.summary_writer.add_summary(summ, s)
 					else:
 						self.summary_writer.add_summary(summary, step)
+
 		return step
 
 

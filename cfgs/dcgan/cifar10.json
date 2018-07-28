@@ -1,5 +1,5 @@
 {
-    "config name" : "wgan_gp",
+    "config name" : "dcgan",
 
     "dataset" : "cifar10",
     "dataset params" : {
@@ -7,10 +7,10 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/wgan_gp/cifar10_5",
-    "model" : "wgan_gp",
+    "assets dir" : "assets/dcgan/cifar10",
+    "model" : "dcgan",
     "model params" : {
-        "name" : "wgan_gp",
+        "name" : "dcgan",
 
         "input shape" : [32, 32, 3],
         "z_dim" : 100,
@@ -32,14 +32,12 @@
         },
 
         "discriminator training steps" : 5,
-
-        "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
         "generator" : "generator",
         "generator params" : {
             "activation" : "relu",
-            "normalization" : "fused_batch_norm3", //
+            "normalization" : "fused_batch_norm", //
             "weightsinit" : "he_uniform special",
 
             "including_bottom" : true,
@@ -64,7 +62,7 @@
         "discriminator" : "discriminator",
         "discriminator params" : {
             "activation" : "lrelu 0.2",
-            "normalization" : "none",
+            "normalization" : "fused_batch_norm", //
             "weightsinit" : "he_uniform special",
 
             "including_conv" : true,
@@ -81,6 +79,7 @@
             "output_activation" : "none",
 
             "fc_out weightsinit" : "glorot_uniform special",
+            // "conv1_0 weightsinit" : "normal 0.0 0.15",
             "debug" : true
         }
     },
@@ -89,14 +88,14 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform",
+        "summary hyperparams string" : "bs128_he_uniform_adam",
 
         "multi thread" : true,
         "continue train" : false,
-        "train steps" : 200000,
+        "train steps" : 100000,
 
         "summary steps" : 1000,
-        "log steps" : 1000,
+        "log steps" : 100,
         "save checkpoint steps" : 10000,
 
         "batch_size" : 128,
@@ -107,7 +106,7 @@
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
-                    "log dir" : "generated_lr_0_0001",
+                    "log dir" : "generated_adam",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
                     "scalar range" : [-1.0, 1.0],
@@ -119,7 +118,7 @@
                 "validator" : "random_generate",
                 "validate steps" : 1000,
                 "validator params" : {
-                    "log dir" : "generated_lr_0_0001_fixed",
+                    "log dir" : "generated_adam_fixed",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
                     "scalar range" : [-1.0, 1.0],
@@ -134,7 +133,7 @@
                 "validator params" : {
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
-                    "log dir" : "log_lr_0_0001"
+                    "log dir" : "log_adam"
                 }
             },
             {
@@ -149,5 +148,4 @@
         ]
     }
 }
-
 

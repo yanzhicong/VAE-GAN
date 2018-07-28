@@ -129,9 +129,19 @@ def feature_matching_l2_loss(fx, fy, fnames):
 def adv_down_wassterstein_loss(dis_real, dis_fake):
 	return - tf.reduce_mean(dis_real) + tf.reduce_mean(dis_fake)
 
+def adv_down_cross_entropy_loss(dis_real, dis_fake):
+	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.zeros_like(dis_fake)))
+	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=tf.ones_like(dis_fake)))
+	loss /= 2.0
+	return loss
 
 def adv_up_wassterstein_loss(dis_fake):
 	return - tf.reduce_mean(dis_fake)
+
+
+def adv_up_cross_entropy_loss(dis_fake):
+	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.ones_like(dis_fake)))
+
 
 
 def gradient_penalty_l2_loss(x, y):
@@ -175,10 +185,12 @@ loss_dict = {
 		'l2' : feature_matching_l2_loss
 	},
 	'adversarial down' : {
-		'wassterstein' : adv_down_wassterstein_loss 
+		'wassterstein' : adv_down_wassterstein_loss,
+		'cross entropy' : adv_down_cross_entropy_loss 
 	},
 	'adversarial up' : {
-		'wassterstein' : adv_up_wassterstein_loss 
+		'wassterstein' : adv_up_wassterstein_loss,
+		'cross entropy' : adv_up_cross_entropy_loss 
 	},
 	'gradient penalty' : {
 		'l2' : gradient_penalty_l2_loss

@@ -31,6 +31,7 @@ sys.path.append('../')
 import tensorflow as tf
 from tensorflow import layers as tl
 import tensorflow.contrib.layers as tcl
+import numpy as np
 
 
 from utils.weightsinit import get_weightsinit
@@ -103,6 +104,14 @@ class BaseNetwork(object):
 			'binit_fn':binit_fn,
 		}
 
+	def uniform_initializer(self, stdev):
+		return tf.random_uniform_initializer(-stdev*np.sqrt(3), stdev*np.sqrt(3))
+		# return np.random.uniform(
+		# 	low=-stdev * np.sqrt(3),
+		# 	high=stdev * np.sqrt(3),
+		# 	size=size
+		# ).astype('float32')
+
 
 	def conv2d(self, name, x, nb_filters, ksize, stride, 
 				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
@@ -114,7 +123,19 @@ class BaseNetwork(object):
 		l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		l_winit_fn = get_weightsinit(_winit_fn)
+		if 'special' in _winit_fn:
+			split = _winit_fn.split()
+			winit_name = split[0]
+			if winit_name == 'he_uniform':
+				input_nb_filters = int(x.get_shape()[-1])
+				fan_in = input_nb_filters * (ksize**2)
+				fan_out = nb_filters * (ksize**2) / (stride**2)
+				filters_stdev = np.sqrt(4.0/(fan_in + fan_out))
+				l_winit_fn = self.uniform_initializer(filters_stdev)
+			else:
+				raise Exception('Error weights initializer function name : ' + _winit_fn)
+		else:
+			l_winit_fn = get_weightsinit(_winit_fn)
 
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)
@@ -160,7 +181,19 @@ class BaseNetwork(object):
 		l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		l_winit_fn = get_weightsinit(_winit_fn)
+		if 'special' in _winit_fn:
+			split = _winit_fn.split()
+			winit_name = split[0]
+			if winit_name == 'he_uniform':
+				input_nb_filters = int(x.get_shape()[-1])
+				fan_in = input_nb_filters * (ksize**2) / (stride**2)
+				fan_out = nb_filters * (ksize**2)
+				filters_stdev = np.sqrt(4.0/(fan_in + fan_out))
+				l_winit_fn = self.uniform_initializer(filters_stdev)
+			else:
+				raise Exception('Error weights initializer function name : ' + _winit_fn)
+		else:
+			l_winit_fn = get_weightsinit(_winit_fn)
 
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)
@@ -203,7 +236,17 @@ class BaseNetwork(object):
 		l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		l_winit_fn = get_weightsinit(_winit_fn)
+		if 'special' in _winit_fn:
+			split = _winit_fn.split()
+			winit_name = split[0]
+			if winit_name == 'glorot_uniform':
+				input_nb_nodes = int(x.get_shape()[-1])
+				filters_stdev = np.sqrt(2.0/(input_nb_nodes + nb_nodes))
+				l_winit_fn = self.uniform_initializer(filters_stdev)
+			else:
+				raise Exception('Error weights initializer function name : ' + _winit_fn)
+		else:
+			l_winit_fn = get_weightsinit(_winit_fn)
 
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)

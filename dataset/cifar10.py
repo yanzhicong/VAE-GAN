@@ -39,6 +39,8 @@ class Cifar10(BaseDataset):
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = 'C:\\Data\\Cifar10'
 		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = 'G:/dataset/Cifar10'
+		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = 'D:\\dataset\\Cifar10'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/Cifar10'

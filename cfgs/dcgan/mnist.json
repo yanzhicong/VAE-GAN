@@ -1,0 +1,142 @@
+{
+    "config name" : "dcgan",
+
+    "dataset" : "mnist",
+    "dataset params" : {
+        "output_shape" : [28, 28, 1],
+        "scalar range" : [-1.0, 1.0]
+    },
+
+    "assets dir" : "assets/dcgan/mnist",
+    "model" : "dcgan",
+    "model params" : {
+        "name" : "dcgan",
+
+        "input shape" : [28, 28, 1],
+        "z_dim" : 10,
+
+        "discriminator optimizer" : "adam",
+        "discriminator optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "constant",
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "generator optimizer" : "adam",
+        "generator optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "constant",
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "discriminator training steps" : 5,
+        "summary" : true,
+ 
+        "generator" : "generator",
+        "generator params" : {
+            "activation" : "relu",
+            "normalization" : "fused_batch_norm", //
+            "weightsinit" : "he_uniform special",
+
+            "including_bottom" : true,
+            "fc_nb_nodes" : [],
+            "fc_output_reshape" : [7, 7, 64],
+
+            "including_deconv" : true,
+            "deconv_nb_blocks" : 2,
+            "deconv_nb_layers" : [1, 0],
+            "deconv_nb_filters" : [32, 16],
+            "deconv_ksize" : [5, 5],
+            
+            "output_dims" : 1,
+            "output_stride" : 2,
+            "output_ksize" : 5,
+            "output_activation" : "tanh",
+
+            "fc1 weightsinit" : "glorot_uniform special",
+            "debug" : true
+        },
+
+
+        "discriminator" : "discriminator",
+        "discriminator params" : {
+            "activation" : "lrelu 0.2",
+            "normalization" : "fused_batch_norm", //
+            "weightsinit" : "he_uniform special",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 3,
+            "conv_nb_layers" : [1, 1, 0],
+            "conv_nb_filters" : [32, 64, 128],
+            "conv_ksize" : [5, 5, 5],
+            "no_maxpooling" : true,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [],
+
+            "output_dims" : 1,
+            "output_activation" : "none",
+
+            "fc_out weightsinit" : "glorot_uniform special",
+            "debug" : true
+        }
+    },
+
+    "trainer" : "unsupervised",
+    "trainer params" : {
+
+        "summary dir" : "log",
+        "summary hyperparams string" : "bs128_he_uniform_adam",
+
+        "multi thread" : true,
+        "continue train" : false,
+        "train steps" : 20000,
+
+        "summary steps" : 1000,
+        "log steps" : 100,
+        "save checkpoint steps" : 5000,
+
+        "batch_size" : 128,
+
+        "debug" : true,
+        "validators" : [
+            {
+                "validator" : "random_generate",
+                "validate steps" : 500,
+                "validator params" : {
+                    "log dir" : "generated_adam",
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb row" : 8,
+                    "nb col" : 8
+                }
+            },
+            {
+                "validator" : "random_generate",
+                "validate steps" : 500,
+                "validator params" : {
+                    "log dir" : "generated_adam_fixed",
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb row" : 16,
+                    "nb col" : 16,
+                    "fix z" : true
+                }
+            },
+            {
+                "validator" : "embedding_visualize",
+                "validate steps" : 5000,
+                "validator params" : {
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
+                    "log dir" : "log_adam"
+                }
+            }
+        ]
+    }
+}
+

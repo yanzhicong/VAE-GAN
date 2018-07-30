@@ -51,7 +51,7 @@ def get_model(model_name, model_params):
     elif model_name == 'dcgan':
         from .dcgan import DCGAN
         return DCGAN(model_params)
-    elif model_name == 'wgan_gp' or model_name == 'wgan:
+    elif model_name == 'wgan_gp' or model_name == 'wgan':
         from .wgan_gp import WGAN_GP
         return WGAN_GP(model_params)
     elif model_name == 'improved_gan':

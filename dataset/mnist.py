@@ -60,6 +60,7 @@ class MNIST(BaseDataset):
 		self.name = 'mnist'
 		self.output_shape = config.get('output shape', [28, 28, 1])
 		self.batch_size = int(config.get('batch_size', 128))
+		self.scalar_range = config.get('scalar range', [0.0, 1.0])
 		self.nb_classes = 10
 
 		self.y_train, self.x_train = self._read_data(
@@ -73,7 +74,9 @@ class MNIST(BaseDataset):
 		)
 
 		self.x_train = self.x_train.astype(np.float32) / 255.0
+		self.x_train = self.x_train * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 		self.x_test = self.x_test.astype(np.float32) / 255.0
+		self.x_test = self.x_test * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 
 		# whether perpare semi-supervised datset or not
 		if self.config.get('semi-supervised', False):

@@ -13,7 +13,7 @@
         "name" : "dcgan",
 
         "input shape" : [28, 28, 1],
-        "z_dim" : 10,
+        "z_dim" : 50,
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
@@ -88,7 +88,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform_adam",
+        "summary hyperparams string" : "bs128_he_uniform_adam_z_50",
 
         "multi thread" : true,
         "continue train" : false,
@@ -106,8 +106,8 @@
                 "validator" : "random_generate",
                 "validate steps" : 500,
                 "validator params" : {
-                    "log dir" : "generated_adam",
-                    "z shape" : [10],
+                    "log dir" : "generated_adam_z_50",
+                    "z shape" : [50],
                     "x shape" : [28, 28, 1],
                     "scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
@@ -118,12 +118,12 @@
                 "validator" : "random_generate",
                 "validate steps" : 500,
                 "validator params" : {
-                    "log dir" : "generated_adam_fixed",
-                    "z shape" : [10],
+                    "log dir" : "generated_adam_fixed_z_50",
+                    "z shape" : [50],
                     "x shape" : [28, 28, 1],
                     "scalar range" : [-1.0, 1.0],
-                    "nb row" : 16,
-                    "nb col" : 16,
+                    "nb row" : 8,
+                    "nb col" : 8,
                     "fix z" : true
                 }
             },
@@ -131,9 +131,9 @@
                 "validator" : "embedding_visualize",
                 "validate steps" : 5000,
                 "validator params" : {
-                    "z shape" : [10],
+                    "z shape" : [50],
                     "x shape" : [28, 28, 1],
-                    "log dir" : "log_adam"
+                    "log dir" : "log_adam_z_50"
                 }
             }
         ]

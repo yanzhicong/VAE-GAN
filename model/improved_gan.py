@@ -39,38 +39,37 @@ from utils.loss import get_loss
 
 from .basemodel import BaseModel
 
-
-class WGAN_GP(BaseModel):
+class ImprovedGAN(BaseModel):
 
 	"""
-		Implementation of "Improved Training of Wasserstein GANs"
-		Ishaan Gulrajani, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, Aaron Courville
+		Implementation of "Improved Techniques for Training GANs"
+		Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, Xi Chen
 		
-		@article{DBLP:journals/corr/GulrajaniAADC17,
-			author    = {Ishaan Gulrajani and
-						Faruk Ahmed and
-						Mart{\'{\i}}n Arjovsky and
-						Vincent Dumoulin and
-						Aaron C. Courville},
-			title     = {Improved Training of Wasserstein GANs},
+		@article{DBLP:journals/corr/SalimansGZCRC16,
+			author    = {Tim Salimans and
+			           Ian J. Goodfellow and
+			           Wojciech Zaremba and
+			           Vicki Cheung and
+			           Alec Radford and
+			           Xi Chen},
+			title     = {Improved Techniques for Training GANs},
 			journal   = {CoRR},
-			volume    = {abs/1704.00028},
-			year      = {2017},
-			url       = {http://arxiv.org/abs/1704.00028},
+			volume    = {abs/1606.03498},
+			year      = {2016},
+			url       = {http://arxiv.org/abs/1606.03498},
 			archivePrefix = {arXiv},
-			eprint    = {1704.00028},
-			timestamp = {Wed, 07 Jun 2017 14:42:35 +0200},
-			biburl    = {https://dblp.org/rec/bib/journals/corr/GulrajaniAADC17},
+			eprint    = {1606.03498},
+			timestamp = {Wed, 07 Jun 2017 14:40:52 +0200},
+			biburl    = {https://dblp.org/rec/bib/journals/corr/SalimansGZCRC16},
 			bibsource = {dblp computer science bibliography, https://dblp.org}
 		}
 	"""
-
 
 	def __init__(self, config,
 		**kwargs
 	):
 
-		super(WGAN_GP, self).__init__(config, **kwargs)
+		super(ImprovedGAN, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']
@@ -78,8 +77,6 @@ class WGAN_GP(BaseModel):
 
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
-		self.use_gradient_penalty = config.get('use gradient penalty', True)
-		self.weight_clip_bound = config.get('weight clip bound', [-0.01, 0.01])
 
 		self.build_model()
 		self.build_summary()
@@ -88,7 +85,6 @@ class WGAN_GP(BaseModel):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
 		self.config['generator params']['name'] = 'Generator'
-
 		self.discriminator = self.build_discriminator('discriminator')
 		self.generator = self.build_generator('generator')
 
@@ -101,40 +97,11 @@ class WGAN_GP(BaseModel):
 		self.dis_fake = self.discriminator(self.x_fake)
 
 		# loss config
-		x_dims = len(self.input_shape)
-		if x_dims == 1:
-			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1], minval=0.0, maxval=1.0)
-		elif x_dims == 3:
-			eplison = tf.random_uniform(shape=[tf.shape(self.x_real)[0], 1, 1, 1], minval=0.0, maxval=1.0)
-		else:
-			raise NotImplementedError
-		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
-		dis_hat = self.discriminator(x_hat)
-
-		self.d_loss_adv = (get_loss('adversarial down', 
-									'wassterstein', 
-									{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
-							* self.config.get('adversarial loss weight', 1.0))
-
-
-		if self.use_gradient_penalty:
-			self.d_loss_gp = (get_loss('gradient penalty',
-										'l2',
-										{'x' : x_hat, 'y' : dis_hat})
-								* self.config.get('gradient penalty loss weight', 10.0))
-			self.d_loss = self.d_loss_gp + self.d_loss_adv
-		else:
-			self.d_loss = self.d_loss_adv
-
-		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
-
+		self.d_loss = get_loss('adversarial down', 'cross entropy', {'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
+		self.g_loss = get_loss('adversarial up', 'cross entropy', {'dis_fake' : self.dis_fake})
 
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
-
-		if not self.use_gradient_penalty:
-			self.clip_discriminator = [tf.assign(tf.clip_by_value(var, self.weight_clip_bound[0], self.weight_clip_bound[1]))
-				for var in self.discriminator.vars]
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator
@@ -161,9 +128,6 @@ class WGAN_GP(BaseModel):
 		if self.is_summary:
 			# summary scalars are logged per step
 			sum_list = []
-			if self.use_gradient_penalty:
-				sum_list.append(tf.summary.scalar('discriminator/adversarial', self.d_loss_adv))
-				sum_list.append(tf.summary.scalar('discriminator/gradient_penalty', self.d_loss_gp))
 			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
 			sum_list.append(tf.summary.scalar('discriminator/lr', self.d_learning_rate))
 			self.d_sum_scalar = tf.summary.merge(sum_list)
@@ -197,16 +161,11 @@ class WGAN_GP(BaseModel):
 		dis_train_step = self.discriminator_training_steps
 		summary_list = []
 		for i in range(dis_train_step):
-
-			if not self.use_gradient_penalty:
-				sess.run(self.clip_discriminator)
-
 			feed_dict = {
 				self.x_real : x_batch,
 				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 				self.is_training : True
 			}
-
 			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_train_op,
 															step=self.d_global_step,
 															learning_rate=self.d_learning_rate,
@@ -218,23 +177,18 @@ class WGAN_GP(BaseModel):
 			self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
-
 		step_g, lr_g, loss_g, summary_g = self.train(sess, feed_dict, update_op=self.g_train_op,
 																step=self.g_global_step,
 																learning_rate=self.g_learning_rate,
 																loss=self.g_loss,
 																summary=self.g_sum_scalar)
 		summary_list.append((step_g, summary_g))
-
 		return step_g, {'d':lr_d, 'g':lr_g}, {'d':loss_d,'g':loss_g}, summary_list, 
 
 
 	'''
 		test operation
 	'''
-	def predict(self, sess, x_batch):
-		raise NotImplementedError
-
 	def generate(self, sess, z_batch):
 		feed_dict = {
 			self.z : z_batch,
@@ -256,7 +210,7 @@ class WGAN_GP(BaseModel):
 	'''
 	def summary(self, sess):
 		if self.is_summary:
-			sum = sess.run(self.sum_hist)
-			return sum
+			summ = sess.run(self.sum_hist)
+			return summ
 		else:
 			return None

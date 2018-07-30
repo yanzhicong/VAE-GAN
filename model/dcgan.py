@@ -31,17 +31,10 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-from encoder.encoder import get_encoder
-from decoder.decoder import get_decoder
-from classifier.classifier import get_classifier
-from discriminator.discriminator import get_discriminator
-from generator.generator import get_generator
-
 from utils.learning_rate import get_learning_rate
 from utils.learning_rate import get_global_step
 from utils.optimizer import get_optimizer
 from utils.optimizer import get_optimizer_by_config
-from utils.sample import get_sample
 from utils.loss import get_loss
 
 from .basemodel import BaseModel

@@ -124,8 +124,8 @@
                     "z shape" : [10],
                     "x shape" : [28, 28, 1],
                     "scalar range" : [-1.0, 1.0],
-                    "nb row" : 16,
-                    "nb col" : 16,
+                    "nb row" : 8,
+                    "nb col" : 8,
                     "fix z" : true
                 }
             },

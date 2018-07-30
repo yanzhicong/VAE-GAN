@@ -41,9 +41,12 @@ from utils.normalization import get_normalization
 
 class BaseNetwork(object):
 	def __init__(self, config, is_training):
+		assert('name' in config)
+		
 		self.name = config['name']
 		self.is_training = is_training
 		self.moving_variables_collection = 'BATCH_NORM_MOVING_VARS'
+		self.using_tcl_library = config.get('use tcl library', False)
 
 		self.norm_params = {
 			'is_training' : self.is_training,
@@ -97,7 +100,6 @@ class BaseNetwork(object):
 			'padding':padding,
 		}
 
-
 		self.out_fc_args = {
 			'act_fn':output_act_fn,
 			'winit_fn':winit_fn,
@@ -106,19 +108,12 @@ class BaseNetwork(object):
 
 	def uniform_initializer(self, stdev):
 		return tf.random_uniform_initializer(-stdev*np.sqrt(3), stdev*np.sqrt(3))
-		# return np.random.uniform(
-		# 	low=-stdev * np.sqrt(3),
-		# 	high=stdev * np.sqrt(3),
-		# 	size=size
-		# ).astype('float32')
-
 
 	def conv2d(self, name, x, nb_filters, ksize, stride, 
 				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
 
 		_act_fn = self.config.get(name + ' activation', act_fn)
 		l_act_fn = get_activation(_act_fn)
-
 		_norm_fn = self.config.get(name + ' normalization', norm_fn)
 		l_norm_fn = get_normalization(_norm_fn)
 
@@ -139,31 +134,32 @@ class BaseNetwork(object):
 
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)
-
 		_padding = self.config.get(name + ' padding', padding)
 
-		# x = tcl.conv2d(x, nb_filters, ksize, stride=stride,  
-		# 									activation_fn=l_act_fn,
-		# 									normalizer_fn=l_norm_fn,
-		# 									normalizer_params=norm_params,
-		# 									weights_initializer=l_winit_fn,
-		# 									padding=_padding,
-		# 									scope=name)
 
-		x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
-					padding=_padding, 
-					use_bias=True,
-					kernel_initializer=l_winit_fn,
-					bias_initializer=l_binit_fn,
-					trainable=True,	
-					name=name)
+		if self.using_tcl_library:
+			x = tcl.conv2d(x, nb_filters, ksize, stride=stride,  
+												activation_fn=l_act_fn,
+												normalizer_fn=l_norm_fn,
+												normalizer_params=norm_params,
+												weights_initializer=l_winit_fn,
+												padding=_padding,
+												scope=name)
+		else:
+			x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
+						padding=_padding, 
+						use_bias=True,
+						kernel_initializer=l_winit_fn,
+						bias_initializer=l_binit_fn,
+						trainable=True,	
+						name=name)
 
-		with tf.variable_scope(name):
-			if l_norm_fn is not None:
-				norm_params = norm_params or {}
-				x = l_norm_fn(x, **norm_params)
-			if l_act_fn is not None:
-				x = l_act_fn(x)
+			with tf.variable_scope(name):
+				if l_norm_fn is not None:
+					norm_params = norm_params or {}
+					x = l_norm_fn(x, **norm_params)
+				if l_act_fn is not None:
+					x = l_act_fn(x)
 
 		if disp:
 			print('\t\tConv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
@@ -176,10 +172,8 @@ class BaseNetwork(object):
 
 		_act_fn = self.config.get(name + ' activation', act_fn)
 		l_act_fn = get_activation(_act_fn)
-
 		_norm_fn = self.config.get(name + ' normalization', norm_fn)
 		l_norm_fn = get_normalization(_norm_fn)
-
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
 			split = _winit_fn.split()
@@ -194,32 +188,29 @@ class BaseNetwork(object):
 				raise Exception('Error weights initializer function name : ' + _winit_fn)
 		else:
 			l_winit_fn = get_weightsinit(_winit_fn)
-
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)
-
 		_padding = self.config.get(name + ' padding', padding)
 
-		# x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
-		# 									use_bias=True,
-		# 									activation_fn=l_act_fn,
-		# 									normalizer_fn=l_norm_fn,
-		# 									normalizer_params=norm_params,
-		# 									weights_initializer=l_winit_fn,
-		# 									padding=_padding,
-		# 									scope=name)
-
-		x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
-						padding=_padding, use_bias=True, kernel_initializer=l_winit_fn, bias_initializer=l_binit_fn,
-						trainable=True, name=name)
-
-		with tf.variable_scope(name):
-			if l_norm_fn is not None:
-				norm_params = norm_params or {}
-				x = l_norm_fn(x, **norm_params)
-
-			if l_act_fn is not None:
-				x = l_act_fn(x)
+		if self.using_tcl_library:
+			x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
+												use_bias=True,
+												activation_fn=l_act_fn,
+												normalizer_fn=l_norm_fn,
+												normalizer_params=norm_params,
+												weights_initializer=l_winit_fn,
+												padding=_padding,
+												scope=name)
+		else:
+			x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
+							padding=_padding, use_bias=True, kernel_initializer=l_winit_fn, bias_initializer=l_binit_fn,
+							trainable=True, name=name)
+			with tf.variable_scope(name):
+				if l_norm_fn is not None:
+					norm_params = norm_params or {}
+					x = l_norm_fn(x, **norm_params)
+				if l_act_fn is not None:
+					x = l_act_fn(x)
 
 		if disp:
 			print('\t\tDeonv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
@@ -251,22 +242,21 @@ class BaseNetwork(object):
 		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
 		l_binit_fn = get_weightsinit(_binit_fn)
 
-		# x = tcl.fully_connected(x, nb_nodes, 
-		# 		activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
-		# 		weights_initializer=l_winit_fn, scope=name)
+		if self.using_tcl_library:
+			x = tcl.fully_connected(x, nb_nodes, 
+					activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
+					weights_initializer=l_winit_fn, scope=name)
+		else:
+			x = tl.dense(x, nb_nodes, use_bias=True, kernel_initializer=l_winit_fn,
+													bias_initializer=l_binit_fn,
+						trainable=True, name=name)
 
-		x = tl.dense(x, nb_nodes, use_bias=True, kernel_initializer=l_winit_fn,
-												bias_initializer=l_binit_fn,
-					trainable=True, name=name)
-
-		with tf.variable_scope(name):
-
-			if l_norm_fn is not None:
-				norm_params = norm_params or {}
-				x = l_norm_fn(x, **norm_params)
-
-			if l_act_fn is not None:
-				x = l_act_fn(x)
+			with tf.variable_scope(name):
+				if l_norm_fn is not None:
+					norm_params = norm_params or {}
+					x = l_norm_fn(x, **norm_params)
+				if l_act_fn is not None:
+					x = l_act_fn(x)
 
 
 		if disp:

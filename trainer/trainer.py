@@ -33,10 +33,9 @@ trainer_dict = {
     'semi-supervised' : SemiSupervisedTrainer
 }
 
-
-def get_trainer(name, config, model):
+def get_trainer(name, config, model, sess):
     if name in trainer_dict:
-        return trainer_dict[name](config, model)
+        return trainer_dict[name](config, model, sess)
     else:
         raise Exception('None trainer named ' + name)
 

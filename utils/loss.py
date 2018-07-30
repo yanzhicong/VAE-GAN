@@ -112,36 +112,72 @@ def regularization_l1_loss(var_list):
 		loss += tf.reduce_mean(tf.square(var))
 	return loss
 
-
 def regularization_l2_loss(var_list):
 	loss = 0
 	for var in var_list:
 		loss += tf.reduce_mean(tf.abs(var))
 	return loss
 
-
 def feature_matching_l2_loss(fx, fy, fnames):
-	loss = 0
+	assert(isinstance(fnames, list))
+	loss = tf.constant(0.0, dtype=tf.float32)
 	for feature_name in fnames:
-		loss += tf.reduce_mean(tf.square(fx - fy))
+		loss += tf.reduce_mean(tf.square(fx[feature_name] - fy[feature_name]))
+	return loss
 
 
+'''
+	adversarial down loss:
+		for training discriminator in gan networks
+'''
 def adv_down_wassterstein_loss(dis_real, dis_fake):
+	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	return - tf.reduce_mean(dis_real) + tf.reduce_mean(dis_fake)
 
 def adv_down_cross_entropy_loss(dis_real, dis_fake):
+	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.zeros_like(dis_fake)))
 	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=tf.ones_like(dis_fake)))
 	loss /= 2.0
 	return loss
 
+def adv_down_supervised_cross_entropy_loss(dis_real, dis_fake, label, label_smooth=0.9):
+	print(dis_real.get_shape())
+	print(dis_fake.get_shape())
+	print(dis_real.get_shape() == dis_fake.get_shape())
+	print(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
+	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
+	real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
+	fake_label = tf.concat([tf.zeros_like(label), tf.ones(shape=[tf.shape(label)[0], 1])], axis=1)
+	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=real_label*label_smooth))
+	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=fake_label*label_smooth))
+	loss /= 2.0
+	return loss
+
+def adv_down_unsupervised_cross_entropy_loss(dis_real, dis_fake):
+	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
+	assert(dis_real.get_shape().ndims == 2)
+	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake[:, -1], labels=tf.zeros_like(dis_fake[:, -1])))
+	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real[:, -1], labels=tf.ones_like(dis_fake[:, -1])))
+	loss /= 2.0
+	return loss
+
+'''
+	adversarial up loss:
+		for training generator in gan networks
+'''
 def adv_up_wassterstein_loss(dis_fake):
 	return - tf.reduce_mean(dis_fake)
-
 
 def adv_up_cross_entropy_loss(dis_fake):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.ones_like(dis_fake)))
 
+def adv_up_supervised_cross_entropy_loss(dis_fake, label, label_smooth=0.9):
+	real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
+	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=real_label*label_smooth))
+
+def adv_up_unsupervised_cross_entropy_loss(dis_fake):
+	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake[:,-1], labels=tf.ones_like(dis_fake[:,-1])))
 
 
 def gradient_penalty_l2_loss(x, y):
@@ -151,14 +187,12 @@ def gradient_penalty_l2_loss(x, y):
 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
 	return gradient_penalty
 
-
 # def gradient_penalty_l2_per_pixel_loss(x, y):
 # 	gradients = tf.gradients(y, xs=[x])[0]
 # 	g_rank = len(gradients.get_shape())
 # 	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[g_rank-1]))
 # 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
 # 	return gradient_penalty
-
 
 loss_dict = {
 	'kl' : {
@@ -186,11 +220,15 @@ loss_dict = {
 	},
 	'adversarial down' : {
 		'wassterstein' : adv_down_wassterstein_loss,
-		'cross entropy' : adv_down_cross_entropy_loss 
+		'cross entropy' : adv_down_cross_entropy_loss,
+		'supervised cross entropy' : adv_down_supervised_cross_entropy_loss,
+		'unsupervised cross entropy' : adv_down_unsupervised_cross_entropy_loss,
 	},
 	'adversarial up' : {
 		'wassterstein' : adv_up_wassterstein_loss,
-		'cross entropy' : adv_up_cross_entropy_loss 
+		'cross entropy' : adv_up_cross_entropy_loss,
+		'supervised cross entropy' : adv_up_supervised_cross_entropy_loss,
+		'unsupervised cross entropy' : adv_up_unsupervised_cross_entropy_loss,
 	},
 	'gradient penalty' : {
 		'l2' : gradient_penalty_l2_loss

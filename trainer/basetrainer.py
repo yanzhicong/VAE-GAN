@@ -56,7 +56,7 @@ class BaseTrainer(object):
 			other parameters:
 			'batch_size':
 	'''
-	def __init__(self, config, model):
+	def __init__(self, config, model, sess):
 
 		assert(isinstance(config, dict))
 		
@@ -103,9 +103,14 @@ class BaseTrainer(object):
 			print('\tsave_checkpoint_steps : ', self.save_checkpoint_steps)
 			print('\tbatch_size : ', self.batch_size)
 
-		self.moving_time_pre_step = 0.0
+		self.moving_time_pre_step = -1.0
 		self.moving_time_decay = 0.03
 
+		if 'summary hyperparams string' in self.config:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
+		else:
+			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		
 
 
 	def train_initialize(self, sess, model):
@@ -149,7 +154,8 @@ class BaseTrainer(object):
 			self.su_loss = loss
 
 		time_elapsed = clock() - start_time
-		self.moving_time_pre_step = time_elapsed * self.moving_time_decay + (1.0 - self.moving_time_decay) * self.moving_time_pre_step
+		self.moving_time_pre_step = (time_elapsed if self.moving_time_pre_step<0 
+										else time_elapsed * self.moving_time_decay + (1.0 - self.moving_time_decay) * self.moving_time_pre_step)
 	
 
 		if self.summary_steps != 0 and summary is not None:

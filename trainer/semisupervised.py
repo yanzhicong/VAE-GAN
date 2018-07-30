@@ -54,11 +54,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		other parameters please refer to trainer/basetrainer.py class BaseTrainer,
 	'''
-	def __init__(self, config, model):
+	def __init__(self, config, model, sess):
 		self.config = config
 		self.model = model
 
-		super(SemiSupervisedTrainer, self).__init__(config, model)
+		super(SemiSupervisedTrainer, self).__init__(config, model, sess)
 
 		# optional parameters
 		self.pretrain_steps = self.config.get('pretrain steps', [])
@@ -73,13 +73,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsupervised_image_queue = queue.Queue(maxsize=self.buffer_depth)
 		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 
-
 		self.debug = self.config.get('debug', False)
 		if self.debug:
 			print('Semisupervised Trainer')
 			print('\tsupervised step', self.config.get('supervised step', ''))
 			print('\tunsupervised step', self.config.get('unsupervised step', ''))
-
 
 		# others, for logging in screens
 		self.su_epoch = 0
@@ -91,13 +89,12 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsu_lr = 0
 		self.unsu_loss = 0
 
-
 	def train(self, sess, dataset, model):
 
-		if 'summary hyperparams string' in self.config:
-			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
-		else:
-			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		# if 'summary hyperparams string' in self.config:
+		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
+		# else:
+		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 
 		# start threads for queuing supervised train data and unsupervised train data
 		# the supervised train data is stored in self.supervised_image_queue
@@ -115,9 +112,7 @@ class SemiSupervisedTrainer(BaseTrainer):
 		for t in threads:
 			t.start()
 
-
 		self.train_initialize(sess, model)
-
 
 		for train_manner, train_steps in self.pretrain_steps:
 			if train_manner == 'supervised':
@@ -168,7 +163,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 		while not self.unsupervised_image_queue.empty():
 			epoch, batch_x = self.unsupervised_image_queue.get()
 		self.coord.join(threads)
-
 
 	def log(self, step):
 		if self.log_steps != 0 and step % self.log_steps == 0:

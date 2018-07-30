@@ -6,7 +6,6 @@
         "output_shape" : [28, 28, 1]
     },
 
-
     "assets dir" : "assets/wgan_gp2/result1",
     
     "model" : "wgan_gp",

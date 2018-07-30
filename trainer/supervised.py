@@ -41,10 +41,10 @@ class SupervisedTrainer(BaseTrainer):
 	'''
 		
 	'''
-	def __init__(self, config, model):
+	def __init__(self, config, model, sess):
 		self.config = config
 		self.model = model
-		super(SupervisedTrainer, self).__init__(config, model)
+		super(SupervisedTrainer, self).__init__(config, model, sess)
 		
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
@@ -54,10 +54,10 @@ class SupervisedTrainer(BaseTrainer):
 
 	def train(self, sess, dataset, model):
 		
-		if 'summary hyperparams string' in self.config:
-			self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
-		else:
-			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
+		# if 'summary hyperparams string' in self.config:
+		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
+		# else:
+		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		
 		self.train_initialize(sess, model)
 

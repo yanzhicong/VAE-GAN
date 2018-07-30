@@ -42,16 +42,16 @@ from .basemodel import BaseModel
 class ImprovedGAN(BaseModel):
 
 	"""
-		Implementation of "Improved Techniques for Training GANs"
-		Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, Xi Chen
+		Imple``mentation of "Improved Techniques for Training GANs"
+		Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, Xi Chen``
 		
 		@article{DBLP:journals/corr/SalimansGZCRC16,
 			author    = {Tim Salimans and
-			           Ian J. Goodfellow and
-			           Wojciech Zaremba and
-			           Vicki Cheung and
-			           Alec Radford and
-			           Xi Chen},
+					   Ian J. Goodfellow and
+					   Wojciech Zaremba and
+					   Vicki Cheung and
+					   Alec Radford and
+					   Xi Chen},
 			title     = {Improved Techniques for Training GANs},
 			journal   = {CoRR},
 			volume    = {abs/1606.03498},
@@ -73,10 +73,13 @@ class ImprovedGAN(BaseModel):
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']
+		self.nb_classes = config['nb classes']
 		self.config = config
 
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
+
+		self.feature_matching_end_points = config.get('feature matching end points', ['conv1_0', 'conv2_0', 'conv3_0', 'conv4_0'])
 
 		self.build_model()
 		self.build_summary()
@@ -84,39 +87,73 @@ class ImprovedGAN(BaseModel):
 	def build_model(self):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
+		self.config['discriminator params']['output_dims'] = self.nb_classes + 1
 		self.config['generator params']['name'] = 'Generator'
 		self.discriminator = self.build_discriminator('discriminator')
 		self.generator = self.build_generator('generator')
 
 		# build model
-		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
+		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_real')
+		self.label_real = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label_real')
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
-		self.dis_real = self.discriminator(self.x_real)
-		self.dis_fake = self.discriminator(self.x_fake)
+		self.dis_real, self.dis_real_end_points = self.discriminator.features(self.x_real)
+		self.dis_fake, self.dis_fake_end_points = self.discriminator.features(self.x_fake)
 
-		# loss config
-		self.d_loss = get_loss('adversarial down', 'cross entropy', {'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
-		self.g_loss = get_loss('adversarial up', 'cross entropy', {'dis_fake' : self.dis_fake})
+
+		self.d_loss_feature_matching = get_loss('feature matching', 'l2', 
+												{'fx': self.dis_real_end_points, 'fy': self.dis_fake_end_points, 'fnames' : self.feature_matching_end_points})
+		self.d_loss_feature_matching *= self.config.get('feature matching loss weight', 0.01)
+
+		# supervised loss config
+		self.d_su_loss_adv = get_loss('adversarial down', 'supervised cross entropy', 
+											{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake, 'label' : self.label_real})  
+		self.d_su_loss_adv *= self.config.get('adversarial loss weight', 1.0)
+		self.d_su_loss = self.d_su_loss_adv + self.d_loss_feature_matching
+
+		self.g_su_loss = get_loss('adversarial up', 'supervised cross entropy', {'dis_fake' : self.dis_fake, 'label': self.label_real})
+
+		# unsupervised loss config
+		self.d_unsu_loss_adv = get_loss('adversarial down', 'unsupervised cross entropy', 
+										{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake}) 
+		self.d_unsu_loss_adv *= self.config.get('adversarial loss weight', 1.0)
+		self.d_unsu_loss = self.d_unsu_loss_adv + self.d_loss_feature_matching
+		self.g_unsu_loss = get_loss('adversarial up', 'unsupervised cross entropy', {'dis_fake' : self.dis_fake})
 
 		# optimizer config
 		self.global_step, self.global_step_update = get_global_step()
 
 		# optimizer of discriminator configured without global step update
 		# so we can keep the learning rate of discriminator the same as generator
-		(self.d_train_op, 
-			self.d_learning_rate, 
-				self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+		(self.d_su_train_op, 
+			self.d_su_learning_rate, 
+				self.d_su_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
 																self.config['discriminator optimizer params'],
-																self.d_loss, self.discriminator.vars,
+																self.d_su_loss, self.discriminator.vars,
 																self.global_step)
-		(self.g_train_op, 
-			self.g_learning_rate, 
-				self.g_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
+		(self.g_su_train_op, 
+			self.g_su_learning_rate, 
+				self.g_su_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
 																self.config['generator optimizer params'],
-																self.g_loss, self.generator.vars,
+																self.g_su_loss, self.generator.vars,
 																self.global_step, self.global_step_update)
+
+
+		(self.d_unsu_train_op, 
+			self.d_unsu_learning_rate, 
+				self.d_unsu_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+																self.config['discriminator optimizer params'],
+																self.d_unsu_loss, self.discriminator.vars,
+																self.global_step)
+		(self.g_unsu_train_op, 
+			self.g_unsu_learning_rate, 
+				self.g_unsu_global_step) = get_optimizer_by_config(self.config['generator optimizer'],
+																self.config['generator optimizer params'],
+																self.g_unsu_loss, self.generator.vars,
+																self.global_step, self.global_step_update)
+
+
 
 		# model saver
 		self.saver = tf.train.Saver(self.discriminator.store_vars 
@@ -128,14 +165,28 @@ class ImprovedGAN(BaseModel):
 		if self.is_summary:
 			# summary scalars are logged per step
 			sum_list = []
-			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
-			sum_list.append(tf.summary.scalar('discriminator/lr', self.d_learning_rate))
-			self.d_sum_scalar = tf.summary.merge(sum_list)
+			sum_list.append(tf.summary.scalar('supervised/discriminator/adervarial_loss', self.d_su_loss_adv))
+			sum_list.append(tf.summary.scalar('supervised/discriminator/feature_matching_loss', self.d_loss_feature_matching))
+			sum_list.append(tf.summary.scalar('supervised/discriminator/loss', self.d_su_loss))
+			sum_list.append(tf.summary.scalar('supervised/discriminator/lr', self.d_su_learning_rate))
+			self.d_su_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
-			sum_list.append(tf.summary.scalar('generator/loss', self.g_loss))
-			sum_list.append(tf.summary.scalar('generator/lr', self.g_learning_rate))
-			self.g_sum_scalar = tf.summary.merge(sum_list)
+			sum_list.append(tf.summary.scalar('supervised/generator/loss', self.g_su_loss))
+			sum_list.append(tf.summary.scalar('supervised/generator/lr', self.g_su_learning_rate))
+			self.g_su_sum_scalar = tf.summary.merge(sum_list)
+
+			sum_list = []
+			sum_list.append(tf.summary.scalar('unsupervised/discriminator/adervarial_loss', self.d_unsu_loss_adv))
+			sum_list.append(tf.summary.scalar('unsupervised/discriminator/feature_matching_loss', self.d_loss_feature_matching))
+			sum_list.append(tf.summary.scalar('unsupervised/discriminator/loss', self.d_unsu_loss))
+			sum_list.append(tf.summary.scalar('unsupervised/discriminator/lr', self.d_unsu_learning_rate))
+			self.d_unsu_sum_scalar = tf.summary.merge(sum_list)
+
+			sum_list = []
+			sum_list.append(tf.summary.scalar('unsupervised/generator/loss', self.g_unsu_loss))
+			sum_list.append(tf.summary.scalar('unsupervised/generator/lr', self.g_unsu_learning_rate))
+			self.g_unsu_sum_scalar = tf.summary.merge(sum_list)
 
 			# summary hists are logged by calling self.summary()
 			sum_list = []
@@ -155,7 +206,36 @@ class ImprovedGAN(BaseModel):
 		train operations
 	'''
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
-		raise NotImplementedError
+		dis_train_step = self.discriminator_training_steps
+		summary_list = []
+		for i in range(dis_train_step):
+			feed_dict = {
+				self.x_real : x_batch,
+				self.label_real : y_batch,
+				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
+				self.is_training : True
+			}
+			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_su_train_op,
+															step=self.d_su_global_step,
+															learning_rate=self.d_su_learning_rate,
+															loss=self.d_su_loss,
+															summary=self.d_su_sum_scalar)
+		summary_list.append((step_d, summary_d))
+
+		feed_dict = {
+			self.z : np.random.randn(x_batch.shape[0], self.z_dim),
+			self.label_real : y_batch,
+			self.is_training : True
+		}
+		step_g, lr_g, loss_g, summary_g = self.train(sess, feed_dict, update_op=self.g_su_train_op,
+																step=self.g_su_global_step,
+																learning_rate=self.g_su_learning_rate,
+																loss=self.g_su_loss,
+																summary=self.g_su_sum_scalar)
+		summary_list.append((step_g, summary_g))
+		return step_g, {'d':lr_d, 'g':lr_g}, {'d':loss_d,'g':loss_g}, summary_list, 
+
+
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		dis_train_step = self.discriminator_training_steps
@@ -166,29 +246,31 @@ class ImprovedGAN(BaseModel):
 				self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 				self.is_training : True
 			}
-			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_train_op,
-															step=self.d_global_step,
-															learning_rate=self.d_learning_rate,
-															loss=self.d_loss,
-															summary=self.d_sum_scalar)
+			step_d, lr_d, loss_d, summary_d = self.train(sess, feed_dict, update_op=self.d_unsu_train_op,
+															step=self.d_unsu_global_step,
+															learning_rate=self.d_unsu_learning_rate,
+															loss=self.d_unsu_loss,
+															summary=self.d_unsu_sum_scalar)
 		summary_list.append((step_d, summary_d))
 
 		feed_dict = {
 			self.z : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
-		step_g, lr_g, loss_g, summary_g = self.train(sess, feed_dict, update_op=self.g_train_op,
-																step=self.g_global_step,
-																learning_rate=self.g_learning_rate,
-																loss=self.g_loss,
-																summary=self.g_sum_scalar)
+		step_g, lr_g, loss_g, summary_g = self.train(sess, feed_dict, update_op=self.g_unsu_train_op,
+																step=self.g_unsu_global_step,
+																learning_rate=self.g_unsu_learning_rate,
+																loss=self.g_unsu_loss,
+																summary=self.g_unsu_sum_scalar)
 		summary_list.append((step_g, summary_g))
 		return step_g, {'d':lr_d, 'g':lr_g}, {'d':loss_d,'g':loss_g}, summary_list, 
-
 
 	'''
 		test operation
 	'''
+	def predict(self, sess, x_batch):
+		pass
+
 	def generate(self, sess, z_batch):
 		feed_dict = {
 			self.z : z_batch,

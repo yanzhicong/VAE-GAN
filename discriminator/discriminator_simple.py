@@ -32,7 +32,6 @@ import tensorflow.contrib.layers as tcl
 
 sys.path.append('../')
 
-
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
@@ -43,15 +42,12 @@ from network.basenetwork import BaseNetwork
 
 
 class DiscriminatorSimple(BaseNetwork):
-
 	def __init__(self, config, is_training):
 		BaseNetwork.__init__(self, config, is_training)
 		self.name = config.get('name', 'DiscriminatorSimple')
 		self.config = config
 
 		network_config = config.copy()
-		network_config['output_dims'] = 1
-		network_config['output_activation'] = 'none'
 		self.network = VGG(network_config, is_training)
 		
 	def __call__(self, i):

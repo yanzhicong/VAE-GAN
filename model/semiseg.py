@@ -53,6 +53,8 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 		super(SemiSupervisedSegmentationModel, self).__init__(config, **kwargs)
 
+		raise NotImplementedError
+
 		# parameters must be configured
 		self.input_shape = config['input shape']
 		self.mask_size = config['mask size']

@@ -106,7 +106,6 @@ class Classification(BaseModel):
 
 			for key, var in self.end_points.items():
 				sum_list.append(tf.summary.histogram('netout/' + key, var))
-
 			self.sum_scalar2 = tf.summary.merge(sum_list)
 
 			# summary hists are logged by calling self.summary()
@@ -137,7 +136,6 @@ class Classification(BaseModel):
 							loss=self.loss,
 							summary=self.sum_scalar2)
 		else:
-
 			return self.train(sess, feed_dict, 
 							update_op=self.train_op,
 							learning_rate=self.learning_rate,

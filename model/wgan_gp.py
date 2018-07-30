@@ -65,7 +65,6 @@ class WGAN_GP(BaseModel):
 		}
 	"""
 
-
 	def __init__(self, config,
 		**kwargs
 	):

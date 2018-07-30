@@ -49,14 +49,11 @@ from utils.loss import get_loss
 from .basemodel import BaseModel
 
 
-
-
-
 class VAE(BaseModel):
 
 	'''
 		Implementation of "Auto-Encoding Variational Bayes"
-		https://arxiv.org/pdf/1312.6114.pdf
+		Diederik P Kingma, Max Welling
 
 	'''
 
@@ -69,7 +66,6 @@ class VAE(BaseModel):
 		self.config = config
 
 		self.build_model()
-
 		self.build_summary()
 
 
@@ -77,14 +73,12 @@ class VAE(BaseModel):
 
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 
-
 		self.config['encoder params']['name'] = 'Encoder'
 		self.config['encoder params']['output_dims'] = self.z_dim
 		self.config['decoder params']['name'] = 'Decoder'
 		self.config['decoder params']['output_dims'] = list(self.input_shape)
-
-		self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.is_training)
-		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)
+		self.encoder = self.build_encoder('encoder')
+		self.decoder = self.build_decoder('decoder')
 
 		# build encoder
 		self.mean_z, self.log_var_z = self.encoder(self.x_real)
@@ -115,7 +109,7 @@ class VAE(BaseModel):
 
 
 		# model saver
-		self.saver = tf.train.Saver(self.vars + [self.global_step,])
+		self.saver = tf.train.Saver(self.store_vars + [self.global_step,])
 
 
 	def build_summary(self):

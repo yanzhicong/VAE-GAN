@@ -35,7 +35,7 @@ import tensorflow as tf
 
 from validator.validator import get_validator
 
-from .basetrainer import BaseTrainer
+from .base_trainer import BaseTrainer
 
 
 class UnsupervisedTrainer(BaseTrainer):
@@ -65,9 +65,9 @@ class UnsupervisedTrainer(BaseTrainer):
 		if self.multi_thread:
 			self.coord = tf.train.Coordinator()
 			threads = [threading.Thread(target=self.read_data_loop, 
-											args=(self.coord, dataset, self.train_data_inner_queue, 'unsupervised')),
+											args=(self.coord, dataset, self.train_data_inner_queue, 'train', 'unsupervised')),
 						threading.Thread(target=self.read_data_transport_loop, 
-											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'unsupervised'))]
+											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'train', 'unsupervised'))]
 			for t in threads:
 				t.start()
 

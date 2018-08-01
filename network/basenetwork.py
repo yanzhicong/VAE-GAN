@@ -33,11 +33,9 @@ from tensorflow import layers as tl
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
-
 
 class BaseNetwork(object):
 	def __init__(self, config, is_training):

@@ -31,8 +31,6 @@
             "beta2" : 0.9
         },
 
-        "use feature matching" : true,
-
         "discriminator training steps" : 5,
         "summary" : true,
  
@@ -91,7 +89,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform_adam_fm",
+        "summary hyperparams string" : "bs128_he_uniform_adam",
 
         "multi thread" : true,
         "continue train" : false,

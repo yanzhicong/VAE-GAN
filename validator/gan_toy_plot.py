@@ -57,9 +57,9 @@ class GanToyPlot(BaseValidator):
 		disc_map = disc_map.reshape([self.nb_points, self.nb_points]).transpose()
 
 
-		dataset_indices = dataset.get_image_indices()
+		dataset_indices = dataset.get_image_indices(phase='train', method='supervised')
 		dataset_indices = np.random.choice(dataset_indices, size=100)
-		dataset_x = np.array([dataset.read_image_by_index_unsupervised(ind) for ind in dataset_indices])
+		dataset_x = np.array([dataset.read_image_by_index(ind, phase='train', method='supervised') for ind in dataset_indices])
 		indices = np.where(np.logical_and(
 				np.logical_and(dataset_x[:, 0] >= -self.plot_range, dataset_x[:, 0] <= self.plot_range),
 				np.logical_and(dataset_x[:, 1] >= -self.plot_range, dataset_x[:, 1] <= self.plot_range)

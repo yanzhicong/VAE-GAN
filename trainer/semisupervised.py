@@ -35,7 +35,7 @@ import tensorflow as tf
 
 from validator.validator import get_validator
 
-from .basetrainer import BaseTrainer
+from .base_trainer import BaseTrainer
 
 
 class SemiSupervisedTrainer(BaseTrainer):
@@ -52,7 +52,7 @@ class SemiSupervisedTrainer(BaseTrainer):
 			'train steps' :  the total maximum train steps
 			'continue train' : whether to load the checkpoint
 
-		other parameters please refer to trainer/basetrainer.py class BaseTrainer,
+		other parameters please refer to trainer/base_trainer.py class BaseTrainer,
 	'''
 	def __init__(self, config, model, sess):
 		self.config = config
@@ -72,6 +72,8 @@ class SemiSupervisedTrainer(BaseTrainer):
 
 		self.unsupervised_image_queue = queue.Queue(maxsize=self.buffer_depth)
 		self.unsupervised_image_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
+
+		self.dataset_phase = self.config.get('dataset phase', 'train')
 
 		self.debug = self.config.get('debug', False)
 		if self.debug:
@@ -101,14 +103,14 @@ class SemiSupervisedTrainer(BaseTrainer):
 		# the unsupervised train data is stored in self.unsupervised_image_queue
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
-										args=(self.coord, dataset, self.supervised_image_inner_queue, 'supervised')),
+										args=(self.coord, dataset, self.supervised_image_inner_queue, self.dataset_phase, 'supervised')),
 					threading.Thread(target=self.read_data_transport_loop, 
-										args=(self.coord, self.supervised_image_inner_queue, self.supervised_image_queue, 'supervised'))]
+										args=(self.coord, self.supervised_image_inner_queue, self.supervised_image_queue, self.dataset_phase, 'supervised'))]
 
 		threads += [threading.Thread(target=self.read_data_loop, 
-										args=(self.coord, dataset, self.unsupervised_image_inner_queue, 'unsupervised')),
+										args=(self.coord, dataset, self.unsupervised_image_inner_queue, self.dataset_phase, 'unsupervised')),
 					threading.Thread(target=self.read_data_transport_loop, 
-										args=(self.coord, self.unsupervised_image_inner_queue, self.unsupervised_image_queue, 'unsupervised'))]
+										args=(self.coord, self.unsupervised_image_inner_queue, self.unsupervised_image_queue, self.dataset_phase, 'unsupervised'))]
 		for t in threads:
 			t.start()
 

@@ -29,7 +29,7 @@ import xml.etree.ElementTree as ET
 from skimage import io
 import cv2
 
-from .basedataset import BaseDataset
+from .base_dataset import BaseDataset
 
 class ImageNet(BaseDataset):
 

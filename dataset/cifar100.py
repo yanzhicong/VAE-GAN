@@ -27,7 +27,7 @@ import os
 import numpy as np
 import pickle
 
-from .basedataset import BaseDataset
+from .base_dataset import BaseDataset
 
 class Cifar100(BaseDataset):
 

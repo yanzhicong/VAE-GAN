@@ -32,6 +32,10 @@
             "beta2" : 0.9
         },
 
+
+        "use feature matching" : true,
+        "use gradient penalty" : true,
+
         "gradient penalty loss weight" : 10.0,
         "summary" : true,
  
@@ -84,9 +88,12 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "lr_0_0001",
+        "summary hyperparams string" : "lr_0_0001_fm",
 
         "multi thread" : true,
+        "nb threads" : 8,
+        "buffer depth" : 500,
+
         "continue train" : false,
         "train steps" : 100000,
 

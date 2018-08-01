@@ -1,19 +1,20 @@
 {
-    "config name" : "dcgan",
+    "config name" : "improved_gan",
 
-    "dataset" : "cifar10",
+    "dataset" : "mnist",
     "dataset params" : {
-        "output_shape" : [32, 32, 3],
+        "output shape" : [28, 28, 1],
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/dcgan/cifar10",
-    "model" : "dcgan",
+    "assets dir" : "assets/impgan/mnist_su",
+    "model" : "improved_gan",
     "model params" : {
-        "name" : "dcgan",
+        "name" : "improved_gan",
 
-        "input shape" : [32, 32, 3],
-        "z_dim" : 100,
+        "input shape" : [28, 28, 1],
+        "z_dim" : 10,
+        "nb classes" : 10,
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
@@ -31,8 +32,6 @@
             "beta2" : 0.9
         },
 
-        "use feature matching" : true,
-
         "discriminator training steps" : 5,
         "summary" : true,
  
@@ -44,15 +43,15 @@
 
             "including_bottom" : true,
             "fc_nb_nodes" : [],
-            "fc_output_reshape" : [4, 4, 512],
+            "fc_output_reshape" : [7, 7, 64],
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 3,
-            "deconv_nb_layers" : [1, 1, 0, 0],
-            "deconv_nb_filters" : [256, 128, 64, 32],
-            "deconv_ksize" : [5, 5, 5, 5],
+            "deconv_nb_blocks" : 2,
+            "deconv_nb_layers" : [1, 0],
+            "deconv_nb_filters" : [32, 16],
+            "deconv_ksize" : [5, 5],
             
-            "output_dims" : 3,
+            "output_dims" : 1,
             "output_stride" : 2,
             "output_ksize" : 5,
             "output_activation" : "tanh",
@@ -61,6 +60,7 @@
             "debug" : true
         },
 
+        "feature matching end points" : ["conv1_0", "conv2_0"],
 
         "discriminator" : "discriminator",
         "discriminator params" : {
@@ -69,37 +69,36 @@
             "weightsinit" : "he_uniform special",
 
             "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [1, 1, 1, 0],
-            "conv_nb_filters" : [128, 256, 512],
-            "conv_ksize" : [5, 5, 5, 5],
+            "conv_nb_blocks" : 3,
+            "conv_nb_layers" : [1, 1, 0],
+            "conv_nb_filters" : [32, 64, 128],
+            "conv_ksize" : [5, 5, 5],
             "no_maxpooling" : true,
 
             "including_top" : true,
             "fc_nb_nodes" : [],
 
-            "output_dims" : 1,
+            "output_dims" : 11,
             "output_activation" : "none",
 
             "fc_out weightsinit" : "glorot_uniform special",
-            // "conv1_0 weightsinit" : "normal 0.0 0.15",
             "debug" : true
         }
     },
 
-    "trainer" : "unsupervised",
+    "trainer" : "supervised",
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform_adam_fm",
+        "summary hyperparams string" : "bs128_he_uniform_adam",
 
         "multi thread" : true,
         "continue train" : false,
-        "train steps" : 100000,
+        "train steps" : 20000,
 
         "summary steps" : 1000,
         "log steps" : 100,
-        "save checkpoint steps" : 10000,
+        "save checkpoint steps" : 5000,
 
         "batch_size" : 128,
 
@@ -107,11 +106,11 @@
         "validators" : [
             {
                 "validator" : "random_generate",
-                "validate steps" : 1000,
+                "validate steps" : 500,
                 "validator params" : {
                     "log dir" : "generated_adam",
-                    "z shape" : [100],
-                    "x shape" : [32, 32, 3],
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
                     "scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
@@ -119,14 +118,14 @@
             },
             {
                 "validator" : "random_generate",
-                "validate steps" : 1000,
+                "validate steps" : 500,
                 "validator params" : {
                     "log dir" : "generated_adam_fixed",
-                    "z shape" : [100],
-                    "x shape" : [32, 32, 3],
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
                     "scalar range" : [-1.0, 1.0],
-                    "nb row" : 16,
-                    "nb col" : 16,
+                    "nb row" : 8,
+                    "nb col" : 8,
                     "fix z" : true
                 }
             },
@@ -134,18 +133,18 @@
                 "validator" : "embedding_visualize",
                 "validate steps" : 5000,
                 "validator params" : {
-                    "z shape" : [100],
-                    "x shape" : [32, 32, 3],
+                    "z shape" : [10],
+                    "x shape" : [28, 28, 1],
                     "log dir" : "log_adam"
                 }
             },
             {
-                "validator" : "inception_score",
-                "validate steps" : 1000,
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                // "continue train" : true, // prevent overwrite previous result file
                 "validator params" : {
-                    "z shape" : [100],
-                    "x shape" : [32, 32, 3],
-                    "scalar range" : [-1.0, 1.0]
+                    "metric" : "accuracy",
+                    "metric type" : "top1"
                 }
             }
         ]

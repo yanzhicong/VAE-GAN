@@ -74,7 +74,6 @@ class DatasetValidator(BaseValidator):
 		
 		self.summary = tf.summary.merge(self.summary_list)
 
-
 	def validate(self, model, dataset, sess, step):
 		label_list = []
 		pred_list = []
@@ -85,17 +84,15 @@ class DatasetValidator(BaseValidator):
 		label_list = np.concatenate(label_list, axis=0)
 		pred_list = np.concatenate(pred_list, axis=0)
 
-
 		if self.metric == 'accuracy' : 
 			feed_dict = {
 				self.label : label_list,
 				self.predict : pred_list,
 			}
-
 			acc, summary = sess.run([self.accuracy, self.summary], feed_dict=feed_dict)
 			with open(self.log_filepath, 'a') as logfile:
 				logfile.write('%d,%f\n'%(step, acc))
-
+			print('test acc %f'%acc)
 			summary = sess.run([self.summary], feed_dict=feed_dict)[0]
 
 		return summary

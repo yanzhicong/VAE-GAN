@@ -141,24 +141,28 @@ def adv_down_cross_entropy_loss(dis_real, dis_fake):
 	loss /= 2.0
 	return loss
 
-def adv_down_supervised_cross_entropy_loss(dis_real, dis_fake, label, label_smooth=0.9):
-	print(dis_real.get_shape())
-	print(dis_fake.get_shape())
-	print(dis_real.get_shape() == dis_fake.get_shape())
-	print(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
+def adv_down_supervised_cross_entropy_loss(dis_real, dis_fake, label, label_smooth=1.0):
+	# print(dis_real.get_shape())
+	# print(dis_fake.get_shape())
+	# print(dis_real.get_shape() == dis_fake.get_shape())
+	# print(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
 	fake_label = tf.concat([tf.zeros_like(label), tf.ones(shape=[tf.shape(label)[0], 1])], axis=1)
 	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=real_label*label_smooth))
 	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=fake_label*label_smooth))
-	loss /= 2.0
+	# loss /= 2.0
 	return loss
 
 def adv_down_unsupervised_cross_entropy_loss(dis_real, dis_fake):
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	assert(dis_real.get_shape().ndims == 2)
-	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake[:, -1], labels=tf.zeros_like(dis_fake[:, -1])))
-	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real[:, -1], labels=tf.ones_like(dis_fake[:, -1])))
+
+	# prob_real = tf.nn.softmax(dis_real)
+	# prob_fake = tf.nn.softmax(dis_fake)
+
+	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.zeros_like(dis_fake))[:, -1])
+	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=tf.ones_like(dis_fake))[:, -1])
 	loss /= 2.0
 	return loss
 
@@ -173,8 +177,9 @@ def adv_up_cross_entropy_loss(dis_fake):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.ones_like(dis_fake)))
 
 def adv_up_supervised_cross_entropy_loss(dis_fake, label, label_smooth=0.9):
-	real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
-	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=real_label*label_smooth))
+	# real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
+	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=real_label*label_smooth))
+	return tf.constant(0.0, dtype=tf.float32)
 
 def adv_up_unsupervised_cross_entropy_loss(dis_fake):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake[:,-1], labels=tf.ones_like(dis_fake[:,-1])))

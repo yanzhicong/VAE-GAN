@@ -68,6 +68,11 @@ class DCGAN(BaseModel):
 		**kwargs
 	):
 
+		assert('discriminator' in config)
+		assert('generator' in config)
+		assert('input shape' in config)
+		assert('z_dim' in config)
+
 		super(DCGAN, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input shape']
@@ -76,6 +81,9 @@ class DCGAN(BaseModel):
 
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
+
+		self.use_feature_matching_loss = config.get('use feature matching', False)
+		self.feature_matching_end_points = config.get('feature matching end points', None)
 
 		self.build_model()
 		self.build_summary()
@@ -92,11 +100,23 @@ class DCGAN(BaseModel):
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
-		self.dis_real = self.discriminator(self.x_real)
-		self.dis_fake = self.discriminator(self.x_fake)
+		self.dis_real, self.dis_real_end_points = self.discriminator.features(self.x_real)
+		self.dis_fake, self.dis_fake_end_points = self.discriminator.features(self.x_fake)
+
 
 		# loss config
-		self.d_loss = get_loss('adversarial down', 'cross entropy', {'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
+		self.d_loss_adv = get_loss('adversarial down', 'cross entropy', {'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
+		if self.use_feature_matching_loss:
+			if self.feature_matching_end_points is None:
+				self.feature_matching_end_points = [k for k in self.dis_real_end_points.keys() if 'conv' in k]
+				print('feature matching end points : ', self.feature_matching_end_points)
+			self.d_loss_fm = get_loss('feature matching', 'l2', 
+									{'fx':self.dis_real_end_points, 'fy':self.dis_fake_end_points, 'fnames':self.feature_matching_end_points})
+			self.d_loss_fm *= self.config.get('feature matching loss weight', 0.01)
+			self.d_loss = self.d_loss_adv + self.d_loss_fm
+		else:
+			self.d_loss = self.d_loss_adv
+
 		self.g_loss = get_loss('adversarial up', 'cross entropy', {'dis_fake' : self.dis_fake})
 
 		# optimizer config
@@ -127,7 +147,12 @@ class DCGAN(BaseModel):
 		if self.is_summary:
 			# summary scalars are logged per step
 			sum_list = []
-			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
+			if self.use_feature_matching_loss:
+				sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
+				sum_list.append(tf.summary.scalar('discriminator/adversaral_loss', self.d_loss_adv))
+				sum_list.append(tf.summary.scalar('discriminator/feature_matching_loss', self.d_loss_fm))
+			else:
+				sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
 			sum_list.append(tf.summary.scalar('discriminator/lr', self.d_learning_rate))
 			self.d_sum_scalar = tf.summary.merge(sum_list)
 

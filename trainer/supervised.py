@@ -35,7 +35,7 @@ import tensorflow as tf
 
 from validator.validator import get_validator
 
-from .basetrainer import BaseTrainer 
+from .base_trainer import BaseTrainer 
 
 class SupervisedTrainer(BaseTrainer):
 	'''
@@ -45,12 +45,15 @@ class SupervisedTrainer(BaseTrainer):
 		self.config = config
 		self.model = model
 		super(SupervisedTrainer, self).__init__(config, model, sess)
-		
+		self.dataset_phase = self.config.get('dataset phase', 'train')
+
 		self.multi_thread = self.config.get('multi thread', False)
 		if self.multi_thread:
 			self.buffer_depth = self.config.get('buffer depth', 50)
 			self.train_data_queue = queue.Queue(maxsize=self.buffer_depth)
 			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
+
+
 
 	def train(self, sess, dataset, model):
 		
@@ -65,9 +68,9 @@ class SupervisedTrainer(BaseTrainer):
 		if self.multi_thread:
 			self.coord = tf.train.Coordinator()
 			threads = [threading.Thread(target=self.read_data_loop, 
-											args=(self.coord, dataset, self.train_data_inner_queue, 'supervised')),
+											args=(self.coord, dataset, self.train_data_inner_queue, self.dataset_phase, 'supervised')),
 						threading.Thread(target=self.read_data_transport_loop, 
-											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, 'supervised'))]
+											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, self.dataset_phase, 'supervised'))]
 			for t in threads:
 				t.start()
 

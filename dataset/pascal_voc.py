@@ -35,7 +35,7 @@ import matplotlib.pyplot as plt
 from skimage import io
 import pickle
 
-from .basedataset import BaseDataset
+from .base_dataset import BaseDataset
 
 
 class PASCAL_VOC(BaseDataset):
@@ -292,115 +292,119 @@ class PASCAL_VOC(BaseDataset):
 			raise NotImplementedError
 
 
-	def read_image_by_index_supervised(self, ind, phase='train'):
-		if self.task == 'segmentation_class_aug':
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-				mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
-			elif phase == 'val':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-				mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
+	def read_image_by_index(self, ind, phase='train', method='supervised'):
+		assert(phase in ['train', 'val', 'test'])
+		assert(method in ['supervised', 'unsupervised'])
 
-			img = io.imread(image_filepath)
-			mask_c = io.imread(mask_filepath)
+		if method == 'supervised':
 
-			return img, mask_c
+			if self.task == 'segmentation_class_aug':
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+					mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
+				elif phase == 'val':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+					mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
 
+				img = io.imread(image_filepath)
+				mask_c = io.imread(mask_filepath)
 
-		elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-				mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
-			elif phase == 'val':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-				mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
-
-			img = io.imread(image_filepath)
-			mask_c = io.imread(mask_filepath)
-			mask = self.mask_colormap_encode(mask_c, self.color_map)
-
-			if phase == 'train':
-				if self.is_random_scaling:
-					img, mask = self.random_scaling(img, mask=mask, minval=self.scaling_range[0], maxval=self.scaling_range[1])
-				if self.is_random_mirroring:
-					img, mask = self.random_mirroring(img, mask=mask)
-				if self.is_random_cropping:
-					img, mask = self.random_crop_and_pad_image(img, mask=mask, size=self.output_shape, center_range=self.crop_range)
-			elif phase == 'val':
-				if self.is_random_scaling:
-					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-					img, mask = self.random_scaling(img, mask=mask, minval=scale, maxval=scale)
-
-			img = img.astype(np.float32) / 255.0
-			mask_onehot = self.to_categorical(mask, self.nb_classes)
-
-			return img, mask_onehot
-
-		elif self.task in ['classification']:
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-				label = self.train_label_list[ind]
-			elif phase == 'val' or phase == 'test':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-				label = self.val_label_list[ind]
-				
-			img = io.imread(image_filepath)
-
-			if phase == 'train':
-				if self.is_random_scaling:
-					img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
-				if self.is_random_mirroring:
-					img = self.random_mirroring(img)
-				if self.is_random_cropping:
-					img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
-			elif phase == 'val' or phase == 'test':
-				if self.is_random_scaling:
-					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-					img = self.random_scaling(img, minval=scale, maxval=scale)
-			img = img.astype(np.float32) / 255.0
-			return img, label
-		else:	
-			raise NotImplementedError
+				return img, mask_c
 
 
-	def read_image_by_index_unsupervised(self, ind, phase='train'):
-		if self.task == 'segmentation_class_aug':
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-			elif phase == 'val':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-			img = io.imread(image_filepath)
-			return img
+			elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+					mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
+				elif phase == 'val':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+					mask_filepath = os.path.join(self._dataset_dir, self.val_mask_list[ind])
 
-		elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-			elif phase == 'val':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-			elif phase == 'test':
-				image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
-			img = io.imread(image_filepath)
-			return img
+				img = io.imread(image_filepath)
+				mask_c = io.imread(mask_filepath)
+				mask = self.mask_colormap_encode(mask_c, self.color_map)
 
-		elif self.task in ['classification']:
-			if phase == 'train':
-				image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
-			elif phase == 'val' or phase == 'test':
-				image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
-			img = io.imread(image_filepath)
-			if phase == 'train':
-				if self.is_random_scaling:
-					img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
-				if self.is_random_mirroring:
-					img = self.random_mirroring(img)
-				if self.is_random_cropping:
-					img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
-			elif phase == 'val' or phase == 'test':
-				if self.is_random_scaling:
-					scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-					img = self.random_scaling(img, minval=scale, maxval=scale)
-			img = img.astype(np.float32) / 255.0
-			return img
-		else:
-			raise NotImplementedError
+				if phase == 'train':
+					if self.is_random_scaling:
+						img, mask = self.random_scaling(img, mask=mask, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+					if self.is_random_mirroring:
+						img, mask = self.random_mirroring(img, mask=mask)
+					if self.is_random_cropping:
+						img, mask = self.random_crop_and_pad_image(img, mask=mask, size=self.output_shape, center_range=self.crop_range)
+				elif phase == 'val':
+					if self.is_random_scaling:
+						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
+						img, mask = self.random_scaling(img, mask=mask, minval=scale, maxval=scale)
+
+				img = img.astype(np.float32) / 255.0
+				mask_onehot = self.to_categorical(mask, self.nb_classes)
+
+				return img, mask_onehot
+
+			elif self.task in ['classification']:
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+					label = self.train_label_list[ind]
+				elif phase == 'val' or phase == 'test':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+					label = self.val_label_list[ind]
+					
+				img = io.imread(image_filepath)
+
+				if phase == 'train':
+					if self.is_random_scaling:
+						img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+					if self.is_random_mirroring:
+						img = self.random_mirroring(img)
+					if self.is_random_cropping:
+						img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
+				elif phase == 'val' or phase == 'test':
+					if self.is_random_scaling:
+						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
+						img = self.random_scaling(img, minval=scale, maxval=scale)
+				img = img.astype(np.float32) / 255.0
+				return img, label
+			else:	
+				raise NotImplementedError
+		elif method == 'unsupervised':
+
+			if self.task == 'segmentation_class_aug':
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+				elif phase == 'val':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+				img = io.imread(image_filepath)
+				return img
+
+			elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+				elif phase == 'val':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+				elif phase == 'test':
+					image_filepath = os.path.join(self._dataset_dir, self.test_image_list[ind])
+				img = io.imread(image_filepath)
+				return img
+
+			elif self.task in ['classification']:
+				if phase == 'train':
+					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
+				elif phase == 'val' or phase == 'test':
+					image_filepath = os.path.join(self._dataset_dir, self.val_image_list[ind])
+				img = io.imread(image_filepath)
+				if phase == 'train':
+					if self.is_random_scaling:
+						img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+					if self.is_random_mirroring:
+						img = self.random_mirroring(img)
+					if self.is_random_cropping:
+						img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
+				elif phase == 'val' or phase == 'test':
+					if self.is_random_scaling:
+						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
+						img = self.random_scaling(img, minval=scale, maxval=scale)
+				img = img.astype(np.float32) / 255.0
+				return img
+			else:
+				raise NotImplementedError
 

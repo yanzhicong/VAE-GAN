@@ -80,11 +80,11 @@ class EmbeddingValidator(BaseValidator):
 	def validate(self, model, dataset, sess, step):
 
 		plot_array_list = []
-		indices = dataset.get_image_indices(phase='train')
+		indices = dataset.get_image_indices(phase='train', method='unsupervised')
 		indices = np.random.choice(indices, size=self.nb_samples)
 
 		for i, ind in enumerate(indices):
-			test_x = dataset.read_image_by_index_unsupervised(ind, phase='train')
+			test_x = dataset.read_image_by_index(ind, phase='train', method='unsupervised')
 			if isinstance(test_x, list):
 				for x in test_x:
 					x = x.reshape([-1,])

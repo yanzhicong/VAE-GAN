@@ -77,8 +77,12 @@ class WGAN_GP(BaseModel):
 
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
+
 		self.use_gradient_penalty = config.get('use gradient penalty', True)
 		self.weight_clip_bound = config.get('weight clip bound', [-0.01, 0.01])
+
+		self.use_feature_matching_loss = config.get('use feature matching', False)
+		self.feature_matching_end_points = config.get('feature matching end points', None)
 
 		self.build_model()
 		self.build_summary()
@@ -96,8 +100,8 @@ class WGAN_GP(BaseModel):
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
 
 		self.x_fake = self.generator(self.z)
-		self.dis_real = self.discriminator(self.x_real)
-		self.dis_fake = self.discriminator(self.x_fake)
+		self.dis_real, self.dis_real_end_points = self.discriminator.features(self.x_real)
+		self.dis_fake, self.dis_fake_end_points = self.discriminator.features(self.x_fake)
 
 		# loss config
 		x_dims = len(self.input_shape)
@@ -110,21 +114,31 @@ class WGAN_GP(BaseModel):
 		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
+		self.d_loss_list = []
 		self.d_loss_adv = (get_loss('adversarial down', 
 									'wassterstein', 
 									{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})
 							* self.config.get('adversarial loss weight', 1.0))
+		self.d_loss_list.append(self.d_loss_adv)
 
+
+		if self.use_feature_matching_loss:
+			if self.feature_matching_end_points is None:
+				self.feature_matching_end_points = [k for k in self.dis_real_end_points.keys() if 'conv' in k]
+				print('feature matching end points : ', self.feature_matching_end_points)
+			self.d_loss_fm = get_loss('feature matching', 'l2', 
+									{'fx':self.dis_real_end_points, 'fy':self.dis_fake_end_points, 'fnames':self.feature_matching_end_points})
+			self.d_loss_fm *= self.config.get('feature matching loss weight', 0.01)
+			self.d_loss_list.append(self.d_loss_fm)
 
 		if self.use_gradient_penalty:
 			self.d_loss_gp = (get_loss('gradient penalty',
 										'l2',
 										{'x' : x_hat, 'y' : dis_hat})
 								* self.config.get('gradient penalty loss weight', 10.0))
-			self.d_loss = self.d_loss_gp + self.d_loss_adv
-		else:
-			self.d_loss = self.d_loss_adv
+			self.d_loss_list.append(self.d_loss_gp)
 
+		self.d_loss = tf.reduce_sum(self.d_loss_list)
 		self.g_loss = get_loss('adversarial up', 'wassterstein', {'dis_fake' : self.dis_fake})
 
 
@@ -163,6 +177,8 @@ class WGAN_GP(BaseModel):
 			if self.use_gradient_penalty:
 				sum_list.append(tf.summary.scalar('discriminator/adversarial', self.d_loss_adv))
 				sum_list.append(tf.summary.scalar('discriminator/gradient_penalty', self.d_loss_gp))
+			if self.use_feature_matching_loss:
+				sum_list.append(tf.summary.scalar('discriminator/feature_matching', self.d_loss_fm))
 			sum_list.append(tf.summary.scalar('discriminator/loss', self.d_loss))
 			sum_list.append(tf.summary.scalar('discriminator/lr', self.d_learning_rate))
 			self.d_sum_scalar = tf.summary.merge(sum_list)

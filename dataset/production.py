@@ -32,7 +32,7 @@ import numpy as np
 # import gzip
 import json
 import cv2
-from .basedataset import BaseDataset
+from .base_dataset import BaseDataset
 
 
 																						
@@ -67,40 +67,41 @@ class ChipProduction(BaseDataset):
 	def get_image_indices(self, phase, method='unsupervised'):
 		return np.arange(len(self.lot_number_list))
 
-	def read_image_by_index_supervised(self, ind, phase=None):
-		raise NotImplementedError
+	def read_image_by_index(self, ind, phase=None, method='unsupervised'):
+		assert(phase in ['train'])
+		assert(method in ['unsupervised'])
 
-	def read_image_by_index_unsupervised(self, ind, phase=None):
-		lot_number = self.lot_number_list[ind]
-		image_dict = self.get_aligned_dataset_in_lot2(lot_number)
+		if method == 'supervised':
+			lot_number = self.lot_number_list[ind]
+			image_dict = self.get_aligned_dataset_in_lot2(lot_number)
 
-		if image_dict is not None:
-			subapp_list = [u'SI-XGA-B-BLand2-WX163L2CxxV02', u'SI-RT-DUMMY', u'SI-LT-DUMMY']
-			unit_id_list = [key for key in image_dict.keys()]
-			unit_id_list = np.random.choice(unit_id_list, size=4)
-			output_image_list = []
+			if image_dict is not None:
+				subapp_list = [u'SI-XGA-B-BLand2-WX163L2CxxV02', u'SI-RT-DUMMY', u'SI-LT-DUMMY']
+				unit_id_list = [key for key in image_dict.keys()]
+				unit_id_list = np.random.choice(unit_id_list, size=4)
+				output_image_list = []
 
-			for unit_id in unit_id_list:
-				image_data = image_dict[unit_id]
-				images_path = [os.path.join(self._total_production_dataset_dir, lot_number, image_data[subapp]) for subapp in subapp_list]
+				for unit_id in unit_id_list:
+					image_data = image_dict[unit_id]
+					images_path = [os.path.join(self._total_production_dataset_dir, lot_number, image_data[subapp]) for subapp in subapp_list]
 
-				if not os.path.exists(images_path[0]):
-					print('info : images do not exist ', images_path[0])
-				else:
-					images = [cv2.imread(image_path)[:, :, 0].astype(np.float32) for image_path in images_path]
-					image0 = self.compose_fake_3d_image(images[1], images[2])
-					# image1 = images[0]
-					# mixed_image = np.array([image0, image1])
-					mixed_image = image0.reshape(list(image0.shape) + [1,])
-					# mixed_image = mixed_image.transpose([1, 2, 0])
-					for i in range(self.batch_size):
-						img = self.random_crop_and_pad_image(mixed_image, size=self.output_size, center_range=self.crop_range)
-						img = img / 255.0 
-						img = img * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
-						output_image_list.append(img)
-			return output_image_list
-		else:
-			return None
+					if not os.path.exists(images_path[0]):
+						print('info : images do not exist ', images_path[0])
+					else:
+						images = [cv2.imread(image_path)[:, :, 0].astype(np.float32) for image_path in images_path]
+						image0 = self.compose_fake_3d_image(images[1], images[2])
+						# image1 = images[0]
+						# mixed_image = np.array([image0, image1])
+						mixed_image = image0.reshape(list(image0.shape) + [1,])
+						# mixed_image = mixed_image.transpose([1, 2, 0])
+						for i in range(self.batch_size):
+							img = self.random_crop_and_pad_image(mixed_image, size=self.output_size, center_range=self.crop_range)
+							img = img / 255.0 
+							img = img * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
+							output_image_list.append(img)
+				return output_image_list
+			else:
+				return None
 
 
 	def get_aligned_dataset_in_lot(self, lot, subapp_list, dataset_dir=None):

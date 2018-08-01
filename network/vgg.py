@@ -121,7 +121,7 @@ class VGG(BaseNetwork):
 							else:
 								x = self.conv2d(conv_layer_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], 
 																stride=1, **self.conv_args, disp=debug)
-								x = self.maxpool2d(maxpool_layer_name, x, 2, stride=2, padding=padding)
+								x = self.maxpool2d(maxpool_layer_name, x, 2, stride=2, padding='SAME')
 						else:
 							x = self.conv2d(conv_layer_name, x, conv_nb_filters[block_ind], conv_ksize[block_ind], 
 															stride=1, **self.conv_args, disp=debug)
@@ -135,7 +135,7 @@ class VGG(BaseNetwork):
 			if including_top: 
 				x = tcl.flatten(x)
 				for ind, nb_nodes in enumerate(fc_nb_nodes):
-					x = self.fc('fc%d'%ind, x, nb_nodes, **self.fc_args, disp=debug)
+					x = self.fc('fc%d'%(ind+1), x, nb_nodes, **self.fc_args, disp=debug)
 
 			if debug:
 				print('\toutput_dims :              ', self.config.get('output_dims', ''))

@@ -30,13 +30,13 @@ if __name__ == '__main__':
 
 
 	dataset = PASCAL_VOC(config)
-	indices = dataset.get_image_indices(phase='train')
+	indices = dataset.get_image_indices(phase='train', method='supervised')
 
 	print(indices.shape)
 
 	for ind in indices:
 
-		img, mask = dataset.read_image_by_index_supervised(ind)
+		img, mask = dataset.read_image_by_index(ind, phase='train', method='supervised')
 
 		print(img.shape)
 		print(mask.shape)

@@ -1,5 +1,5 @@
 {
-    "config name" : "dcgan",
+    "config name" : "impgan",
 
     "dataset" : "cifar10",
     "dataset params" : {
@@ -7,10 +7,10 @@
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/dcgan/cifar10",
-    "model" : "dcgan",
+    "assets dir" : "assets/impgan/cifar10",
+    "model" : "impgan",
     "model params" : {
-        "name" : "dcgan",
+        "name" : "impgan",
 
         "input shape" : [32, 32, 3],
         "z_dim" : 100,
@@ -30,8 +30,6 @@
             "beta1" : 0.5,
             "beta2" : 0.9
         },
-
-        "use feature matching" : true,
 
         "discriminator training steps" : 5,
         "summary" : true,
@@ -91,7 +89,7 @@
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform_adam_fm",
+        "summary hyperparams string" : "bs128_he_uniform_adam",
 
         "multi thread" : true,
         "continue train" : false,

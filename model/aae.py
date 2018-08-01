@@ -76,6 +76,10 @@ class AAE(BaseModel):
 		self.z_dim = config['z_dim']
 		self.config = config
 
+		assert('encoder' in self.config)
+		assert('decoder' in self.config)
+		assert('discriminator' in self.config)
+
 		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
 		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
 
@@ -85,13 +89,26 @@ class AAE(BaseModel):
 	def build_model(self):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
-		self.config['generator params']['name'] = 'Generator'
+		self.config['encoder params']['name'] = 'Encoder'
+		self.config['decoder params']['name'] = 'Decoder'
 		self.discriminator = self.build_discriminator('discriminator')
-		self.generator = self.build_generator('generator')
+		self.encoder = self.build_encoder('encoder')
+		self.decoder = self.build_decoder('decoder')
 
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 		self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
+
+
+		self.z_mean, self.z_log_var = self.encoder(self.x_real)
+
+		self.z_sample = self.draw_sample(self.z_mean, self.z_log_var)
+		
+		self.x_recon = self.decoder(self.z_sample)
+
+
+		self.
+
 
 		self.x_fake = self.generator(self.z)
 		self.dis_real = self.discriminator(self.x_real)

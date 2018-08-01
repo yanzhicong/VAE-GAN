@@ -46,8 +46,8 @@ if __name__ == '__main__':
 		else:
 			print('load checkpoint failed!')
 
-		indices = dataset.get_image_indices(phase='train')
-		data = [dataset.read_image_by_index_supervised(ind, phase='train') for ind in indices]
+		indices = dataset.get_image_indices(phase='train', method='supervised')
+		data = [dataset.read_image_by_index(ind, phase='train', method='supervised') for ind in indices]
 		data_x = [d[0] for d in data]
 		data_y = [d[1] for d in data]
 		data_p = []

@@ -30,7 +30,8 @@ from .semisupervised import SemiSupervisedTrainer
 trainer_dict = {
     'unsupervised' : UnsupervisedTrainer,
     'supervised' : SupervisedTrainer,
-    'semi-supervised' : SemiSupervisedTrainer
+    'semi-supervised' : SemiSupervisedTrainer,
+    'semisupervised' : SemiSupervisedTrainer,
 }
 
 def get_trainer(name, config, model, sess):

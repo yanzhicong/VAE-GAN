@@ -66,7 +66,7 @@ class ValidSegmentation(BaseValidator):
 
 		nb_samples = 5
 
-		indices = dataset.get_image_indices(phase='val')
+		indices = dataset.get_image_indices(phase='val', method='superviesd')
 		indices = np.random.choice(indices, size=nb_samples)
 		summary_list = []
 
@@ -75,7 +75,7 @@ class ValidSegmentation(BaseValidator):
 		pred_list = []
 
 		for ind in indices:
-			img, mask = dataset.read_image_by_index_supervised(ind, phase='val')
+			img, mask = dataset.read_image_by_index(ind, phase='val', method='supervised')
 
 			if img is not None:
 				h = img.shape[0]

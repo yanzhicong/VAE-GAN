@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
 
 	for ind in indices:
-		image_list = dataset.read_image_by_index_unsupervised(ind)
+		image_list = dataset.read_image_by_index(ind, phase='train', method='supervised')
 		# for image in image_list:
 		plt.figure(0)
 

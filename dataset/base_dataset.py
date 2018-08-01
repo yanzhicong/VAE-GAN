@@ -29,137 +29,25 @@ import sys
 import numpy as np
 import cv2
 
-from abc import ABCMeta, abstractmethod
 
 
-class BaseDataset(object, metaclass=ABCMeta):
+class BaseDataset(object):
 
 	def __init__(self, config):
 		
 		self.config = config
-
 		self.shuffle_train = self.config.get('shuffle train', True)
 		self.shuffle_val = self.config.get('shuffle val', False)
 		self.shuffle_test = self.config.get('shuffle test', False)
-		self.batch_size = self.config.get('batch_size', 16)
-
 		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
 
-
-
-
-	'''
-		method for direct access images
-		E.g.
-		for index, batch_x, batch_y in dataset.iter_train_images_supervised():
-			(training...)
-	'''
-	def iter_train_images_supervised(self):
-		index = np.arange(self.x_train_l.shape[0])
-		if self.shuffle_train:
-			np.random.shuffle(index)
-		for i in range(int(self.x_train_l.shape[0] / self.batch_size)):
-			batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
-			batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
-			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
-			yield i, batch_x, batch_y
-
-
-	def iter_train_images_unsupervised(self):
-		index = np.arange(self.x_train_u.shape[0])
-		if self.shuffle_train:
-			np.random.shuffle(index)
-		for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
-			batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
-			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			yield i, batch_x
-
-	def iter_test_images(self):
-		index = np.arange(self.x_test.shape[0])
-		if self.shuffle_train:
-			np.random.shuffle(index)
-
-		for i in range(int(self.x_test.shape[0] / self.batch_size)):
-			batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
-			batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
-
-			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			
-			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
-			yield i, batch_x, batch_y
-	'''
-
-	'''
-	def get_image_indices(self, phase, method='supervised'):
-		'''
-
-		'''
-		if phase == 'train':
-			if method == 'supervised':
-				indices = np.array(range(self.x_train_l.shape[0]))
-			elif method == 'unsupervised' : 
-				indices = np.array(range(self.x_train_u.shape[0]))
-			else:
-				raise Exception("None method named " + str(method))
-			if self.shuffle_train:
-				np.random.shuffle(indices)
-			return indices
-
-		elif phase == 'val':
-			indices = np.array(range(self.x_test.shape[0]))
-			if self.shuffle_test:
-				np.random.shuffle(indices)
-			return indices
-
-		elif phase == 'test':
-			indices = np.array(range(self.x_test.shape[0]))
-			if self.shuffle_test:
-				np.random.shuffle(indices)
-			return indices
-
-		else:
-			raise Exception("None phase named " + str(phase))
-
-	def read_image_by_index_supervised(self, index, phase='train'):
-		if phase == 'train':
-			label = np.zeros((self.nb_classes,))
-			label[self.y_train_l[index]] = 1.0
-			return self.x_train_l[index].reshape(self.output_shape), label
-		elif phase == 'val':
-			label = np.zeros((self.nb_classes, ))
-			label[self.y_test[index]] = 1.0
-			return self.x_test[index].reshape(self.output_shape), label
-		else:
-			raise ValueError
-
-	def read_image_by_index_unsupervised(self, index, phase='train'):
-		if phase == 'train':
-			return self.x_train_u[index].reshape(self.output_shape)
-		elif phase == 'val' or phase == 'test':
-			return self.x_test[index].reshape(self.output_shape)
-		else:
-			raise ValueError
-
-	# def read_test_image_by_index(self, index):
-	# 	label = np.zeros((self.nb_classes,))
-	# 	label[self.y_test[index]] = 1.0
-	# 	return self.x_test[index].reshape(self.output_shape), label
-
-	@property
-	def nb_labelled_images(self):
-		return self.x_train_l.shape[0]
-
-	@property
-	def nb_unlabelled_images(self):
-		return self.x_train_u.shape[0]
-
-	@property
-	def nb_test_images(self):
-		return self.x_test.shape[0]
+	
+	def get_image_indcies(self, phase, method):
+		raise NotImplementedError
+	def read_image_by_index(self, ind, phase, method):
+		raise NotImplementedError
+	def nb_images(self, phase, method):
+		raise NotImplementedError
 
 
 	'''
@@ -200,7 +88,6 @@ class BaseDataset(object, metaclass=ABCMeta):
 		"""
 		"""
 		return np.argmax(cat, axis=-1)
-
 
 	def mask_colormap_encode(self, colored_mask, color_map, default_value=-1):
 		'''
@@ -356,13 +243,11 @@ class BaseDataset(object, metaclass=ABCMeta):
 			return img_crop
 
 
-
 	def scale_output(self, data):
 		'''
 			input data is in range of [0.0, 1.0]
 			this function rescale the data to the range of config parameters "scalar range"
 		'''
-
 		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
 			return data
 		else:

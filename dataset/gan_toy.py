@@ -30,7 +30,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-from .basedataset import BaseDataset
+from .base_dataset import BaseDataset
 
 
 
@@ -75,12 +75,10 @@ class GanToy(BaseDataset):
 			np.random.shuffle(indices)
 		return indices
 
-	def read_image_by_index_supervised(self, ind, phase=None):
-		raise NotImplementedError
-
-	def read_image_by_index_unsupervised(self, ind, phase=None):
+	def read_image_by_index(self, ind, phase=None, method='unsupervised'):
+		assert(method in ['unsupervised'])
 		ind = ind % self.centers.shape[0]
-		return self.centers[ind]
+		return self.centers[ind]	
 
 	def iter_train_images_supervised(self):
 		raise NotImplementedError

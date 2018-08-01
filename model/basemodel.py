@@ -91,7 +91,7 @@ class BaseModel(object):
 		return get_decoder(self.config[name], self.config[name + ' params'], self.is_training)
 
 	def build_classifier(self, name):
-		return get_classifier(self.config[name], self.config[name + 'params'], self.is_training)
+		return get_classifier(self.config[name], self.config[name + ' params'], self.is_training)
 
 	def build_generator(self, name):
 		return get_generator(self.config[name], self.config[name + ' params'], self.is_training)

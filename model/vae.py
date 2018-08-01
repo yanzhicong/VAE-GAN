@@ -48,7 +48,6 @@ from utils.loss import get_loss
 
 from .basemodel import BaseModel
 
-
 class VAE(BaseModel):
 
 	'''

@@ -3,11 +3,13 @@
 
     "dataset" : "mnist",
     "dataset params" : {
+        "semi-supervised" : true,
+        "nb_labelled_images_per_class" : 100,
         "output shape" : [28, 28, 1],
         "scalar range" : [-1.0, 1.0]
     },
 
-    "assets dir" : "assets/impgan/mnist",
+    "assets dir" : "assets/impgan/mnist_semi_100_2",
     "model" : "improved_gan",
     "model params" : {
         "name" : "improved_gan",
@@ -18,16 +20,24 @@
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 0.0001,
-            "lr scheme" : "constant",
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 10000,
+                "decay_rate" : 0.1
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
 
         "generator optimizer" : "adam",
         "generator optimizer params" : {
-            "lr" : 0.0001,
-            "lr scheme" : "constant",
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 10000,
+                "decay_rate" : 0.1
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
@@ -65,32 +75,50 @@
         "discriminator" : "discriminator",
         "discriminator params" : {
             "activation" : "lrelu 0.2",
+            // "activation" : "relu",
             "normalization" : "fused_batch_norm", //
-            "weightsinit" : "he_uniform special",
+            // "weightsinit" : "he_uniform special",
 
             "including_conv" : true,
             "conv_nb_blocks" : 3,
-            "conv_nb_layers" : [1, 1, 0],
+            "conv_nb_layers" : [2, 2, 2],
             "conv_nb_filters" : [32, 64, 128],
-            "conv_ksize" : [5, 5, 5],
+            "conv_nb_ksize" : [3, 3, 3],
             "no_maxpooling" : true,
 
             "including_top" : true,
-            "fc_nb_nodes" : [],
+            "fc_nb_nodes" : [600, 600],
+
+            // "output_dims" : 10,
+            // "output_activation" : "none",
+
+
+            // "including_conv" : true,
+            // "conv_nb_blocks" : 3,
+            // "conv_nb_layers" : [1, 1, 0],
+            // "conv_nb_filters" : [32, 64, 128],
+            // "conv_ksize" : [5, 5, 5],
+            // "no_maxpooling" : true,
+
+            // "including_top" : true,
+            // "fc_nb_nodes" : [],
 
             "output_dims" : 11,
             "output_activation" : "none",
-
-            "fc_out weightsinit" : "glorot_uniform special",
+            
+            // "fc0 weightsinit" : "glorot_uniform special",
+            // "fc1 weightsinit" : "glorot_uniform special",
+            // "fc2 weightsinit" : "glorot_uniform special",
+            // "fc_out weightsinit" : "glorot_uniform special",
             "debug" : true
         }
     },
 
-    "trainer" : "unsupervised",
+    "trainer" : "semi-supervised",
     "trainer params" : {
 
         "summary dir" : "log",
-        "summary hyperparams string" : "bs128_he_uniform_adam",
+        "summary hyperparams string" : "su_5_vs_unsu_1",
 
         "multi thread" : true,
         "continue train" : false,
@@ -100,7 +128,10 @@
         "log steps" : 100,
         "save checkpoint steps" : 5000,
 
-        "batch_size" : 128,
+        "supervised step" : 5,
+        "unsupervised step" : 1,
+
+        "batch_size" : 32,
 
         "debug" : true,
         "validators" : [
@@ -136,6 +167,15 @@
                     "z shape" : [10],
                     "x shape" : [28, 28, 1],
                     "log dir" : "log_adam"
+                }
+            },
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                // "continue train" : true, // prevent overwrite previous result file
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "top1"
                 }
             }
         ]

@@ -22,20 +22,42 @@
 # SOFTWARE.
 # ==============================================================================
 
-
 import os
 import sys
-sys.path.append('./')
 sys.path.append('../')
-sys.path.append('./lib')
 
-import numpy as np
-import matplotlib.pyplot as plt
+import tensorflow as tf
+import tensorflow.contrib.layers as tcl
 
-from skimage import io
-# import pickle
+from utils.weightsinit import get_weightsinit
+from utils.activation import get_activation
+from utils.normalization import get_normalization
 
-from .base_dataset import BaseDataset
 
+# from network.vgg import VGG
+from network.devgg import DEVGG
+from network.basenetwork import BaseNetwork
+
+class GeneratorSimple(BaseNetwork):
+
+	def __init__(self, config, is_training):
+		BaseNetwork.__init__(self, config, is_training)
+
+		self.name = config.get('name', 'GeneratorSimple')
+		self.config = config
+
+		network_config = config.copy()
+		network_config['name'] = self.name
+		self.network = DEVGG(network_config, is_training)
+
+		self.reuse=False
+		
+	def __call__(self, i):
+		x, end_points = self.network(i)
+		return x
+
+	# @property
+	# def vars(self):
+	# 	return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
 

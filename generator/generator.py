@@ -32,9 +32,9 @@ def get_generator(name, config, is_training):
 		from .generator_simple import GeneratorSimple
 		return GeneratorSimple(config, is_training)
 
-	elif name == 'cifar10 generator' or name == 'generator_cifar10':
-		from .generator_cifar10 import GeneratorCifar10
-		return GeneratorCifar10(config, is_training)
+	elif name == 'cifar10 resnet generator' or name == 'generator_cifar10_resnet':
+		from .generator_cifar10_resnet import GeneratorCifar10ResNet
+		return GeneratorCifar10ResNet(config, is_training)
 
 	elif name == 'generator_conv':
 		from .generator_conv import G_conv

@@ -12,12 +12,13 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 from network.devgg import DEVGG
+from network.basenetwork import BaseNetwork
 
 
-
-class DecoderSimple(object):
+class DecoderSimple(BaseNetwork):
 
 	def __init__(self, config, is_training):
+		super(DecoderSimple, self).__init__(config, is_training)
 		self.name = config.get('name', 'DecoderSimple')
 		self.config = config
 		network_config = config.copy()
@@ -29,8 +30,4 @@ class DecoderSimple(object):
 		x, end_points = self.network(x)
 		
 		return x
-
-	@property
-	def vars(self):
-		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 

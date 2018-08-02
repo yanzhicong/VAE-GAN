@@ -123,7 +123,7 @@ class BaseSimpleDataset(BaseDataset):
 
 	def iter_test_images(self):
 		index = np.arange(self.x_test.shape[0])
-		if self.shuffle_train:
+		if self.shuffle_test:
 			np.random.shuffle(index)
 
 		for i in range(int(self.x_test.shape[0] / self.batch_size)):

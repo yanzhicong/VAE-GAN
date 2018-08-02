@@ -186,3 +186,6 @@ class InceptionScore(BaseValidator):
 				scores.append(np.exp(kl))
 			return np.mean(scores), np.std(scores)
 
+#   exp(   mean(   probs * (log(probs) - log( mean(probs, axis=0) )
+# 						   )  )
+

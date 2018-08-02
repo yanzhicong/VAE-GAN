@@ -61,6 +61,8 @@
 
         "continue train" : false,
         "multi thread" : true,
+        
+
         "batch_size" : 32,
         "train steps" : 20000,
         "summary steps" : 1000,

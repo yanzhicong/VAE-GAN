@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 	# load config file
-	config = get_config("cla/mnist2")
+	config = get_config("cla/mnist4")
 
 	# prepare dataset
 	config['dataset params']['semi-supervised'] = False
@@ -92,11 +92,12 @@ if __name__ == '__main__':
 		if not os.path.exists(log_dir):
 			os.mkdir(log_dir)
 		with open(os.path.join(log_dir, 'metadata.tsv'), 'w') as f:
-			f.write("Index\tLabel\tPredict\tCorrect\n")
+			f.write("Index\tLabel\tPredict\tCorrect\nEntropy")
 			for i in range(data_x.shape[0]):
 				l = np.argmax(data_y[i])
 				p = np.argmax(data_p[i])
-				f.write("%d\t%d\t%d\n"%(i, l, p, 1 if l==p else 0))
+				e = -np.mean(data_p[i]*np.log(data_p[i]+0.00000001))
+				f.write("%d\t%d\t%d\t%d\t%f\n"%(i, l, p, 1 if l==p else 0, e))
 
 		summary_writer = tf.summary.FileWriter(log_dir)
 		config = projector.ProjectorConfig()

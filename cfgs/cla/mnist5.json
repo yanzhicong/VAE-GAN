@@ -1,5 +1,7 @@
 {
     "config name" : "mnist_classification",
+    // differ from "cla/mnist4.json"
+    // change the activation from relu to leaky relu
 
     "dataset" : "mnist",
     "dataset params" : {

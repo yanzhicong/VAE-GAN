@@ -47,7 +47,6 @@ class ChipProduction(BaseDataset):
 		self._dataset_defects_mask_dir = '/home/zhicongy/ws/dataset/defects_mask'
 
 		self.lot_number_list = os.listdir(self._total_production_dataset_dir)
-		
 
 		self.name = 'chip_production'
 		self.output_shape = self.config.get('output shape', [64, 64, 2])

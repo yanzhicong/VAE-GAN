@@ -45,7 +45,6 @@ class GanToyPlot(BaseValidator):
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
 
-
 	def validate(self, model, dataset, sess, step):
 
 		points = np.zeros([self.nb_points, self.nb_points,] + self.z_shape, dtype=np.float32)
@@ -55,7 +54,6 @@ class GanToyPlot(BaseValidator):
 
 		disc_map = model.discriminate(sess, points)
 		disc_map = disc_map.reshape([self.nb_points, self.nb_points]).transpose()
-
 
 		dataset_indices = dataset.get_image_indices(phase='train', method='supervised')
 		dataset_indices = np.random.choice(dataset_indices, size=100)
@@ -83,7 +81,4 @@ class GanToyPlot(BaseValidator):
 		plt.scatter(generated_x[:, 0], generated_x[:, 1], c='green', marker='*')
 
 		plt.savefig(os.path.join(self.log_dir, '%07d.jpg'%step))
-
-
-
 

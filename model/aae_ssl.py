@@ -178,7 +178,7 @@ class AAESemiSupervised(BaseModel):
 		self.dis_z_fake = self.z_discriminator(self.img_z)
 
 		eplison = tf.random_uniform(
-			shape=[tf.shape(self.x_real)[0], 1], minval=0.0, maxval=1.0)
+			shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
 		self.hat_z = (eplison * self.real_z) + ((1 - eplison) * self.img_z)
 		self.dis_z_hat = self.z_discriminator(self.hat_z)
 
@@ -186,7 +186,7 @@ class AAESemiSupervised(BaseModel):
 		self.dis_y_fake = self.y_discriminator(self.img_y)
 
 		eplison2 = tf.random_uniform(
-			shape=[tf.shape(self.x_real)[0], 1], minval=0.0, maxval=1.0)
+			shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
 		self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
 		self.dis_y_hat = self.y_discriminator(self.hat_y)
 

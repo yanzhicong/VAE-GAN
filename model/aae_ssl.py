@@ -186,7 +186,7 @@ class AAESemiSupervised(BaseModel):
 		self.dis_y_fake = self.y_discriminator(self.img_y)
 
 		eplison2 = tf.random_uniform(
-			shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
+			shape=[tf.shape(self.real_y)[0], 1], minval=0.0, maxval=1.0)
 		self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
 		self.dis_y_hat = self.y_discriminator(self.hat_y)
 
@@ -384,7 +384,7 @@ class AAESemiSupervised(BaseModel):
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 
-		total_start = clock()
+		# total_start = clock()
 
 		z_batch = self.sample_prior(x_batch.shape[0], prior='normal')
 		y_batch = self.sample_prior(x_batch.shape[0], prior='categorical')

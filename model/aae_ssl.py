@@ -203,7 +203,7 @@ class AAESemiSupervised(BaseModel):
 		self.loss_z_adv_down = get_loss('adversarial down', 'wassterstein', {
 			'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
 		self.loss_z_gp = get_loss('gradient penalty', 'l2', {
-			'x': self.z_hat, 'y': self.dis_z_hat})
+			'x': self.hat_z, 'y': self.dis_z_hat})
 
 		self.loss_z_adv_up = get_loss('adversarial up', 'wassterstein', {
 			'dis_fake': self.dis_z_fake})
@@ -211,7 +211,7 @@ class AAESemiSupervised(BaseModel):
 		self.loss_y_adv_down = get_loss('adversarial down', 'wassterstein', {
 			'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
 		self.loss_y_gp = get_loss('gradient penalty', 'l2', {
-				'x': self.y_hat,  'y': self.dis_y_hat})
+				'x': self.hat_y,  'y': self.dis_y_hat})
 
 		self.loss_y_adv_up = get_loss('adversarial up', 'wassterstein', {
 			'dis_fake': self.dis_y_fake})

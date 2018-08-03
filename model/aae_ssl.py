@@ -352,19 +352,16 @@ class AAESemiSupervised(BaseModel):
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		summary_list = []
 
-		feed_dict = {
-			self.img: x_batch,
-			self.is_training: True,
-		}
-		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-														 step=self.ae_global_step,
-														 learning_rate=self.ae_learning_rate,
-														 loss=self.loss_recon,
-														 summary=self.ae_sum_scalar)
-		# end = clock()
-		# print("\ttime 2 : %f"%(end-start))
-
-		summary_list.append((step_ae, summary_ae))
+		# feed_dict = {
+		# 	self.img: x_batch,
+		# 	self.is_training: True,
+		# }
+		# step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
+		# 												 step=self.ae_global_step,
+		# 												 learning_rate=self.ae_learning_rate,
+		# 												 loss=self.loss_recon,
+		# 												 summary=self.ae_sum_scalar)
+		# summary_list.append((step_ae, summary_ae))
 
 		feed_dict = {
 			self.img: x_batch,
@@ -380,7 +377,8 @@ class AAESemiSupervised(BaseModel):
 
 		step, _ = sess.run([self.global_step, self.global_step_update])
 
-		return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
+		# return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
+		return step, lr_e, loss_e, summary_list
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 

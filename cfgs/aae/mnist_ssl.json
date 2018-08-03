@@ -3,14 +3,16 @@
 
     "dataset" : "mnist",
     "dataset params" : {
+        "semi-supervised" : true,
+        "nb_labelled_images_per_class" : 10,
         "output shape" : [28, 28, 1],
         "batch_size" : 128,
         "scalar range" : [-1, 1]
     },
 
-    "assets dir" : "assets/aae/mnist4",
+    "assets dir" : "assets/aae_ssl/mnist4",
 
-    "model" : "aae",
+    "model" : "aae_ssl",
     "model params" : {
         "name" : "mnist",
 
@@ -20,7 +22,7 @@
 
         "auto-encoder optimizer" : "adam",
         "auto-encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -28,7 +30,7 @@
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -36,11 +38,20 @@
 
         "encoder optimizer" : "adam",
         "encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
         },
+
+        "classifier optimizer" : "adam",
+        "classifier optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "constant",
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
 
         "summary" : true,
  
@@ -58,7 +69,7 @@
             "including_top" : true,
             "fc_nb_nodes" : [600, 600],
 
-            "output_dims" : 2,
+            "output_dims" : 12,
             "output_activation" : "none",
             "output_distribution" : "none",
 
@@ -81,8 +92,22 @@
             "debug" : true
         },
 
-        "discriminator" : "discriminator",
-        "discriminator params" : {
+        "z discriminator" : "discriminator",
+        "z discriminator params" : {
+            "normalization" : "none",
+
+            "including_conv" : false,
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "output_dims" : 1,
+            "output_activation" : "none",
+
+            "debug" : true
+        },
+
+        "y discriminator" : "discriminator",
+        "y discriminator params" : {
             "normalization" : "none",
 
             "including_conv" : false,
@@ -96,29 +121,46 @@
         }
     },
 
-    "trainer" : "supervised",
+    "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_0001_adam",
+        "summary hyperparams string" : "lr0_001_adam_3",
 
         "continue train" : false,
         "multi thread" : true,
+
+        "supervised step" : 1,
+        "unsupervised step" : 1,
         
         "batch_size" : 32,
-        "train steps" : 20000,
+        "train steps" : 100000,
+        // "pretrain steps" : [
+        //     ["supervised", 5000]
+        // ],
+
+
         "summary steps" : 1000,
         "log steps" : 100,
         "save checkpoint steps" : 10000,
 
         "validators" : [
+            // {
+            //     "validator" : "scatter_plot",
+            //     "validate steps" : 1000,
+            //     "validator params" : {
+            //         "watch variable" : "hidden dist",
+            //         "distribution" : "none",
+            //         "x_dim" : 0,
+            //         "y_dim" : 1
+            //     }
+            // },
             {
-                "validator" : "scatter_plot",
-                "validate steps" : 1000,
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                // "continue train" : true, // prevent overwrite previous result file
                 "validator params" : {
-                    "watch variable" : "hidden dist",
-                    "distribution" : "none",
-                    "x_dim" : 0,
-                    "y_dim" : 1
+                    "metric" : "accuracy",
+                    "metric type" : "top1"
                 }
             }
         ]

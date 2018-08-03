@@ -3,6 +3,7 @@
 
     "dataset" : "cifar10",
     "dataset params" : {
+        
         "output shape" : [32, 32, 3],
         "batch_size" : 128
     },

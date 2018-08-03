@@ -167,12 +167,13 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.coord.join(threads)
 
 	def log(self, step):
-		if self.log_steps != 0 and step % self.log_steps == 0:
+		if self.log_steps != 0 and (step % self.log_steps == 0 or step <= 5):
 			print("supervised : [epoch : " + str(self.su_epoch) 
 							+ ", step : " + str(self.su_step)
 							+ ", lr : " + str(self.su_lr)
-							+ ", loss : " + str(self.su_loss) + "] "
-					"\\ unsupervised : [epoch : " + str(self.unsu_epoch) 
+							+ ", loss : " + str(self.su_loss) + "]")
+			print("\tunsupervised : [epoch : " + str(self.unsu_epoch) 
 							+ ", step : " + str(self.unsu_step)
 							+ ", lr : " + str(self.unsu_lr)
-							+ ", loss : " +str(self.unsu_loss) + "]")
+							+ ", loss : " +str(self.unsu_loss) + "]"
+							+ " (%0.3fs/step)"%(self.moving_time_pre_step))

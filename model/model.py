@@ -36,6 +36,9 @@ def get_model(model_name, model_params):
     elif model_name == 'aae':
         from .aae import AAE
         return AAE(model_params)
+    elif model_name == 'aae_ssl' or model_name == 'aae_semi':
+        from .aae_ssl import AAESemiSupervised
+        return AAESemiSupervised(model_params)
     elif model_name == 'classification':
         from .classification import Classification
         return Classification(model_params)

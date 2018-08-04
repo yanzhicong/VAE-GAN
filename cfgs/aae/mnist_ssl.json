@@ -127,7 +127,7 @@
     "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_0001_adam",
+        "summary hyperparams string" : "lr0_0001_adam_2",
 
         "continue train" : false,
         "multi thread" : true,

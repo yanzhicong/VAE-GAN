@@ -46,7 +46,7 @@ from .basemodel import BaseModel
 
 class AAESemiSupervised(BaseModel):
 
-    """
+	"""
 		Implementation of "Adversarial Autoencoders"
 		Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey
 
@@ -66,341 +66,341 @@ class AAESemiSupervised(BaseModel):
 			biburl    = {https://dblp.org/rec/bib/journals/corr/MakhzaniSJG15},
 			bibsource = {dblp computer science bibliography, https://dblp.org}
 		}
-    """
+	"""
 
-    def __init__(self, config,
-                 **kwargs
-                 ):
+	def __init__(self, config,
+				 **kwargs
+				 ):
 
-        super(AAESemiSupervised, self).__init__(config, **kwargs)
+		super(AAESemiSupervised, self).__init__(config, **kwargs)
 
-        self.input_shape = config['input shape']
-        self.z_dim = config['z_dim']
-        self.nb_classes = config['nb classes']
-        self.config = config
+		self.input_shape = config['input shape']
+		self.z_dim = config['z_dim']
+		self.nb_classes = config['nb classes']
+		self.config = config
 
-        assert('encoder' in self.config)
-        assert('decoder' in self.config)
-        assert('z discriminator' in self.config)
-        assert('y discriminator' in self.config)
+		assert('encoder' in self.config)
+		assert('decoder' in self.config)
+		assert('z discriminator' in self.config)
+		assert('y discriminator' in self.config)
 
 		self.discriminator_step = self.config.get('discriminator step', 1)
 		self.generator_step =  self.config.get('generator step', 1)
 
-        self.prior_distribution = self.config.get(
-            'prior distribution', 'normal')
-        assert(self.prior_distribution in [
-            'mixGaussian', 'swiss_roll', 'normal'])
+		self.prior_distribution = self.config.get(
+			'prior distribution', 'normal')
+		assert(self.prior_distribution in [
+			'mixGaussian', 'swiss_roll', 'normal'])
 
-        self.build_model()
-        self.build_summary()
+		self.build_model()
+		self.build_summary()
 
-    def sample_prior(self, batch_size, prior):
-        def to_categorical(y, num_classes):
-            input_shape = y.shape
-            y = y.ravel().astype(np.int32)
-            n = y.shape[0]
-            ret = np.zeros((n, num_classes), dtype=np.float32)
-            indices = np.where(y >= 0)[0]
-            ret[np.arange(n)[indices], y[indices]] = 1.0
-            ret = ret.reshape(list(input_shape) + [num_classes, ])
-            return ret
+	def sample_prior(self, batch_size, prior):
+		def to_categorical(y, num_classes):
+			input_shape = y.shape
+			y = y.ravel().astype(np.int32)
+			n = y.shape[0]
+			ret = np.zeros((n, num_classes), dtype=np.float32)
+			indices = np.where(y >= 0)[0]
+			ret[np.arange(n)[indices], y[indices]] = 1.0
+			ret = ret.reshape(list(input_shape) + [num_classes, ])
+			return ret
 
-        if prior == 'mixGaussian':
-            def sample(x, y, label, n_labels):
-                shift = 3
-                r = 2.0 * np.pi / n_labels * label
-                new_x = x * np.cos(r) - y * np.sin(r)
-                new_y = x * np.sin(r) + y * np.cos(r)
-                new_x += shift * np.cos(r)
-                new_y += shift * np.sin(r)
-                return new_x, new_y
-            x_var = 0.5
-            y_var = 0.1
-            x = np.random.normal(0, x_var, [batch_size, 1])
-            y = np.random.normal(0, y_var, [batch_size, 1])
-            label = np.random.randint(0, self.nb_classes, size=[
-                batch_size, 1]).astype(np.float32)
-            label_onehot = to_categorical(
-                label[:, 0], self.nb_classes).astype(np.float32)
-            x, y = sample(x, y, label, self.nb_classes)
-            return np.concatenate([x, y], axis=1).astype(np.float32), label_onehot
+		if prior == 'mixGaussian':
+			def sample(x, y, label, n_labels):
+				shift = 3
+				r = 2.0 * np.pi / n_labels * label
+				new_x = x * np.cos(r) - y * np.sin(r)
+				new_y = x * np.sin(r) + y * np.cos(r)
+				new_x += shift * np.cos(r)
+				new_y += shift * np.sin(r)
+				return new_x, new_y
+			x_var = 0.5
+			y_var = 0.1
+			x = np.random.normal(0, x_var, [batch_size, 1])
+			y = np.random.normal(0, y_var, [batch_size, 1])
+			label = np.random.randint(0, self.nb_classes, size=[
+				batch_size, 1]).astype(np.float32)
+			label_onehot = to_categorical(
+				label[:, 0], self.nb_classes).astype(np.float32)
+			x, y = sample(x, y, label, self.nb_classes)
+			return np.concatenate([x, y], axis=1).astype(np.float32), label_onehot
 
-        elif prior == 'normal':
-            x = np.random.normal(0, 1.0, [batch_size, self.z_dim])
-            return x
+		elif prior == 'normal':
+			x = np.random.normal(0, 1.0, [batch_size, self.z_dim])
+			return x
 
-        elif prior == 'categorical':
-            label = np.random.randint(0, self.nb_classes, size=[
-                batch_size]).astype(np.float32)
-            label_onehot = to_categorical(label, self.nb_classes)
-            return label_onehot
+		elif prior == 'categorical':
+			label = np.random.randint(0, self.nb_classes, size=[
+				batch_size]).astype(np.float32)
+			label_onehot = to_categorical(label, self.nb_classes)
+			return label_onehot
 
-        else:
-            raise ValueError()
+		else:
+			raise ValueError()
 
-    def discriminator_prior(self, z_batch):
-        assert(self.z_dim == 2)
-        if self.prior_distribution == 'mixGaussian':
-            pass
+	def discriminator_prior(self, z_batch):
+		assert(self.z_dim == 2)
+		if self.prior_distribution == 'mixGaussian':
+			pass
 
-    def build_model(self):
-        # network config
-        self.config['z discriminator params']['name'] = 'Z_Discriminator'
-        self.config['y discriminator params']['name'] = 'Y_Discriminator'
-        self.config['encoder params']['name'] = 'Encoder'
-        self.config['encoder params']['output_dims'] = self.z_dim + \
-            self.nb_classes
-        self.config['decoder params']['name'] = 'Decoder'
-        self.z_discriminator = self.build_discriminator('z discriminator')
-        self.y_discriminator = self.build_discriminator('y discriminator')
-        self.encoder = self.build_encoder('encoder')
-        self.decoder = self.build_decoder('decoder')
+	def build_model(self):
+		# network config
+		self.config['z discriminator params']['name'] = 'Z_Discriminator'
+		self.config['y discriminator params']['name'] = 'Y_Discriminator'
+		self.config['encoder params']['name'] = 'Encoder'
+		self.config['encoder params']['output_dims'] = self.z_dim + \
+			self.nb_classes
+		self.config['decoder params']['name'] = 'Decoder'
+		self.z_discriminator = self.build_discriminator('z discriminator')
+		self.y_discriminator = self.build_discriminator('y discriminator')
+		self.encoder = self.build_encoder('encoder')
+		self.decoder = self.build_decoder('decoder')
 
-        # build model
-        self.img = tf.placeholder(
-            tf.float32, shape=[None, ] + list(self.input_shape), name='img')
-        self.label = tf.placeholder(
-            tf.float32, shape=[None, self.nb_classes], name='label')
+		# build model
+		self.img = tf.placeholder(
+			tf.float32, shape=[None, ] + list(self.input_shape), name='img')
+		self.label = tf.placeholder(
+			tf.float32, shape=[None, self.nb_classes], name='label')
 
-        self.real_z = tf.placeholder(
-            tf.float32, shape=[None, self.z_dim], name='real_z')
-        self.real_y = tf.placeholder(
-            tf.float32, shape=[None, self.nb_classes], name='real_y')
+		self.real_z = tf.placeholder(
+			tf.float32, shape=[None, self.z_dim], name='real_z')
+		self.real_y = tf.placeholder(
+			tf.float32, shape=[None, self.nb_classes], name='real_y')
 
-        self.img_encode = self.encoder(self.img)
+		self.img_encode = self.encoder(self.img)
 
-        self.img_z = self.img_encode[:, :self.z_dim]
-        self.img_logits = self.img_encode[:, self.z_dim:]
-        self.img_y = tf.nn.softmax(self.img_logits)
+		self.img_z = self.img_encode[:, :self.z_dim]
+		self.img_logits = self.img_encode[:, self.z_dim:]
+		self.img_y = tf.nn.softmax(self.img_logits)
 
-        self.img_recon = self.decoder(
-            tf.concat([self.img_z, self.img_y], axis=1))
+		self.img_recon = self.decoder(
+			tf.concat([self.img_z, self.img_y], axis=1))
 
-        self.dis_z_real = self.z_discriminator(self.real_z)
-        self.dis_z_fake = self.z_discriminator(self.img_z)
+		self.dis_z_real = self.z_discriminator(self.real_z)
+		self.dis_z_fake = self.z_discriminator(self.img_z)
 
-        eplison = tf.random_uniform(
-            shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
-        self.hat_z = (eplison * self.real_z) + ((1 - eplison) * self.img_z)
-        self.dis_z_hat = self.z_discriminator(self.hat_z)
+		eplison = tf.random_uniform(
+			shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
+		self.hat_z = (eplison * self.real_z) + ((1 - eplison) * self.img_z)
+		self.dis_z_hat = self.z_discriminator(self.hat_z)
 
-        self.dis_y_real = self.y_discriminator(self.real_y)
-        self.dis_y_fake = self.y_discriminator(self.img_y)
+		self.dis_y_real = self.y_discriminator(self.real_y)
+		self.dis_y_fake = self.y_discriminator(self.img_y)
 
-        eplison2 = tf.random_uniform(
-            shape=[tf.shape(self.real_y)[0], 1], minval=0.0, maxval=1.0)
-        self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
-        self.dis_y_hat = self.y_discriminator(self.hat_y)
+		eplison2 = tf.random_uniform(
+			shape=[tf.shape(self.real_y)[0], 1], minval=0.0, maxval=1.0)
+		self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
+		self.dis_y_hat = self.y_discriminator(self.hat_y)
 
-        # generate image from z
-        self.img_generate = self.decoder(
-            tf.concat([self.real_z, self.real_y], axis=1))
+		# generate image from z
+		self.img_generate = self.decoder(
+			tf.concat([self.real_z, self.real_y], axis=1))
 
-        # loss config
-        # reconstruction phase
-        self.loss_recon = get_loss('reconstruction', 'l1', {
-            'x': self.img, 'y': self.img_recon})
+		# loss config
+		# reconstruction phase
+		self.loss_recon = get_loss('reconstruction', 'l1', {
+			'x': self.img, 'y': self.img_recon})
 
-        # regulation phase
-        self.loss_z_adv_down = get_loss('adversarial down', 'wassterstein', {
-            'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
-        self.loss_z_gp = get_loss('gradient penalty', 'l2', {
-            'x': self.hat_z, 'y': self.dis_z_hat})
+		# regulation phase
+		self.loss_z_adv_down = get_loss('adversarial down', 'wassterstein', {
+			'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
+		self.loss_z_gp = get_loss('gradient penalty', 'l2', {
+			'x': self.hat_z, 'y': self.dis_z_hat})
 
-        self.loss_z_adv_up = get_loss('adversarial up', 'wassterstein', {
-            'dis_fake': self.dis_z_fake})
+		self.loss_z_adv_up = get_loss('adversarial up', 'wassterstein', {
+			'dis_fake': self.dis_z_fake})
 
-        self.loss_y_adv_down = get_loss('adversarial down', 'wassterstein', {
-            'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
-        self.loss_y_gp = get_loss('gradient penalty', 'l2', {
-            'x': self.hat_y,  'y': self.dis_y_hat})
+		self.loss_y_adv_down = get_loss('adversarial down', 'wassterstein', {
+			'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
+		self.loss_y_gp = get_loss('gradient penalty', 'l2', {
+			'x': self.hat_y,  'y': self.dis_y_hat})
 
-        self.loss_y_adv_up = get_loss('adversarial up', 'wassterstein', {
-            'dis_fake': self.dis_y_fake})
+		self.loss_y_adv_up = get_loss('adversarial up', 'wassterstein', {
+			'dis_fake': self.dis_y_fake})
 
-        # semi-supervised classification phase
-        self.loss_cla = get_loss('classification', 'cross entropy', {
-            'logits': self.img_logits, 'labels': self.label})
+		# semi-supervised classification phase
+		self.loss_cla = get_loss('classification', 'cross entropy', {
+			'logits': self.img_logits, 'labels': self.label})
 
-        self.ae_loss = self.loss_recon
-        self.dz_loss = self.loss_z_adv_down + self.loss_z_gp
-        self.dy_loss = self.loss_y_adv_down + self.loss_y_gp
-        self.ez_loss = self.loss_z_adv_up
-        self.ey_loss = self.loss_y_adv_up
-        self.e_loss = self.loss_cla
+		self.ae_loss = self.loss_recon
+		self.dz_loss = self.loss_z_adv_down + self.loss_z_gp
+		self.dy_loss = self.loss_y_adv_down + self.loss_y_gp
+		self.ez_loss = self.loss_z_adv_up
+		self.ey_loss = self.loss_y_adv_up
+		self.e_loss = self.loss_cla
 
-        # optimizer config
-        self.global_step, self.global_step_update = get_global_step()
+		# optimizer config
+		self.global_step, self.global_step_update = get_global_step()
 
-        # reconstruction phase
-        (self.ae_train_op,
-         self.ae_learning_rate,
-         self.ae_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
-                                                        self.config['auto-encoder optimizer params'],
-                                                        self.loss_recon, self.encoder.vars + self.decoder.vars,
-                                                        self.global_step)
+		# reconstruction phase
+		(self.ae_train_op,
+		 self.ae_learning_rate,
+		 self.ae_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
+														self.config['auto-encoder optimizer params'],
+														self.loss_recon, self.encoder.vars + self.decoder.vars,
+														self.global_step)
 
-        # regulation phase
-        (self.dz_train_op,
-         self.dz_learning_rate,
-         self.dz_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-                                                        self.config['discriminator optimizer params'],
-                                                        self.dz_loss, self.z_discriminator.vars,
-                                                        self.global_step)
+		# regulation phase
+		(self.dz_train_op,
+		 self.dz_learning_rate,
+		 self.dz_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+														self.config['discriminator optimizer params'],
+														self.dz_loss, self.z_discriminator.vars,
+														self.global_step)
 
-        (self.dy_train_op,
-         self.dy_learning_rate,
-         self.dy_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-                                                        self.config['discriminator optimizer params'],
-                                                        self.dy_loss, self.y_discriminator.vars,
-                                                        self.global_step)
+		(self.dy_train_op,
+		 self.dy_learning_rate,
+		 self.dy_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
+														self.config['discriminator optimizer params'],
+														self.dy_loss, self.y_discriminator.vars,
+														self.global_step)
 
-        (self.ez_train_op,
-         self.ez_learning_rate,
-         self.ez_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
-                                                        self.config['encoder optimizer params'],
-                                                        self.ez_loss, self.encoder.vars,
-                                                        self.global_step)
+		(self.ez_train_op,
+		 self.ez_learning_rate,
+		 self.ez_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
+														self.config['encoder optimizer params'],
+														self.ez_loss, self.encoder.vars,
+														self.global_step)
 
-        (self.ey_train_op,
-         self.ey_learning_rate,
-         self.ey_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
-                                                        self.config['encoder optimizer params'],
-                                                        self.ey_loss, self.encoder.vars,
-                                                        self.global_step)
+		(self.ey_train_op,
+		 self.ey_learning_rate,
+		 self.ey_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
+														self.config['encoder optimizer params'],
+														self.ey_loss, self.encoder.vars,
+														self.global_step)
 
-        # classification phase
-        (self.e_train_op,
-         self.e_learning_rate,
-         self.e_global_step) = get_optimizer_by_config(self.config['classifier optimizer'],
-                                                       self.config['classifier optimizer params'],
-                                                       self.e_loss, self.encoder.vars,
-                                                       self.global_step)
+		# classification phase
+		(self.e_train_op,
+		 self.e_learning_rate,
+		 self.e_global_step) = get_optimizer_by_config(self.config['classifier optimizer'],
+													   self.config['classifier optimizer params'],
+													   self.e_loss, self.encoder.vars,
+													   self.global_step)
 
-        # model saver
-        self.saver = tf.train.Saver(self.z_discriminator.store_vars
-                                    + self.y_discriminator.store_vars
-                                    + self.encoder.store_vars
-                                    + self.decoder.store_vars
-                                    + [self.global_step])
+		# model saver
+		self.saver = tf.train.Saver(self.z_discriminator.store_vars
+									+ self.y_discriminator.store_vars
+									+ self.encoder.store_vars
+									+ self.decoder.store_vars
+									+ [self.global_step])
 
-    def build_summary(self):
-        if self.is_summary:
-            # summary scalars are logged per step
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'auto-encoder/loss', self.loss_recon))
-            sum_list.append(tf.summary.scalar(
-                'auto-encoder/lr', self.ae_learning_rate))
-            self.ae_sum_scalar = tf.summary.merge(sum_list)
+	def build_summary(self):
+		if self.is_summary:
+			# summary scalars are logged per step
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'auto-encoder/loss', self.loss_recon))
+			sum_list.append(tf.summary.scalar(
+				'auto-encoder/lr', self.ae_learning_rate))
+			self.ae_sum_scalar = tf.summary.merge(sum_list)
 
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'z_discrimintor/adv_loss', self.loss_z_adv_down))
-            sum_list.append(tf.summary.scalar(
-                'z_discrimintor/gp_loss', self.loss_z_gp))
-            sum_list.append(tf.summary.scalar(
-                'z_discrimintor/loss', self.dz_loss))
-            sum_list.append(tf.summary.scalar(
-                'z_discrimintor/lr', self.dz_learning_rate))
-            self.dz_sum_scalar = tf.summary.merge(sum_list)
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/adv_loss', self.loss_z_adv_down))
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/gp_loss', self.loss_z_gp))
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/loss', self.dz_loss))
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/lr', self.dz_learning_rate))
+			self.dz_sum_scalar = tf.summary.merge(sum_list)
 
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'y_discrimintor/adv_loss', self.loss_y_adv_down))
-            sum_list.append(tf.summary.scalar(
-                'y_discrimintor/gp_loss', self.loss_y_gp))
-            sum_list.append(tf.summary.scalar(
-                'y_discrimintor/loss', self.dy_loss))
-            sum_list.append(tf.summary.scalar(
-                'y_discrimintor/lr', self.dy_learning_rate))
-            self.dy_sum_scalar = tf.summary.merge(sum_list)
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/adv_loss', self.loss_y_adv_down))
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/gp_loss', self.loss_y_gp))
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/loss', self.dy_loss))
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/lr', self.dy_learning_rate))
+			self.dy_sum_scalar = tf.summary.merge(sum_list)
 
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'encoder/z_loss', self.loss_z_adv_up))
-            self.ez_sum_scalar = tf.summary.merge(sum_list)
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'encoder/z_loss', self.loss_z_adv_up))
+			self.ez_sum_scalar = tf.summary.merge(sum_list)
 
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'encoder/y_loss', self.loss_y_adv_up))
-            self.ey_sum_scalar = tf.summary.merge(sum_list)
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'encoder/y_loss', self.loss_y_adv_up))
+			self.ey_sum_scalar = tf.summary.merge(sum_list)
 
-            sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'encoder/supervised_loss', self.loss_cla))
-            self.e_sum_scalar = tf.summary.merge(sum_list)
+			sum_list = []
+			sum_list.append(tf.summary.scalar(
+				'encoder/supervised_loss', self.loss_cla))
+			self.e_sum_scalar = tf.summary.merge(sum_list)
 
-            # summary hists are logged by calling self.summary()
-            sum_list = []
-            sum_list += [tf.summary.histogram('z_discriminator/'+var.name, var)
-                         for var in self.z_discriminator.vars]
-            sum_list += [tf.summary.histogram('y_discriminator/'+var.name, var)
-                         for var in self.y_discriminator.vars]
-            sum_list += [tf.summary.histogram('encoder/'+var.name, var)
-                         for var in self.encoder.vars]
-            sum_list += [tf.summary.histogram('decoder/'+var.name, var)
-                         for var in self.decoder.vars]
-            self.sum_hist = tf.summary.merge(sum_list)
-        else:
-            self.d_sum_scalar = None
-            self.g_sum_scalar = None
-            self.sum_hist = None
+			# summary hists are logged by calling self.summary()
+			sum_list = []
+			sum_list += [tf.summary.histogram('z_discriminator/'+var.name, var)
+						 for var in self.z_discriminator.vars]
+			sum_list += [tf.summary.histogram('y_discriminator/'+var.name, var)
+						 for var in self.y_discriminator.vars]
+			sum_list += [tf.summary.histogram('encoder/'+var.name, var)
+						 for var in self.encoder.vars]
+			sum_list += [tf.summary.histogram('decoder/'+var.name, var)
+						 for var in self.decoder.vars]
+			self.sum_hist = tf.summary.merge(sum_list)
+		else:
+			self.d_sum_scalar = None
+			self.g_sum_scalar = None
+			self.sum_hist = None
 
-    '''
+	'''
 		train operations
 	'''
 
-    def train_on_batch_supervised(self, sess, x_batch, y_batch):
-        summary_list = []
+	def train_on_batch_supervised(self, sess, x_batch, y_batch):
+		summary_list = []
 
-        # feed_dict = {
-        # 	self.img: x_batch,
-        # 	self.is_training: True,
-        # }
-        # step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-        # 												 step=self.ae_global_step,
-        # 												 learning_rate=self.ae_learning_rate,
-        # 												 loss=self.loss_recon,
-        # 												 summary=self.ae_sum_scalar)
-        # summary_list.append((step_ae, summary_ae))
+		# feed_dict = {
+		# 	self.img: x_batch,
+		# 	self.is_training: True,
+		# }
+		# step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
+		# 												 step=self.ae_global_step,
+		# 												 learning_rate=self.ae_learning_rate,
+		# 												 loss=self.loss_recon,
+		# 												 summary=self.ae_sum_scalar)
+		# summary_list.append((step_ae, summary_ae))
 
-        feed_dict = {
-            self.img: x_batch,
-            self.label: y_batch,
-            self.is_training: True,
-        }
-        step_e, lr_e, loss_e, summary_e = self.train(sess, feed_dict, update_op=self.e_train_op,
-                                                     step=self.e_global_step,
-                                                     learning_rate=self.e_learning_rate,
-                                                     loss=self.loss_cla,
-                                                     summary=self.e_sum_scalar)
-        summary_list.append((step_e, summary_e))
+		feed_dict = {
+			self.img: x_batch,
+			self.label: y_batch,
+			self.is_training: True,
+		}
+		step_e, lr_e, loss_e, summary_e = self.train(sess, feed_dict, update_op=self.e_train_op,
+													 step=self.e_global_step,
+													 learning_rate=self.e_learning_rate,
+													 loss=self.loss_cla,
+													 summary=self.e_sum_scalar)
+		summary_list.append((step_e, summary_e))
 
-        step, _ = sess.run([self.global_step, self.global_step_update])
+		step, _ = sess.run([self.global_step, self.global_step_update])
 
-        # return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
-        return step, lr_e, loss_e, summary_list
+		# return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
+		return step, lr_e, loss_e, summary_list
 
-    def train_on_batch_unsupervised(self, sess, x_batch):
+	def train_on_batch_unsupervised(self, sess, x_batch):
 
-        # total_start = clock()
+		# total_start = clock()
 
-        z_batch = self.sample_prior(x_batch.shape[0], prior='normal')
-        y_batch = self.sample_prior(x_batch.shape[0], prior='categorical')
-        summary_list = []
+		z_batch = self.sample_prior(x_batch.shape[0], prior='normal')
+		y_batch = self.sample_prior(x_batch.shape[0], prior='categorical')
+		summary_list = []
 
-        feed_dict = {
-            self.img: x_batch,
-            self.is_training: True,
-        }
-        step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-                                                         step=self.ae_global_step,
-                                                         learning_rate=self.ae_learning_rate,
-                                                         loss=self.ae_loss,
-                                                         summary=self.ae_sum_scalar)
-        summary_list.append((step_ae, summary_ae))
+		feed_dict = {
+			self.img: x_batch,
+			self.is_training: True,
+		}
+		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
+														 step=self.ae_global_step,
+														 learning_rate=self.ae_learning_rate,
+														 loss=self.ae_loss,
+														 summary=self.ae_sum_scalar)
+		summary_list.append((step_ae, summary_ae))
 
 		for i in range(self.discriminator_step):
 			feed_dict = {
@@ -425,8 +425,8 @@ class AAESemiSupervised(BaseModel):
 															loss=self.dy_loss,
 															summary=self.dy_sum_scalar)
 
-        summary_list.append((step_dz, summary_dz))
-        summary_list.append((step_dy, summary_dy))
+		summary_list.append((step_dz, summary_dz))
+		summary_list.append((step_dy, summary_dy))
 
 		for i in range(self.generator_step):
 			feed_dict = {
@@ -447,41 +447,41 @@ class AAESemiSupervised(BaseModel):
 															learning_rate=self.ey_learning_rate,
 															loss=self.ey_loss,
 															summary=self.ey_sum_scalar)
-        summary_list.append((step_ez, summary_ez))
-        summary_list.append((step_ey, summary_ey))
+		summary_list.append((step_ez, summary_ez))
+		summary_list.append((step_ey, summary_ey))
 		
-        step, _ = sess.run([self.global_step, self.global_step_update])
+		step, _ = sess.run([self.global_step, self.global_step_update])
 
-        return step, lr_ae, {'ae': loss_ae, 'dz': loss_dz, 'dy': loss_dy, 'ez': loss_ez, 'ey': loss_ey}, summary_list,
+		return step, lr_ae, {'ae': loss_ae, 'dz': loss_dz, 'dy': loss_dy, 'ez': loss_ez, 'ey': loss_ey}, summary_list,
 
-    '''
+	'''
 		test operation
 	'''
 
-    def predict(self, sess, x_batch):
-        feed_dict = {
-            self.img: x_batch,
-            self.is_training: False,
-        }
+	def predict(self, sess, x_batch):
+		feed_dict = {
+			self.img: x_batch,
+			self.is_training: False,
+		}
 
-        pred = sess.run([self.img_y], feed_dict=feed_dict)[0]
-        return pred
+		pred = sess.run([self.img_y], feed_dict=feed_dict)[0]
+		return pred
 
-    def hidden_variable_distribution(self, sess, x_batch):
-        feed_dict = {
-            self.img: x_batch,
-            self.is_training: False
-        }
-        sample_z = sess.run([self.img_z], feed_dict=feed_dict)[0]
-        return sample_z
+	def hidden_variable_distribution(self, sess, x_batch):
+		feed_dict = {
+			self.img: x_batch,
+			self.is_training: False
+		}
+		sample_z = sess.run([self.img_z], feed_dict=feed_dict)[0]
+		return sample_z
 
-    '''
+	'''
 		summary operation
 	'''
 
-    def summary(self, sess):
-        if self.is_summary:
-            summ = sess.run(self.sum_hist)
-            return summ
-        else:
-            return None
+	def summary(self, sess):
+		if self.is_summary:
+			summ = sess.run(self.sum_hist)
+			return summ
+		else:
+			return None

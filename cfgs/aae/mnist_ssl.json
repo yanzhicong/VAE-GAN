@@ -22,7 +22,7 @@
 
         "auto-encoder optimizer" : "adam",
         "auto-encoder optimizer params" : {
-            "lr" : 0.001,
+            "lr" : 0.0001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -30,7 +30,7 @@
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 0.001,
+            "lr" : 0.0001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -38,7 +38,7 @@
 
         "encoder optimizer" : "adam",
         "encoder optimizer params" : {
-            "lr" : 0.001,
+            "lr" : 0.0001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -46,7 +46,7 @@
 
         "classifier optimizer" : "adam",
         "classifier optimizer params" : {
-            "lr" : 0.001,
+            "lr" : 0.0001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -124,7 +124,7 @@
     "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_001_adam_4",
+        "summary hyperparams string" : "lr0_0001_adam",
 
         "continue train" : false,
         "multi thread" : true,

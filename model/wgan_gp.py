@@ -114,7 +114,7 @@ class WGAN_GP(BaseModel):
 		x_hat = (eplison * self.x_real) + ((1 - eplison) * self.x_fake)
 		dis_hat = self.discriminator(x_hat)
 
-		self.d_loss_list = []
+		self.d_loss_list = []	
 		self.d_loss_adv = (get_loss('adversarial down', 
 									'wassterstein', 
 									{'dis_real' : self.dis_real, 'dis_fake' : self.dis_fake})

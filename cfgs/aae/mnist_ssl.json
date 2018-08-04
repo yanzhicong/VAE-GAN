@@ -52,6 +52,9 @@
             "beta2" : 0.9
         },
 
+        "discriminator step" : 1,
+        "generator step" : 2,
+
 
         "summary" : true,
  

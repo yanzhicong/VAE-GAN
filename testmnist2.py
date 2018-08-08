@@ -70,7 +70,6 @@ if __name__ == '__main__':
 
 
 		crossentropy_matrix = np.zeros([10, 10], dtype=np.float32)
-
 		for i in range(10):
 			for j in range(10):
 				if i > j:

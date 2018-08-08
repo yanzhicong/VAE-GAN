@@ -25,6 +25,8 @@
 
 import os
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
@@ -39,8 +41,8 @@ class ScatterPlot(BaseValidator):
 		self.log_dir = config.get('log dir', 'scatter')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
 
-		self.x_dim = int(config.get('x_dim', 0))
-		self.y_dim = int(config.get('y_dim', 1))
+		self.x_dim = int(config.get('x dim', 0))
+		self.y_dim = int(config.get('y dim', 1))
 
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)

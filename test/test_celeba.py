@@ -5,6 +5,9 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 
 from dataset.celeba import CelebA

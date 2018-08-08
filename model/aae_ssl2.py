@@ -86,9 +86,6 @@ class AAESemiSupervised(BaseModel):
 
 		self.discriminator_step = self.config.get('discriminator step', 1)
 		self.generator_step =  self.config.get('generator step', 1)
-		self.gan_type = self.config.get('gan type', 'wgan')
-
-		assert(self.gan_type in ['wgan', 'dcgan'])
 
 		self.prior_distribution = self.config.get(
 			'prior distribution', 'normal')
@@ -177,26 +174,26 @@ class AAESemiSupervised(BaseModel):
 		self.img_logits = self.img_encode[:, self.z_dim:]
 		self.img_y = tf.nn.softmax(self.img_logits)
 
-		self.img_recon = self.decoder(
+		self.img_recon_unsu = self.decoder(
 			tf.concat([self.img_z, self.img_y], axis=1))
+		self.img_recon_su = self.decoder(
+			tf.concat([self.img_z, self.label], axis=1))
 
 		self.dis_z_real = self.z_discriminator(self.real_z)
 		self.dis_z_fake = self.z_discriminator(self.img_z)
 
-		if self.gan_type == 'wgan':
-			eplison = tf.random_uniform(
-				shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
-			self.hat_z = (eplison * self.real_z) + ((1 - eplison) * self.img_z)
-			self.dis_z_hat = self.z_discriminator(self.hat_z)
+		eplison = tf.random_uniform(
+			shape=[tf.shape(self.real_z)[0], 1], minval=0.0, maxval=1.0)
+		self.hat_z = (eplison * self.real_z) + ((1 - eplison) * self.img_z)
+		self.dis_z_hat = self.z_discriminator(self.hat_z)
 
 		self.dis_y_real = self.y_discriminator(self.real_y)
 		self.dis_y_fake = self.y_discriminator(self.img_y)
 
-		if self.gan_type == 'wgan':
-			eplison2 = tf.random_uniform(
-				shape=[tf.shape(self.real_y)[0], 1], minval=0.0, maxval=1.0)
-			self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
-			self.dis_y_hat = self.y_discriminator(self.hat_y)
+		eplison2 = tf.random_uniform(
+			shape=[tf.shape(self.real_y)[0], 1], minval=0.0, maxval=1.0)
+		self.hat_y = (eplison2 * self.real_y) + ((1 - eplison2) * self.img_y)
+		self.dis_y_hat = self.y_discriminator(self.hat_y)
 
 		# generate image from z
 		self.img_generate = self.decoder(
@@ -204,48 +201,37 @@ class AAESemiSupervised(BaseModel):
 
 		# loss config
 		# reconstruction phase
-		self.loss_recon = get_loss('reconstruction', 'l2', {
-			'x': self.img, 'y': self.img_recon})
+		self.loss_recon_su = get_loss('reconstruction', 'l2', {
+			'x': self.img, 'y': self.img_recon_su})
+		self.loss_recon_unsu = get_loss('reconstruction', 'l2', {
+			'x': self.img, 'y': self.img_recon_unsu})
+
 
 		# regulation phase
+		self.loss_z_adv_down = get_loss('adversarial down', 'wassterstein', {
+			'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
+		self.loss_z_gp = get_loss('gradient penalty', 'l2', {
+			'x': self.hat_z, 'y': self.dis_z_hat})
 
-		if self.gan_type == 'wgan':
-			self.loss_z_adv_down = get_loss('adversarial down', 'wassterstein', {
-				'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
-			self.loss_z_gp = get_loss('gradient penalty', 'l2', {
-				'x': self.hat_z, 'y': self.dis_z_hat})
-			self.loss_z_adv_up = get_loss('adversarial up', 'wassterstein', {
-				'dis_fake': self.dis_z_fake})
+		self.loss_z_adv_up = get_loss('adversarial up', 'wassterstein', {
+			'dis_fake': self.dis_z_fake})
 
-			self.loss_y_adv_down = get_loss('adversarial down', 'wassterstein', {
-				'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
-			self.loss_y_gp = get_loss('gradient penalty', 'l2', {
-				'x': self.hat_y,  'y': self.dis_y_hat})
-			self.loss_y_adv_up = get_loss('adversarial up', 'wassterstein', {
-				'dis_fake': self.dis_y_fake})
+		self.loss_y_adv_down = get_loss('adversarial down', 'wassterstein', {
+			'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
+		self.loss_y_gp = get_loss('gradient penalty', 'l2', {
+			'x': self.hat_y,  'y': self.dis_y_hat})
 
-		elif self.gan_type == 'dcgan':
-			self.loss_z_adv_down = get_loss('adversarial down', 'cross entropy', {
-				'dis_real': self.dis_z_real, 'dis_fake': self.dis_z_fake})
-			self.loss_z_adv_up = get_loss('adversarial up', 'cross entropy', {
-				'dis_fake': self.dis_z_fake})
-
-			self.loss_y_adv_down = get_loss('adversarial down', 'cross entropy', {
-				'dis_real': self.dis_y_real, 'dis_fake': self.dis_y_fake})
-			self.loss_y_adv_up = get_loss('adversarial up', 'cross entropy', {
-				'dis_fake': self.dis_y_fake})
+		self.loss_y_adv_up = get_loss('adversarial up', 'wassterstein', {
+			'dis_fake': self.dis_y_fake})
 
 		# semi-supervised classification phase
 		self.loss_cla = get_loss('classification', 'cross entropy', {
 			'logits': self.img_logits, 'labels': self.label})
 
-		self.ae_loss = self.loss_recon
-		if self.gan_type == 'wgan':
-			self.dz_loss = self.loss_z_adv_down + self.loss_z_gp
-			self.dy_loss = self.loss_y_adv_down + self.loss_y_gp
-		elif self.gan_type == 'dcgan':
-			self.dz_loss = self.loss_z_adv_down
-			self.dy_loss = self.loss_y_adv_down
+		self.ae_su_loss = self.loss_recon_su
+		self.ae_unsu_loss = self.loss_recon_unsu
+		self.dz_loss = self.loss_z_adv_down + self.loss_z_gp
+		self.dy_loss = self.loss_y_adv_down + self.loss_y_gp
 		self.ez_loss = self.loss_z_adv_up
 		self.ey_loss = self.loss_y_adv_up
 		self.e_loss = self.loss_cla
@@ -254,11 +240,18 @@ class AAESemiSupervised(BaseModel):
 		self.global_step, self.global_step_update = get_global_step()
 
 		# reconstruction phase
-		(self.ae_train_op,
-		 self.ae_learning_rate,
-		 self.ae_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
+		(self.ae_su_train_op,
+		 self.ae_su_learning_rate,
+		 self.ae_su_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
 														self.config['auto-encoder optimizer params'],
-														self.loss_recon, self.encoder.vars + self.decoder.vars,
+														self.ae_su_loss, self.encoder.vars + self.decoder.vars,
+														self.global_step)
+
+		(self.ae_unsu_train_op,
+		 self.ae_unsu_learning_rate,
+		 self.ae_unsu_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
+														self.config['auto-encoder optimizer params'],
+														self.ae_unsu_loss, self.encoder.vars + self.decoder.vars,
 														self.global_step)
 
 		# regulation phase
@@ -310,17 +303,20 @@ class AAESemiSupervised(BaseModel):
 			# summary scalars are logged per step
 			sum_list = []
 			sum_list.append(tf.summary.scalar(
-				'auto-encoder/loss', self.loss_recon))
+				'auto-encoder/supervised_loss', self.loss_recon_su))
+			self.ae_su_sum_scalar = tf.summary.merge(sum_list)
+			
+			sum_list = []
 			sum_list.append(tf.summary.scalar(
-				'auto-encoder/lr', self.ae_learning_rate))
-			self.ae_sum_scalar = tf.summary.merge(sum_list)
+				'auto-encoder/unsupervised_loss', self.loss_recon_unsu))
+			self.ae_unsu_sum_scalar = tf.summary.merge(sum_list)
+
 
 			sum_list = []
-			if self.gan_type == 'wgan':
-				sum_list.append(tf.summary.scalar(
-					'z_discrimintor/adv_loss', self.loss_z_adv_down))
-				sum_list.append(tf.summary.scalar(
-					'z_discrimintor/gp_loss', self.loss_z_gp))
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/adv_loss', self.loss_z_adv_down))
+			sum_list.append(tf.summary.scalar(
+				'z_discrimintor/gp_loss', self.loss_z_gp))
 			sum_list.append(tf.summary.scalar(
 				'z_discrimintor/loss', self.dz_loss))
 			sum_list.append(tf.summary.scalar(
@@ -328,11 +324,10 @@ class AAESemiSupervised(BaseModel):
 			self.dz_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
-			if self.gan_type == 'wgan':
-				sum_list.append(tf.summary.scalar(
-					'y_discrimintor/adv_loss', self.loss_y_adv_down))
-				sum_list.append(tf.summary.scalar(
-					'y_discrimintor/gp_loss', self.loss_y_gp))
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/adv_loss', self.loss_y_adv_down))
+			sum_list.append(tf.summary.scalar(
+				'y_discrimintor/gp_loss', self.loss_y_gp))
 			sum_list.append(tf.summary.scalar(
 				'y_discrimintor/loss', self.dy_loss))
 			sum_list.append(tf.summary.scalar(
@@ -377,16 +372,17 @@ class AAESemiSupervised(BaseModel):
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		summary_list = []
 
-		# feed_dict = {
-		# 	self.img: x_batch,
-		# 	self.is_training: True,
-		# }
-		# step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-		# 												 step=self.ae_global_step,
-		# 												 learning_rate=self.ae_learning_rate,
-		# 												 loss=self.loss_recon,
-		# 												 summary=self.ae_sum_scalar)
-		# summary_list.append((step_ae, summary_ae))
+		feed_dict = {
+			self.img: x_batch,
+			self.label : y_batch,
+			self.is_training: True,
+		}
+		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_su_train_op,
+														 step=self.ae_su_global_step,
+														 learning_rate=self.ae_su_learning_rate,
+														 loss=self.ae_su_loss,
+														 summary=self.ae_su_sum_scalar)
+		summary_list.append((step_ae, summary_ae))
 
 		feed_dict = {
 			self.img: x_batch,
@@ -402,12 +398,10 @@ class AAESemiSupervised(BaseModel):
 
 		step, _ = sess.run([self.global_step, self.global_step_update])
 
-		# return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
-		return step, lr_e, loss_e, summary_list
+		return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
+		
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
-
-		# total_start = clock()
 
 		z_batch = self.sample_prior(x_batch.shape[0], prior='normal')
 		y_batch = self.sample_prior(x_batch.shape[0], prior='categorical')
@@ -417,11 +411,11 @@ class AAESemiSupervised(BaseModel):
 			self.img: x_batch,
 			self.is_training: True,
 		}
-		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-														 step=self.ae_global_step,
-														 learning_rate=self.ae_learning_rate,
-														 loss=self.ae_loss,
-														 summary=self.ae_sum_scalar)
+		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_unsu_train_op,
+														 step=self.ae_unsu_global_step,
+														 learning_rate=self.ae_unsu_learning_rate,
+														 loss=self.ae_unsu_loss,
+														 summary=self.ae_unsu_sum_scalar)
 		summary_list.append((step_ae, summary_ae))
 
 		for i in range(self.discriminator_step):

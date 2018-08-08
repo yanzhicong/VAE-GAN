@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 	# load config file
-	config = get_config("cla/mnist4")
+	config = get_config("aas/mnist_ssl")
 
 	# prepare dataset
 	config['dataset params']['semi-supervised'] = False
@@ -114,21 +114,21 @@ if __name__ == '__main__':
 							write_meta_graph=False,
 							strip_default_attrs=True)
 
-		cluster_predict(nb_cluster=10)
-		cluster_predict(nb_cluster=15)
-		cluster_predict(nb_cluster=17)
-		cluster_predict(nb_cluster=19)
-		cluster_predict(nb_cluster=20)
-		cluster_predict(nb_cluster=23)
-		cluster_predict(nb_cluster=25)
-		cluster_predict(nb_cluster=27)
-		cluster_predict(nb_cluster=30)
-		cluster_predict(nb_cluster=40)
-		cluster_predict(nb_cluster=50)
-		cluster_predict(nb_cluster=75)
-		cluster_predict(nb_cluster=100)
-		cluster_predict(nb_cluster=150)
-		cluster_predict(nb_cluster=200)
-		cluster_predict(nb_cluster=300)
-		cluster_predict(nb_cluster=400)
-		cluster_predict(nb_cluster=800)
+		# cluster_predict(nb_cluster=10)
+		# cluster_predict(nb_cluster=15)
+		# cluster_predict(nb_cluster=17)
+		# cluster_predict(nb_cluster=19)
+		# cluster_predict(nb_cluster=20)
+		# cluster_predict(nb_cluster=23)
+		# cluster_predict(nb_cluster=25)
+		# cluster_predict(nb_cluster=27)
+		# cluster_predict(nb_cluster=30)
+		# cluster_predict(nb_cluster=40)
+		# cluster_predict(nb_cluster=50)
+		# cluster_predict(nb_cluster=75)
+		# cluster_predict(nb_cluster=100)
+		# cluster_predict(nb_cluster=150)
+		# cluster_predict(nb_cluster=200)
+		# cluster_predict(nb_cluster=300)
+		# cluster_predict(nb_cluster=400)
+		# cluster_predict(nb_cluster=800)

@@ -32,7 +32,6 @@ sys.path.append('../')
 
 class BaseValidator(object):
 	def __init__(self, config):
-
 		self.config = config
 		self.assets_dir = config['assets dir']
 		self.has_summary = False
@@ -42,5 +41,4 @@ class BaseValidator(object):
 
 	def validate(self, model, dataset, sess, step):
 		return NotImplementedError
-
 

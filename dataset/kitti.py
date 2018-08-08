@@ -30,7 +30,7 @@ sys.path.append('../')
 sys.path.append('./lib')
 
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 from skimage import io
 # import pickle

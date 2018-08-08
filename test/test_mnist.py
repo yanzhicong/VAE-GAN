@@ -6,6 +6,7 @@ sys.path.append('.')
 sys.path.append('../')
 
 import tensorflow as tf
+
 import matplotlib.pyplot as plt
 
 from dataset.mnist import MNIST 

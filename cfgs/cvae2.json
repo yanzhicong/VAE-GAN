@@ -70,8 +70,8 @@
                 "validate steps" : 1000,
                 "validator params" : {
                     "watch variable" : "hidden dist",
-                    "x_dim" : 0,
-                    "y_dim" : 1,
+                    "x dim" : 0,
+                    "y dim" : 1,
                     "log dir" : "scatter1"
                 }
             },
@@ -80,8 +80,8 @@
                 "validate steps" : 1000,
                 "validator params" : {
                     "watch variable" : "hidden dist",
-                    "x_dim" : 0,
-                    "y_dim" : 2,
+                    "x dim" : 0,
+                    "y dim" : 2,
                     "log dir" : "scatter2"
                 }
             }

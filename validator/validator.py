@@ -23,9 +23,10 @@
 # ==============================================================================
 
 def get_validator(name, config):
-    if name == 'hidden_variable_validator':
-        from .hidden_variable_validator import HiddenVariableValidator
-        return HiddenVariableValidator(config)
+    if name == 'hidden_variable':
+        # 查看隐变量对应的输入
+        from .hidden_variable import HiddenVariable
+        return HiddenVariable(config)
     elif name == 'scatter_plot':
         from .scatter_plot import ScatterPlot
         return ScatterPlot(config)

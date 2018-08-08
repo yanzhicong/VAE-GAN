@@ -10,7 +10,7 @@
         "scalar range" : [-1, 1]
     },
 
-    "assets dir" : "assets/aae_ssl/mnist5",
+    "assets dir" : "assets/aae_ssl/mnist7",
 
     "model" : "aae_ssl",
     "model params" : {
@@ -18,11 +18,11 @@
 
         "input shape" : [28, 28, 1],
         "nb classes" : 10,
-        "z_dim" : 2,
+        "z_dim" : 15,
 
         "auto-encoder optimizer" : "adam",
         "auto-encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -30,7 +30,7 @@
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -38,7 +38,7 @@
 
         "encoder optimizer" : "adam",
         "encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "constant",
             "beta1" : 0.5,
             "beta2" : 0.9
@@ -54,7 +54,6 @@
 
         "discriminator step" : 1,
         "generator step" : 2,
-
 
         "summary" : true,
  
@@ -72,7 +71,7 @@
             "including_top" : true,
             "fc_nb_nodes" : [600, 600],
 
-            "output_dims" : 12,
+            "output_dims" : 25,
             "output_activation" : "none",
             "output_distribution" : "none",
 
@@ -127,7 +126,7 @@
     "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_001_adam_5_ganlr_0_0001_aelr_0_0001",
+        "summary hyperparams string" : "lr0_001_adam_ganlr_0_001_aelr_0_001_z15",
 
         "continue train" : false,
         "multi thread" : true,
@@ -148,7 +147,7 @@
                 "validate steps" : 2000,
                 "validator params" : {
                     "log dir" : "hidden2",
-                    "z_dim" : 2,
+                    "z_dim" : 15,
                     "x shape" : [28, 28, 1],
                     "dim x" : 0,
                     "dim y" : 1,

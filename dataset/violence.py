@@ -33,31 +33,30 @@ from skimage import io
 import cv2
 
 from .base_dataset import BaseDataset
+from .base_imagelist_dataset import BaseImageListDataset
 
 
 
-class CelebA(BaseDataset):
+class Violence(BaseImageListDataset):
 
 	def __init__(self, config):
 
-		super(CelebA, self).__init__(config)
+		super(Violence, self).__init__(config)
 		self.config = config
 
-		self.name = 'CelebA'
+		self.name = 'Violence'
 		self.output_shape = config.get('output shape', [64, 64, 3])
 		self.output_size = self.output_shape[0:2]
 		self.unsupervised = config.get('unsupervised', False)
 		self.crop_bbox = config.get('crop bbox', [9, 29, 169, 189]) # x0, y0, x1, y1
 
-		self._dataset_dir = '/mnt/data01/dataset/CelebA'
+		self._dataset_dir = 'F:\Documents\new BK\已整理好--与BK有关的复杂场景-肉眼不好区分的等等情形都作为负面样本'
+		
+
+
+
 		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = 'F:/Data/CelebA'
-		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = 'E:/dataset/CelebA'
-		if not os.path.exists(self._dataset_dir):
-			self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
-		if not os.path.exists(self._dataset_dir):
-			raise Exception("CelebA : the dataset dir " + self._dataset_dir + " is not exist")
+			raise Exception("Violence : the dataset dir " + self._dataset_dir + " is not exist")
 
 		if self.unsupervised:
 			self.image_list = self.read_image_list(read_label=False)

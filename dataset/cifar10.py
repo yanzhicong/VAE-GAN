@@ -81,7 +81,6 @@ class Cifar10(BaseSimpleDataset):
 		self.build_dataset()
 
 
-
 	def read_data(self, filename, data_path):
 		with open(os.path.join(data_path, filename), 'rb') as datafile:
 			data_dict = pickle.load(datafile, encoding='bytes')

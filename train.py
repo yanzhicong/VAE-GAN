@@ -81,3 +81,4 @@ if __name__ == '__main__':
 		trainer = get_trainer(config['trainer'], config['trainer params'], model, sess)
 
 		trainer.train(sess, dataset, model)
+

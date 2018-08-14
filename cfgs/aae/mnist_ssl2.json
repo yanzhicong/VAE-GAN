@@ -10,7 +10,7 @@
         "scalar range" : [-1, 1]
     },
 
-    "assets dir" : "assets/aae_ssl/mnist7",
+    "assets dir" : "assets/aae_ssl/mnist3",
 
     "model" : "aae_ssl",
     "model params" : {
@@ -23,7 +23,11 @@
         "auto-encoder optimizer" : "adam",
         "auto-encoder optimizer params" : {
             "lr" : 0.001,
-            "lr scheme" : "constant",
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
@@ -31,7 +35,11 @@
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
             "lr" : 0.001,
-            "lr scheme" : "constant",
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
@@ -39,15 +47,23 @@
         "encoder optimizer" : "adam",
         "encoder optimizer params" : {
             "lr" : 0.001,
-            "lr scheme" : "constant",
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
 
         "classifier optimizer" : "adam",
         "classifier optimizer params" : {
-            "lr" : 0.001,
-            "lr scheme" : "constant",
+            "lr" : 0.01,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
             "beta1" : 0.5,
             "beta2" : 0.9
         },
@@ -65,7 +81,7 @@
             "conv_nb_blocks" : 3,
             "conv_nb_layers" : [2, 2, 2],
             "conv_nb_filters" : [32, 64, 128],
-            "conv_nb_ksize" : [3, 3, 3],
+            "conv_ksize" : [3, 3, 3],
             "no_maxpooling" : true,
 
             "including_top" : true,
@@ -97,6 +113,7 @@
         "z discriminator" : "discriminator",
         "z discriminator params" : {
             "normalization" : "none",
+            "activation" : "lrelu 0.1",
 
             "including_conv" : false,
             "including_top" : true,
@@ -111,6 +128,7 @@
         "y discriminator" : "discriminator",
         "y discriminator params" : {
             "normalization" : "none",
+            "activation" : "lrelu 0.1",
 
             "including_conv" : false,
             "including_top" : true,
@@ -126,13 +144,13 @@
     "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_001_adam_ganlr_0_001_aelr_0_001_z15",
+        "summary hyperparams string" : "lr0_001_step_z15_lrelu_01_s1v9",
 
         "continue train" : false,
         "multi thread" : true,
 
         "supervised step" : 1,
-        "unsupervised step" : 1,
+        "unsupervised step" : 9,
         
         "batch_size" : 32,
         "train steps" : 100000,

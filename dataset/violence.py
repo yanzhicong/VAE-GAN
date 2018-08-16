@@ -52,9 +52,6 @@ class Violence(BaseImageListDataset):
 
 		self._dataset_dir = 'F:\Documents\new BK\已整理好--与BK有关的复杂场景-肉眼不好区分的等等情形都作为负面样本'
 		
-
-
-
 		if not os.path.exists(self._dataset_dir):
 			raise Exception("Violence : the dataset dir " + self._dataset_dir + " is not exist")
 

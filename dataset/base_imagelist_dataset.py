@@ -24,16 +24,14 @@
 
 
 import os
-import struct
-import gzip
 import numpy as np
-
 import matplotlib
 matplotlib.use('Agg')
-
-
 import matplotlib.pyplot as plt
 import pickle
+from skimage import io
+import cv2
+
 
 from .base_dataset import BaseDataset
 
@@ -57,9 +55,100 @@ class BaseImageListDataset(BaseDataset):
 											# ...
 
 	def read_dataset(self):
-		raise NotImplementedError
+		assert(self.train_imagelist_fp != None)
+		assert(self.val_imagelist_fp != None)
 
 
+		self.train_images, self.train_labels = self.read_imagelist(self.train_imagelist_fp)
+		self.val_images, self.val_labels = self.read_imagelist(self.val_imagelist_fp)
+
+		if self.test_imagelist_fp != None:
+			self.test_images = self.read_imagelist(self.test_imagelist_fp)
+
+
+	
+	def read_imagelist(self, filename, has_label=True):
+		image_list = []
+		label_list = []
+		class_head_list = []
+		nb_classes = 0
+
+		with open(filename, 'r', encoding='utf-8') as infile:
+
+			for ind, line in enumerate(infile):
+				if ind == 0:
+					head_split = line[:-1].split(',')
+					class_head_list = head_split[1:]
+					nb_classes = len(class_head_list)
+				else:
+					split = line[:-1].split(',')
+					image_fp = split[0]
+					image_list.append(image_fp)
+
+					if has_label:
+						label = np.array([int(i) for i in split[1:]])
+						label_list.append(label)
+
+		if has_label:
+			return image_list, np.array(label_list)
+		else:
+			return image_list
+
+	def get_image_indices(self, phase='train', method='supervised'):
+		assert(phase in ['train', 'test', 'val', 'trainval'])
+
+		if phase == 'train':
+			indices = np.arange(len(self.train_images))
+			if self.shuffle_train:
+				np.random.shuffle(indices)
+			return indices
+		elif phase == 'val':
+			indices = np.arange(len(self.val_images))
+			if self.shuffle_val:
+				np.random.shuffle(indices)
+			return indices
+		elif phase == 'test':
+			indices = np.arange(len(self.test_images))
+			if self.shuffle_test:
+				np.random.shuffle(indices)
+			return indices
+		elif phase == 'trainval':
+			indices = np.arange(len(self.train_images) + len(self.val_images))
+			if self.shuffle_train:
+				np.random.suffle(indices)
+			return indices
+
+	def read_image_by_index(self, ind, phase='train', method='supervised'):
+		assert(phase in ['train', 'test', 'val', 'trainval'])
+		assert(method in ['supervised', 'unsupervised'])
+		
+		if phase == 'train':
+			image_fp = os.path.join(self._dataset_dir, self.train_images[ind])
+			if method == 'superivsed':
+				image_label = self.train_labels[ind]
+		elif phase == 'val':
+			image_fp = os.path.join(self._dataset_dir, self.val_images[ind])
+			if method == 'superivsed':
+				image_label = self.val_labels[ind]
+		elif phase == 'trainval':
+			if ind < len(self.train_images):
+				image_fp = os.path.join(self._dataset_dir, self.train_images[ind])
+				if method == 'superivsed':
+					image_label = self.train_labels[ind]
+			else:
+				image_fp = os.path.join(self._dataset_dir, self.val_images[ind - len(self.train_images)])
+				if method == 'superivsed':
+					image_label = self.val_labels[ind - len(self.train_images)]
+		elif phase == 'test':
+			assert method == 'unsupervised'
+			assert self.test_images != None
+			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
+		
+
+		img = io.imread(image_fp)
+
+		if method == 'supervised':
+			return img, image_label
 
 	# def _get_labelled_image_indices(self, nb_images_per_class):
 	# 	pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)

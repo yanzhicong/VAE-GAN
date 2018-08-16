@@ -1,0 +1,196 @@
+{
+    "config name" : "mnist_aae",
+
+    "dataset" : "cifar10",
+    "dataset params" : {
+        "semi-supervised" : true,
+        "nb_labelled_images_per_class" : 100,
+        "output shape" : [32, 32, 3],
+        "scalar range" : [-1, 1]
+    },
+
+    "assets dir" : "assets/aae_ssl/cifar10_4",
+
+    "model" : "aae_ssl",
+    "model params" : {
+        "name" : "cifar10_ssl",
+
+        "input shape" : [32, 32, 3],
+        "nb classes" : 10,
+        "z_dim" : 25,
+
+        "auto-encoder optimizer" : "adam",
+        "auto-encoder optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "discriminator optimizer" : "adam",
+        "discriminator optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "encoder optimizer" : "adam",
+        "encoder optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "classifier optimizer" : "adam",
+        "classifier optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "discriminator step" : 1,
+        "generator step" : 2,
+
+        "summary" : true,
+ 
+        "encoder" : "encoder",
+        "encoder params" : {
+            "normalization" : "fused_batch_norm",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 4,
+            "conv_nb_layers" : [2, 2, 2, 2],
+            "conv_nb_filters" : [64, 128, 256, 512],
+            "conv_ksize" : [3, 3, 3, 3],
+            "no_maxpooling" : true,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [1000, 1000],
+
+            "output_dims" : 35, // nb class + z dim
+            "output_activation" : "none",
+            "output_distribution" : "none",
+
+            "debug" : true
+        },
+
+        "decoder" : "decoder",
+        "decoder params" : {
+            "normalization" : "fused_batch_norm",
+            
+            "including_bottom" : true,
+            "fc_nb_nodes" : [1000, 1000],
+            "fc_output_reshape" : [4, 4, 256],
+
+            "including_deconv" : true,
+            "deconv_nb_blocks" : 4,
+            "deconv_nb_layers" : [2, 2, 2, 2],
+            "deconv_nb_filters" : [512, 256, 128, 64],
+            "deconv_ksize" : [3, 3, 3, 3],
+
+            "output_dims" : 3,     
+            "output_shape" : [32, 32, 3],
+            "output_activation" : "tanh",
+
+            "debug" : true
+        },
+
+        "z discriminator" : "discriminator",
+        "z discriminator params" : {
+            "normalization" : "none",
+            "activation" : "lrelu 0.1",
+
+            "including_conv" : false,
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "output_dims" : 1,
+            "output_activation" : "none",
+
+            "debug" : true
+        },
+
+        "y discriminator" : "discriminator",
+        "y discriminator params" : {
+            "normalization" : "none",
+            "activation" : "lrelu 0.1",
+
+            "including_conv" : false,
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "output_dims" : 1,
+            "output_activation" : "none",
+
+            "debug" : true
+        }
+    },
+
+    "trainer" : "semi-supervised",
+    "trainer params" : {
+
+        "summary hyperparams string" : "lr0_0001_step_ganlr0_0001",
+
+        "continue train" : false,
+        "multi thread" : true,
+
+        "supervised step" : 1,
+        "unsupervised step" : 1,
+
+
+        "pretrain steps" :[
+            // ["supervised", 5000]
+        ],
+        
+        "batch_size" : 32,
+        "train steps" : 100000,
+
+        "summary steps" : 1000,
+        "log steps" : 100,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "hidden_variable",
+                "validate steps" : 2000,
+                "validator params" : {
+                    "log dir" : "hidden",
+                    "z_dim" : 25,
+                    "x shape" : [32, 32, 3],
+                    "dim x" : 0,
+                    "dim y" : 1,
+                    "nb classes" : 10,
+                    "scalar range" : [-1, 1]
+                }
+            },
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "top1"
+                }
+            }
+        ]
+    }
+}
+

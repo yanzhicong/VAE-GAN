@@ -4,7 +4,6 @@
     "dataset" : "mnist",
     "dataset params" : {
         "output shape" : [28, 28, 1],
-        "batch_size" : 128,
         "scalar range" : [-1, 1]
     },
 

@@ -72,10 +72,8 @@ class VAE(BaseModel):
 
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')
 
-		self.config['encoder params']['name'] = 'Encoder'
-		self.config['encoder params']['output_dims'] = self.z_dim
-		self.config['decoder params']['name'] = 'Decoder'
-		self.config['decoder params']['output_dims'] = list(self.input_shape)
+		self.config['encoder params']['name'] = 'encoder'
+		self.config['decoder params']['name'] = 'decoder'
 		self.encoder = self.build_encoder('encoder')
 		self.decoder = self.build_decoder('decoder')
 
@@ -106,9 +104,8 @@ class VAE(BaseModel):
 																	self.config['optimizer'], self.config['optimizer params'],
 																	self.loss, self.vars)
 
-
 		# model saver
-		self.saver = tf.train.Saver(self.store_vars + [self.global_step,])
+		self.saver = tf.train.Saver(self.encoder.store_vars + self.decoder.store_vars + [self.global_step,])
 
 
 	def build_summary(self):
@@ -143,25 +140,26 @@ class VAE(BaseModel):
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		feed_dict = {
 			self.x_real : x_batch,
-			# self.eps : np.random.randn(x_batch.shape[0], self.z_dim),
 			self.is_training : True
 		}
-		return self.train(sess, feed_dict)
+		return self.train(sess, feed_dict, update_op=self.train_op,
+											learning_rate=self.learning_rate,
+											step=self.global_step,
+											summary=self.sum_scalar)
 
 	'''
 		test operation
 	'''
-	def predict(self, sess, z_batch):
+	def generate(self, sess, z_batch):
 		feed_dict = {
 			self.z_test : z_batch,
 			self.is_training : False
 		}
-		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
+		x_batch = sess.run([self.x_test], feed_dict = feed_dict)[0]
 		return x_batch
 
+
 	def hidden_variable_distribution(self, sess, x_batch):
-		if self.config.get('flatten', False):
-			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 		feed_dict = {
 			self.x_real : x_batch,
 			self.is_training : False

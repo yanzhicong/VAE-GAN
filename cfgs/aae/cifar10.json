@@ -1,5 +1,5 @@
 {
-    "config name" : "vae",
+    "config name" : "mnist_aae",
 
     "dataset" : "cifar10",
     "dataset params" : {
@@ -7,18 +7,42 @@
         "scalar range" : [-1, 1]
     },
 
+    "assets dir" : "assets/aae/cifar10",
 
-    "assets dir" : "assets/vae/cifar10",
-
-    "model" : "vae",
+    "model" : "aae",
     "model params" : {
-        "name" : "vae",
+        "name" : "cifar10",
 
         "input shape" : [32, 32, 3],
-        "z_dim" : 50,
+        "nb classes" : 10,
+        "z_dim" : 2,
 
-        "optimizer" : "adam",
-        "optimizer params" : {
+        "auto-encoder optimizer" : "adam",
+        "auto-encoder optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "discriminator optimizer" : "adam",
+        "discriminator optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 40000,
+                "decay_rate" : 0.2
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "encoder optimizer" : "adam",
+        "encoder optimizer params" : {
             "lr" : 0.0001,
             "lr scheme" : "exponential",
             "lr params" : {
@@ -30,13 +54,8 @@
         },
 
 
-        "kl loss" : "gaussian",
-        "kl loss prod" : 0.001,
-        "reconstruction loss" : "mse",
-        "reconstruction loss prod" : 1,
 
         "summary" : true,
-        "summary dir" : "log",
  
         "encoder" : "encoder",
         "encoder params" : {
@@ -52,9 +71,9 @@
             "including_top" : true,
             "fc_nb_nodes" : [1000, 1000],
 
-            "output_dims" : 50,
+            "output_dims" : 2,
             "output_activation" : "none",
-            "output_distribution" : "gaussian",
+            "output_distribution" : "none",
 
             "debug" : true
         },
@@ -73,70 +92,67 @@
             "deconv_nb_filters" : [512, 256, 128, 64],
             "deconv_ksize" : [3, 3, 3, 3],
 
-            "output_dims" : 3,     
+            "output_dims" : 3,
             "output_shape" : [32, 32, 3],
             "output_activation" : "tanh",
 
             "debug" : true
+        },
+
+        "discriminator" : "discriminator",
+        "discriminator params" : {
+            "normalization" : "none",
+            "activation" : "lrelu 0.1",
+
+            "including_conv" : false,
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "output_dims" : 1,
+            "output_activation" : "none",
+
+            "debug" : true
         }
-
-
     },
 
-    "trainer" : "unsupervised",
+    "trainer" : "supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_0001_step_ganlr0_0001",
+        "summary hyperparams string" : "lr0_0001_adam",
 
         "continue train" : false,
         "multi thread" : true,
-
+        
         "batch_size" : 32,
         "train steps" : 100000,
-
         "summary steps" : 1000,
         "log steps" : 100,
         "save checkpoint steps" : 10000,
 
         "validators" : [
             {
+                "validator" : "scatter_plot",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "watch variable" : "hidden dist",
+                    "distribution" : "none",
+                    "x dim" : 0,
+                    "y dim" : 1
+                }
+            },
+            {
                 "validator" : "hidden_variable",
                 "validate steps" : 1000,
                 "validator params" : {
                     "log dir" : "hidden",
-                    "z_dim" : 50,
+                    "z_dim" : 2,
                     "x shape" : [32, 32, 3],
                     "dim x" : 0,
                     "dim y" : 1,
-                    "scalar range" : [-1, 1]
-                }
-            },
-            {
-                "validator" : "hidden_variable",
-                "validate steps" : 1000,
-                "validator params" : {
-                    "log dir" : "hidden2",
-                    "z_dim" : 50,
-                    "x shape" : [32, 32, 3],
-                    "dim x" : 25,
-                    "dim y" : 26,
-                    "scalar range" : [-1, 1]
-                }
-            },
-            {
-                "validator" : "hidden_variable",
-                "validate steps" : 1000,
-                "validator params" : {
-                    "log dir" : "hidden3",
-                    "z_dim" : 50,
-                    "x shape" : [32, 32, 3],
-                    "dim x" : 48,
-                    "dim y" : 49,
                     "scalar range" : [-1, 1]
                 }
             }
         ]
     }
 }
-
 

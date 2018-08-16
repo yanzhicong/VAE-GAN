@@ -11,19 +11,19 @@
     "model params" : {
         "name" : "vae",
 
-        "input_shape" : [28, 28, 1],
-        "flatten" : true,
+        "input shape" : [28, 28, 1],
 
         "z_dim" : 2,
         "is_training" : true,
-        "sample_func" : "normal",
 
-        "optimizer" : "rmsprop",       
-        "lr" : 0.001,
-        "lr_scheme" : "exponential",
-        "lr_params" : {
-            "decay_steps" : 1000,
-            "decay_rate" : 0.9
+        "optimizer" : "rmsprop",
+        "optimizer params" : {
+            "lr" : 0.001,
+            "lr_scheme" : "exponential",
+            "lr_params" : {
+                "decay_steps" : 1000,
+                "decay_rate" : 0.9
+            },
         },
 
         "kl loss" : "gaussian",

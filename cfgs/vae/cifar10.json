@@ -134,6 +134,31 @@
                     "dim y" : 49,
                     "scalar range" : [-1, 1]
                 }
+            },
+            {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "log dir" : "generated",
+                    "z shape" : [10],
+                    "x shape" : [32, 32, 3],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb row" : 8,
+                    "nb col" : 8
+                }
+            },
+            {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "log dir" : "generated_fixed",
+                    "z shape" : [50],
+                    "x shape" : [32, 32, 3],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb row" : 16,
+                    "nb col" : 16,
+                    "fix z" : true
+                }
             }
         ]
     }

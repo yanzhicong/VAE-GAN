@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
 	dataset = Cifar10(config)
 
-	for ind, x_batch, y_batch in dataset.iter_train_images_supervised():
+	for ind, x_batch, y_batch in dataset.iter_train_images():
 		plt.figure(0)
 		plt.imshow(x_batch[0, :, :, :])
 		plt.pause(1)

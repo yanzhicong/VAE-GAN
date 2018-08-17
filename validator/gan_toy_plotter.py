@@ -53,7 +53,7 @@ class GanToyPlot(BaseValidator):
 		y_pos_array = []
 		label_array = []
 
-		for ind, batch_x, batch_y in dataset.iter_test_images():
+		for ind, batch_x, batch_y in dataset.iter_val_images():
 			if self.watch_variable == 'pred':
 				y_pred = model.predict(sess, batch_y)
 

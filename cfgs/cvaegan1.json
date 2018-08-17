@@ -8,7 +8,7 @@
     "model" : "cvaegan",
     "model params" : {
 
-        "input_shape" : [128, 128, 3],
+        "input shape" : [128, 128, 3],
         "nb_classes" : 10,
         "z_dim" : 256,
         "is_training" : true,

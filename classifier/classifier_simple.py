@@ -29,9 +29,7 @@ import sys
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
 sys.path.append('../')
-
 
 from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
@@ -39,7 +37,6 @@ from utils.normalization import get_normalization
 
 from network.basenetwork import BaseNetwork
 from network.vgg import VGG
-
 
 class ClassifierSimple(BaseNetwork):
 	def __init__(self, config, is_training):

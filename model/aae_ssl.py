@@ -256,47 +256,29 @@ class AAESemiSupervised(BaseModel):
 		# reconstruction phase
 		(self.ae_train_op,
 		 self.ae_learning_rate,
-		 self.ae_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
-														self.config['auto-encoder optimizer params'],
-														self.loss_recon, self.encoder.vars + self.decoder.vars,
-														self.global_step)
+		 self.ae_step) = self.build_optimizer('auto-encoder', self.loss_recon, self.encoder.vars + self.decoder.vars)
 
 		# regulation phase
 		(self.dz_train_op,
 		 self.dz_learning_rate,
-		 self.dz_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-														self.config['discriminator optimizer params'],
-														self.dz_loss, self.z_discriminator.vars,
-														self.global_step)
+		 self.dz_step) = self.build_optimizer('discriminator', self.dz_loss, self.z_discriminator.vars)
 
 		(self.dy_train_op,
 		 self.dy_learning_rate,
-		 self.dy_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-														self.config['discriminator optimizer params'],
-														self.dy_loss, self.y_discriminator.vars,
-														self.global_step)
+		 self.dy_step) = self.build_optimizer('discriminator', self.dy_loss, self.y_discriminator.vars)
 
 		(self.ez_train_op,
 		 self.ez_learning_rate,
-		 self.ez_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
-														self.config['encoder optimizer params'],
-														self.ez_loss, self.encoder.vars,
-														self.global_step)
+		 self.ez_step) = self.build_optimizer('encoder', self.ez_loss, self.encoder.vars)
 
 		(self.ey_train_op,
 		 self.ey_learning_rate,
-		 self.ey_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
-														self.config['encoder optimizer params'],
-														self.ey_loss, self.encoder.vars,
-														self.global_step)
+		 self.ey_step) = self.build_optimizer('encoder', self.ey_loss, self.encoder.vars)
 
 		# classification phase
 		(self.e_train_op,
 		 self.e_learning_rate,
-		 self.e_global_step) = get_optimizer_by_config(self.config['classifier optimizer'],
-													   self.config['classifier optimizer params'],
-													   self.e_loss, self.encoder.vars,
-													   self.global_step)
+		 self.e_step) = self.build_optimizer('classifier', self.e_loss, self.encoder.vars)
 
 		# model saver
 		self.saver = tf.train.Saver(self.z_discriminator.store_vars
@@ -309,61 +291,44 @@ class AAESemiSupervised(BaseModel):
 		if self.is_summary:
 			# summary scalars are logged per step
 			sum_list = []
-			sum_list.append(tf.summary.scalar(
-				'auto-encoder/loss', self.loss_recon))
-			sum_list.append(tf.summary.scalar(
-				'auto-encoder/lr', self.ae_learning_rate))
+			sum_list.append(tf.summary.scalar('auto-encoder/loss', self.loss_recon))
+			sum_list.append(tf.summary.scalar('auto-encoder/lr', self.ae_learning_rate))
 			self.ae_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
 			if self.gan_type == 'wgan':
-				sum_list.append(tf.summary.scalar(
-					'z_discrimintor/adv_loss', self.loss_z_adv_down))
-				sum_list.append(tf.summary.scalar(
-					'z_discrimintor/gp_loss', self.loss_z_gp))
-			sum_list.append(tf.summary.scalar(
-				'z_discrimintor/loss', self.dz_loss))
-			sum_list.append(tf.summary.scalar(
-				'z_discrimintor/lr', self.dz_learning_rate))
+				sum_list.append(tf.summary.scalar('z_discrimintor/adv_loss', self.loss_z_adv_down))
+				sum_list.append(tf.summary.scalar('z_discrimintor/gp_loss', self.loss_z_gp))
+			sum_list.append(tf.summary.scalar('z_discrimintor/loss', self.dz_loss))
+			sum_list.append(tf.summary.scalar('z_discrimintor/lr', self.dz_learning_rate))
 			self.dz_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
 			if self.gan_type == 'wgan':
-				sum_list.append(tf.summary.scalar(
-					'y_discrimintor/adv_loss', self.loss_y_adv_down))
-				sum_list.append(tf.summary.scalar(
-					'y_discrimintor/gp_loss', self.loss_y_gp))
-			sum_list.append(tf.summary.scalar(
-				'y_discrimintor/loss', self.dy_loss))
-			sum_list.append(tf.summary.scalar(
-				'y_discrimintor/lr', self.dy_learning_rate))
+				sum_list.append(tf.summary.scalar('y_discrimintor/adv_loss', self.loss_y_adv_down))
+				sum_list.append(tf.summary.scalar('y_discrimintor/gp_loss', self.loss_y_gp))
+			sum_list.append(tf.summary.scalar('y_discrimintor/loss', self.dy_loss))
+			sum_list.append(tf.summary.scalar('y_discrimintor/lr', self.dy_learning_rate))
 			self.dy_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
-			sum_list.append(tf.summary.scalar(
-				'encoder/z_loss', self.loss_z_adv_up))
+			sum_list.append(tf.summary.scalar('encoder/z_loss', self.loss_z_adv_up))
 			self.ez_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
-			sum_list.append(tf.summary.scalar(
-				'encoder/y_loss', self.loss_y_adv_up))
+			sum_list.append(tf.summary.scalar('encoder/y_loss', self.loss_y_adv_up))
 			self.ey_sum_scalar = tf.summary.merge(sum_list)
 
 			sum_list = []
-			sum_list.append(tf.summary.scalar(
-				'encoder/supervised_loss', self.loss_cla))
+			sum_list.append(tf.summary.scalar('encoder/supervised_loss', self.loss_cla))
 			self.e_sum_scalar = tf.summary.merge(sum_list)
 
 			# summary hists are logged by calling self.summary()
 			sum_list = []
-			sum_list += [tf.summary.histogram('z_discriminator/'+var.name, var)
-						 for var in self.z_discriminator.vars]
-			sum_list += [tf.summary.histogram('y_discriminator/'+var.name, var)
-						 for var in self.y_discriminator.vars]
-			sum_list += [tf.summary.histogram('encoder/'+var.name, var)
-						 for var in self.encoder.vars]
-			sum_list += [tf.summary.histogram('decoder/'+var.name, var)
-						 for var in self.decoder.vars]
+			sum_list += [tf.summary.histogram('z_discriminator/'+var.name, var) for var in self.z_discriminator.vars]
+			sum_list += [tf.summary.histogram('y_discriminator/'+var.name, var) for var in self.y_discriminator.vars]
+			sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
+			sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
 			self.sum_hist = tf.summary.merge(sum_list)
 		else:
 			self.d_sum_scalar = None
@@ -377,37 +342,23 @@ class AAESemiSupervised(BaseModel):
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		summary_list = []
 
-		# feed_dict = {
-		# 	self.img: x_batch,
-		# 	self.is_training: True,
-		# }
-		# step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-		# 												 step=self.ae_global_step,
-		# 												 learning_rate=self.ae_learning_rate,
-		# 												 loss=self.loss_recon,
-		# 												 summary=self.ae_sum_scalar)
-		# summary_list.append((step_ae, summary_ae))
-
 		feed_dict = {
 			self.img: x_batch,
 			self.label: y_batch,
 			self.is_training: True,
 		}
 		step_e, lr_e, loss_e, summary_e = self.train(sess, feed_dict, update_op=self.e_train_op,
-													 step=self.e_global_step,
+													 step=self.e_step,
 													 learning_rate=self.e_learning_rate,
 													 loss=self.loss_cla,
 													 summary=self.e_sum_scalar)
 		summary_list.append((step_e, summary_e))
-
 		step, _ = sess.run([self.global_step, self.global_step_update])
-
-		# return step, lr_e, {'ae': loss_ae, 'e': loss_e}, summary_list,
 		return step, lr_e, loss_e, summary_list
 
-	def train_on_batch_unsupervised(self, sess, x_batch):
 
-		# total_start = clock()
+
+	def train_on_batch_unsupervised(self, sess, x_batch):
 
 		z_batch = self.sample_prior(x_batch.shape[0], prior='normal')
 		y_batch = self.sample_prior(x_batch.shape[0], prior='categorical')
@@ -418,7 +369,7 @@ class AAESemiSupervised(BaseModel):
 			self.is_training: True,
 		}
 		step_ae, lr_ae, loss_ae, summary_ae = self.train(sess, feed_dict, update_op=self.ae_train_op,
-														 step=self.ae_global_step,
+														 step=self.ae_step,
 														 learning_rate=self.ae_learning_rate,
 														 loss=self.ae_loss,
 														 summary=self.ae_sum_scalar)
@@ -431,7 +382,7 @@ class AAESemiSupervised(BaseModel):
 				self.real_z: z_batch,
 			}
 			step_dz, lr_dz, loss_dz, summary_dz = self.train(sess, feed_dict, update_op=self.dz_train_op,
-															step=self.dz_global_step,
+															step=self.dz_step,
 															learning_rate=self.dz_learning_rate,
 															loss=self.dz_loss,
 															summary=self.dz_sum_scalar)
@@ -442,7 +393,7 @@ class AAESemiSupervised(BaseModel):
 				self.real_y: y_batch,
 			}
 			step_dy, lr_dy, loss_dy, summary_dy = self.train(sess, feed_dict, update_op=self.dy_train_op,
-															step=self.dy_global_step,
+															step=self.dy_step,
 															learning_rate=self.dy_learning_rate,
 															loss=self.dy_loss,
 															summary=self.dy_sum_scalar)
@@ -456,7 +407,7 @@ class AAESemiSupervised(BaseModel):
 				self.is_training: True,
 			}
 			step_ez, lr_ez, loss_ez, summary_ez = self.train(sess, feed_dict, update_op=self.ez_train_op,
-															step=self.ez_global_step,
+															step=self.ez_step,
 															learning_rate=self.ez_learning_rate,
 															loss=self.ez_loss,
 															summary=self.ez_sum_scalar)
@@ -465,7 +416,7 @@ class AAESemiSupervised(BaseModel):
 				self.is_training: True,
 			}
 			step_ey, lr_ey, loss_ey, summary_ey = self.train(sess, feed_dict, update_op=self.ey_train_op,
-															step=self.ey_global_step,
+															step=self.ey_step,
 															learning_rate=self.ey_learning_rate,
 															loss=self.ey_loss,
 															summary=self.ey_sum_scalar)
@@ -474,7 +425,7 @@ class AAESemiSupervised(BaseModel):
 		
 		step, _ = sess.run([self.global_step, self.global_step_update])
 
-		return step, lr_ae, {'ae': loss_ae, 'dz': loss_dz, 'dy': loss_dy, 'ez': loss_ez, 'ey': loss_ey}, summary_list,
+		return step, "[ae:%0.6f, gan:%0.6f]"%(lr_ae, lr_dz), "[ae:%0.4f, dz:%0.4f, dy:%0.4f, ez:%0.4f, ey:%0.4f]"%(loss_ae,loss_dz,loss_dy,loss_ez,loss_ey), summary_list,
 
 	'''
 		test operation

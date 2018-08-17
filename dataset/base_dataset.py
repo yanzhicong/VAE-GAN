@@ -42,11 +42,21 @@ class BaseDataset(object):
 		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
 
 	
+
+	'''
+		interface
+	'''
 	def get_image_indcies(self, phase, method):
 		raise NotImplementedError
 	def read_image_by_index(self, ind, phase, method):
 		raise NotImplementedError
 	def nb_images(self, phase, method):
+		raise NotImplementedError
+
+
+	def iter_train_images(self, method='supervised'):
+		raise NotImplementedError
+	def iter_val_images(self):
 		raise NotImplementedError
 
 
@@ -261,3 +271,5 @@ class BaseDataset(object):
 			return data
 		else:
 			return (data - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0]) 
+
+

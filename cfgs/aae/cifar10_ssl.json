@@ -9,7 +9,7 @@
         "scalar range" : [-1, 1]
     },
 
-    "assets dir" : "assets/aae_ssl/cifar10_4",
+    "assets dir" : "assets/aae_ssl/cifar10_5",
 
     "model" : "aae_ssl",
     "model params" : {
@@ -17,11 +17,11 @@
 
         "input shape" : [32, 32, 3],
         "nb classes" : 10,
-        "z_dim" : 25,
+        "z_dim" : 50,
 
         "auto-encoder optimizer" : "adam",
         "auto-encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 40000,
@@ -33,7 +33,7 @@
 
         "discriminator optimizer" : "adam",
         "discriminator optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 40000,
@@ -45,7 +45,7 @@
 
         "encoder optimizer" : "adam",
         "encoder optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 40000,
@@ -57,7 +57,7 @@
 
         "classifier optimizer" : "adam",
         "classifier optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 40000,
@@ -86,7 +86,7 @@
             "including_top" : true,
             "fc_nb_nodes" : [1000, 1000],
 
-            "output_dims" : 35, // nb class + z dim
+            "output_dims" : 60, // nb class + z dim
             "output_activation" : "none",
             "output_distribution" : "none",
 
@@ -148,7 +148,7 @@
     "trainer" : "semi-supervised",
     "trainer params" : {
 
-        "summary hyperparams string" : "lr0_0001_step_ganlr0_0001",
+        "summary hyperparams string" : "lr0_001_step_ganlr0_001",
 
         "continue train" : false,
         "multi thread" : true,
@@ -168,18 +168,44 @@
         "log steps" : 100,
         "save checkpoint steps" : 10000,
 
+
+        "debug" : true,
+
         "validators" : [
             {
                 "validator" : "hidden_variable",
                 "validate steps" : 2000,
                 "validator params" : {
                     "log dir" : "hidden",
-                    "z_dim" : 25,
+                    "z_dim" : 50,
                     "x shape" : [32, 32, 3],
                     "dim x" : 0,
                     "dim y" : 1,
                     "nb classes" : 10,
                     "scalar range" : [-1, 1]
+                }
+            },
+            {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "log dir" : "generated",
+                    "z shape" : [50],
+                    "x shape" : [32, 32, 3],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb classes" : 10
+                }
+            },
+            {
+                "validator" : "random_generate",
+                "validate steps" : 1000,
+                "validator params" : {
+                    "log dir" : "generated_fix",
+                    "z shape" : [50],
+                    "x shape" : [32, 32, 3],
+                    "scalar range" : [-1.0, 1.0],
+                    "nb classes" : 10,
+                    "fixed" : true
                 }
             },
             {

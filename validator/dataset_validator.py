@@ -45,13 +45,15 @@ class DatasetValidator(BaseValidator):
 		super(DatasetValidator, self).__init__(config)
 
 		self.config = config
-		self.nb_samples = config.get('num_samples', 30)
+		self.nb_samples = config.get('num_samples', 5000)
+		self.batch_size = config.get('batch_size', 128)
 		self.metric = config.get('metric', 'accuracy')
 		self.metric_type = config.get('metric type', 'top1')
 		self.assets_dir = config['assets dir']
 
 		if self.metric == 'accuracy':
 			self.has_summary = True
+
 
 	def build_summary(self, model):
 
@@ -74,13 +76,29 @@ class DatasetValidator(BaseValidator):
 		
 		self.summary = tf.summary.merge(self.summary_list)
 
+
 	def validate(self, model, dataset, sess, step):
 		label_list = []
 		pred_list = []
-		for ind, batch_x, batch_y in dataset.iter_test_images():
-			pred_y = model.predict(sess, batch_x)
-			label_list.append(batch_y)
-			pred_list.append(pred_y)
+
+		indices = dataset.get_image_indices(phase='val', method='supervised')
+		nb_samples = np.minimum(len(indices), self.nb_samples)
+		indices = np.random.choice(indices, size=nb_samples, replace=False)
+
+		batch_x = []
+		batch_y = []
+		for i, ind in enumerate(indices):
+			img, label = dataset.read_image_by_index(ind, phase='val', method='supervised')
+			batch_x.append(img)
+			batch_y.append(label)
+
+			if (i+1) % self.batch_size == 0:
+				batch_p = model.predict(sess, np.array(batch_x))
+				label_list.append(np.array(batch_y))
+				pred_list.append(np.array(batch_p))
+				batch_x = []
+				batch_y = []
+
 		label_list = np.concatenate(label_list, axis=0)
 		pred_list = np.concatenate(pred_list, axis=0)
 

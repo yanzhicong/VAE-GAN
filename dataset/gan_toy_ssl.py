@@ -46,27 +46,29 @@ class GanToy(BaseDataset):
 		self.variance = float(config.get('variance', 0.02))
 		self.dataset = config.get('dataset', 'circles')
 
-		if self.dataset == 'circles':
-			scale = 2.0
-			centers = [
-				(1, 0),
-				(-1, 0),
-				(0, 1),
-				(0, -1),
-				(  1.0/np.sqrt(2),  1.0/np.sqrt(2)),
-				( -1.0/np.sqrt(2),  1.0/np.sqrt(2)),
-				(  1.0/np.sqrt(2), -1.0/np.sqrt(2)),
-				( -1.0/np.sqrt(2), -1.0/np.sqrt(2))
-			]
-			self.centers = np.array([ (scale*x, scale*y) for x, y in centers])
-			self.centers = np.tile(self.centeres, (1000, 1))
-			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
-		elif self.dataset == '25gaussians':
-			# for i in range(25):
-			centers = [(x, y) for x in range(-2, 3) 
-							  for y in range(-2, 3)]
-			self.centers = np.tile(centers, (1000, 1))
-			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
+		raise NotImplementedError
+
+		# if self.dataset == 'circles':
+		# 	scale = 2.0
+		# 	centers = [
+		# 		(1, 0),
+		# 		(-1, 0),
+		# 		(0, 1),
+		# 		(0, -1),
+		# 		(  1.0/np.sqrt(2),  1.0/np.sqrt(2)),
+		# 		( -1.0/np.sqrt(2),  1.0/np.sqrt(2)),
+		# 		(  1.0/np.sqrt(2), -1.0/np.sqrt(2)),
+		# 		( -1.0/np.sqrt(2), -1.0/np.sqrt(2))
+		# 	]
+		# 	self.centers = np.array([ (scale*x, scale*y) for x, y in centers])
+		# 	self.centers = np.tile(self.centeres, (1000, 1))
+		# 	self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
+		# elif self.dataset == '25gaussians':
+		# 	# for i in range(25):
+		# 	centers = [(x, y) for x in range(-2, 3) 
+		# 					  for y in range(-2, 3)]
+		# 	self.centers = np.tile(centers, (1000, 1))
+		# 	self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
 
 
 	def get_image_indices(self, phase=None, method=None):
@@ -80,10 +82,11 @@ class GanToy(BaseDataset):
 		ind = ind % self.centers.shape[0]
 		return self.centers[ind]	
 
-	def iter_train_images_supervised(self):
-		raise NotImplementedError
 
-	def iter_train_images_unsupervised(self):
+
+	def iter_train_images(self, method):
+		assert method == 'unsupervised'
+		
 		indices = np.array(self.get_image_indices())
 		centers = np.array(self.centers)
 		for i in range(int(len(indices) // self.batch_size)):

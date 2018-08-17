@@ -11,7 +11,7 @@
     "model params" : {
         "name" : "cvae",
 
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "flatten" : true,
         "nb_classes" : 10,
 

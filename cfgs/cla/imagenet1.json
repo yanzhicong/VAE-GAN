@@ -1,27 +1,28 @@
 {
-    "config name" : "inceptionV3_1",
+    "config name" : "imagenet_inception_v3",
 
     "dataset" : "imagenet",
     "dataset params" : {
-        "input_shape" : [299, 299, 3],
-        "batch_size" : 8
+        "output shape" : [299, 299, 3]
     },
 
-    "assets dir" : "assets/inceptionV3_1",
+    "assets dir" : "assets/imagenet/inception_v3",
 
     "model" : "classification",
     "model params" : {
         "name" : "inception",
 
-        "input_shape" : [299, 299, 3],
+        "input shape" : [299, 299, 3],
         "nb_classes" : 1000,
 
-        "optimizer" : "sgd",       
-        "lr" : 0.2,
-        "lr_scheme" : "exponential",
-        "lr_params" : {
-            "decay_steps" : 300000,
-            "decay_rate" : 0.5
+        "optimizer" : "sgd",
+        "optimizer params" : {
+            "lr" : 0.2,
+            "lr_scheme" : "exponential",
+            "lr_params" : {
+                "decay_steps" : 300000,
+                "decay_rate" : 0.5
+            }
         },
 
         "classification loss" : "crossentropy",

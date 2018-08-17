@@ -84,8 +84,8 @@ class UnsupervisedTrainer(BaseTrainer):
 		else:
 			epoch = 0
 			while True:
-				# in single thread model, the image data were read in by dataset.iter_train_images_unsupervised()
-				for ind, batch_x in dataset.iter_train_images_unsupervised():
+				# in single thread model, the image data were read in by dataset.iter_train_images()
+				for ind, batch_x in dataset.iter_train_images(method='unsupervised'):
 					step = self.train_inner_step(epoch, model, dataset, batch_x)
 					if step > int(self.config['train steps']):
 						return

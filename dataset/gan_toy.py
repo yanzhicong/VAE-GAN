@@ -61,6 +61,7 @@ class GanToy(BaseDataset):
 			self.centers = np.array([ (scale*x, scale*y) for x, y in centers])
 			self.centers = np.tile(self.centeres, (1000, 1))
 			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
+
 		elif self.dataset == '25gaussians':
 			# for i in range(25):
 			centers = [(x, y) for x in range(-2, 3) 
@@ -80,10 +81,11 @@ class GanToy(BaseDataset):
 		ind = ind % self.centers.shape[0]
 		return self.centers[ind]	
 
-	def iter_train_images_supervised(self):
-		raise NotImplementedError
 
-	def iter_train_images_unsupervised(self):
+
+	def iter_train_images(self, method):
+		assert method == 'unsupervised'
+
 		indices = np.array(self.get_image_indices())
 		centers = np.array(self.centers)
 		for i in range(int(len(indices) // self.batch_size)):

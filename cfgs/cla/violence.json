@@ -1,0 +1,86 @@
+{
+    "config name" : "violence_vgg",
+
+    "dataset" : "imagenet",
+    "dataset params" : {
+        "output shape" : [224, 224, 3],
+        "batch_size" : 8
+    },
+
+    "assets dir" : "assets/violence/vgg16",
+
+    "model" : "classification",
+    "model params" : {
+        "name" : "vgg",
+
+        "input shape" : [299, 299, 3],
+        "nb_classes" : 1000,
+
+        "optimizer" : "sgd",
+        "optimizer params" : {
+            "lr" : 0.2,
+            "lr_scheme" : "exponential",
+            "lr_params" : {
+                "decay_steps" : 300000,
+                "decay_rate" : 0.5
+            }
+        },
+
+        "classification loss" : "crossentropy",
+
+        "summary" : true,
+ 
+        "classifier" : "classifier",
+        "classifier params" : {
+            "activation" : "relu",
+            "normalization" : "fused_batch_norm",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 5,
+            "conv_nb_layers" : [2, 2, 3, 3, 3],
+            "conv_nb_filters" : [64, 128, 256, 512, 512],
+            "conv_nb_ksize" : [3, 3, 3, 3, 3],
+            "no_maxpooling" : true,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [2048, 2048],
+
+            "output_dims" : 1000,
+            "output_activation" : "none",
+
+            "debug" : true
+        }
+
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+
+        "summary hyperparams string" : "learning_rate_0_001_adam",
+
+        "continue train" : false,
+        "multi thread" : true,
+        "buffer depth" : 50,
+        
+        "batch_size" : 8,
+
+        "train steps" : 1000000,
+        "summary steps" : 30000,
+        "log steps" : 2000,
+        "save checkpoint steps" : 30000,
+
+
+        "validators" : [
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                "has summary" : true,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "top1"
+                }
+            }
+        ]
+    }
+}
+

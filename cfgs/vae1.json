@@ -12,7 +12,7 @@
     "model params" : {
         "name" : "vae",
 
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "flatten" : true,
 
         "z_dim" : 2,

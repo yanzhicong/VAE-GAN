@@ -53,6 +53,7 @@ class Classification(BaseModel):
 		self.input_shape = config['input shape']
 		self.nb_classes = config['nb classes']
 		self.config = config
+		
 		self.build_model()
 		self.build_summary()
 
@@ -88,8 +89,7 @@ class Classification(BaseModel):
 
 		(self.train_op, 
 			self.learning_rate, 
-				self.global_step) = get_optimizer_by_config(self.config['optimizer'], self.config['optimizer params'],
-														target=self.loss, variables=self.classifier.vars)
+				self.global_step) = self.build_optimizer('optimizer', self.loss, self.classifier.vars)
 
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])

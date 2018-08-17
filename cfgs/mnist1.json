@@ -5,7 +5,7 @@
     "dataset params" : {
         "semi-supervised" : true,
         "nb_labelled_image_per_class" : 100,
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "batch_size" : 128
     },
 
@@ -15,7 +15,7 @@
     "ganmodel params" : {
         "name" : "classify",
 
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "nb_classes" : 10,
 
         "optimizer" : "sgd",       

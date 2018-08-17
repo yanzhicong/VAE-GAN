@@ -124,11 +124,7 @@ class PASCAL_VOC(BaseDataset):
 			if not os.path.exists(self._dataset_dir):
 				raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
 
-		self.output_shape = config.get('output shape', [256, 256, 3])
-		self.output_size = self.output_shape[0:2]
-		self.output_h = self.output_shape[0]
-		self.output_w = self.output_shape[1]
-		self.output_c = self.output_shape[2]
+
 		self.batch_size = int(config.get('batch_size', 128))
 
 
@@ -136,10 +132,14 @@ class PASCAL_VOC(BaseDataset):
 		self.is_random_mirroring = config.get('random mirroring', True)
 		self.is_random_cropping = config.get('random cropping', True)
 		self.scaling_range = config.get('scaling range', [0.5, 1.5])
-
 		self.crop_range = self.config.get('crop range', [0.1, 0.9])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
 		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
+		self.output_shape = config.get('output shape', [256, 256, 3])
+		self.output_size = self.output_shape[0:2]
+		self.output_h = self.output_shape[0]
+		self.output_w = self.output_shape[1]
+		self.output_c = self.output_shape[2]
 
 	def read_image_list(self, task='segmentation_class', phase='train'):
 		if task == 'segmentation_class' or task == 'segmentation' or task == 'segmentation_object':

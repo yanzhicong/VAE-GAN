@@ -19,7 +19,7 @@
         "name" : "semidgm",
 
         // shape params config
-        "input_shape" : [28, 28, 1],
+        "input shape" : [28, 28, 1],
         "nb_classes" : 10,
         "hz_dim" : 10,
         "hx_dim" : 50,

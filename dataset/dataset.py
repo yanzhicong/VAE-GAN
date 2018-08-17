@@ -24,6 +24,7 @@
 
 
 def get_dataset(name, config):
+	
 	if name == 'imagenet':
 		from .imagenet import ImageNet
 		return ImageNet(config)
@@ -51,6 +52,10 @@ def get_dataset(name, config):
 	elif name == 'gan_toy' or name == 'gan toy' or name == 'toy gan':
 		from .gan_toy import GanToy
 		return GanToy(config)
+
+	elif name == 'violence':
+		from .violence import Violence
+		return Violence(config)
 
 	else:
 		raise Exception('None dataset named ' + name)

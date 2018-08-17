@@ -14,6 +14,7 @@ from generator.generator import get_generator
 from discriminator.discriminator import get_discriminator
 
 
+from utils.optimizer import get_optimizer_by_config
 
 
 class BaseModel(object):
@@ -80,7 +81,6 @@ class BaseModel(object):
 		return None
 
 
-
 	'''
 		utils functions for build model
 	'''
@@ -100,6 +100,30 @@ class BaseModel(object):
 		return get_discriminator(self.config[name], self.config[name + ' params'], self.is_training)
 
 
+
+	
+	def build_optimizer(self, name, loss, vars, step=None, step_update=None):
+		if step == None and hasattr(self, 'global_step'):
+			step = self.global_step
+
+		if name == '':
+			(train_op,
+				learning_rate_var,
+					step_var) = get_optimizer_by_config(self.config['optimizer'],
+															self.config['optimizer params'],
+															loss, vars,
+															step, step_update)
+		else:
+			(train_op,
+				learning_rate_var,
+					step_var) = get_optimizer_by_config(self.config[name + ' optimizer'],
+															self.config[name + ' optimizer params'],
+															loss, vars,
+															step, step_update)
+
+		return train_op, learning_rate_var, step_var
+
+
 	'''
 
 	'''
@@ -110,7 +134,7 @@ class BaseModel(object):
 				loss=None,
 				summary=None,
 				):
-		if step is None:
+		if step is None and hasattr(self, 'global_step'):
 			step = self.global_step
 		if learning_rate is None:
 			learning_rate = self.learning_rate

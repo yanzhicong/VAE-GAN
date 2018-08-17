@@ -36,11 +36,3 @@ if __name__ == '__main__':
 				plt.imshow(image[:, :, 0])
 		plt.pause(3)
 
-
-
-	# for ind, x_batch, y_batch in dataset.iter_train_images_supervised():
-		# plt.figure(0)
-		# plt.imshow(x_batch[0, :, :, :])
-		# plt.pause(1)
-
-	

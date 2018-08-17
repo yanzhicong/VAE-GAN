@@ -53,6 +53,11 @@ class RandomGenerate(BaseValidator):
 
 		self.fix_z = config.get('fix z', False)
 
+		self.nb_classes = config.get('nb classes', 0)
+		if self.nb_classes != 0:
+			self.nb_row_images = self.nb_classes		
+
+
 		if self.fix_z:
 			batch_size = self.nb_col_images * self.nb_row_images
 			self.batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
@@ -82,9 +87,21 @@ class RandomGenerate(BaseValidator):
 		else:
 			batch_size = self.nb_col_images * self.nb_row_images
 			batch_z = np.random.randn(*([batch_size, ] + self.z_shape))
-		batch_x = model.generate(sess, batch_z)
 
-		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(8, 8),
+		if self.nb_classes != 0:
+			batch_size = self.nb_col_images * self.nb_row_images
+			batch_c = np.concatenate([np.ones(shape=(self.nb_col_images,)) * i for i in range(self.nb_classes)], axis=0)
+			batch_c_onehot = np.zeros(shape=(batch_size, self.nb_classes))
+			batch_c_onehot[np.arange(batch_size).astype(np.int32), batch_c.astype(np.int32)] = 1
+		
+			batch_x = model.generate(sess, batch_z, condition=batch_c_onehot)
+
+		else:
+			batch_x = model.generate(sess, batch_z)
+
+
+
+		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(self.nb_col_images, self.nb_row_images),
 								subplot_kw={'xticks': [], 'yticks': []})
 		fig.subplots_adjust(hspace=0.01, wspace=0.01)
 		for ind, ax in enumerate(axes.flat):

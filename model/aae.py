@@ -82,10 +82,8 @@ class AAE(BaseModel):
         assert('decoder' in self.config)
         assert('discriminator' in self.config)
 
-        self.prior_distribution = self.config.get(
-            'prior distribution', 'mixGaussian')
-        assert(self.prior_distribution in [
-               'mixGaussian', 'swiss_roll', 'normal'])
+        self.prior_distribution = self.config.get('prior distribution', 'mixGaussian')
+        assert(self.prior_distribution in ['mixGaussian', 'swiss_roll', 'normal'])
 
         self.build_model()
         self.build_summary()
@@ -115,11 +113,6 @@ class AAE(BaseModel):
             x, y = sample(x, y, label, self.nb_classes)
             return np.concatenate([x, y], axis=1).astype(np.float32), label_onehot
 
-    def discriminator_prior(self, z_batch):
-        assert(self.z_dim == 2)
-        if self.prior_distribution == 'mixGaussian':
-            pass
-
     def build_model(self):
         # network config
         self.config['discriminator params']['name'] = 'Discriminator'
@@ -130,22 +123,17 @@ class AAE(BaseModel):
         self.decoder = self.build_decoder('decoder')
 
         # build model
-        self.img = tf.placeholder(
-            tf.float32, shape=[None, ] + list(self.input_shape), name='img')
-        self.label = tf.placeholder(
-            tf.float32, shape=[None, self.nb_classes], name='label')
+        self.img = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='img')
+        self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
         self.z = tf.placeholder(tf.float32, shape=[None, self.z_dim], name='z')
-        self.z_label = tf.placeholder(
-            tf.float32, shape=[None, self.nb_classes], name='z_label')
+        self.z_label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='z_label')
 
         self.z_sample = self.encoder(self.img)
 
         self.img_recon = self.decoder(self.z_sample)
 
-        self.dis_real = self.discriminator(
-            tf.concat([self.z, self.z_label], axis=1))
-        self.dis_fake = self.discriminator(
-            tf.concat([self.z_sample, self.label], axis=1))
+        self.dis_real = self.discriminator(tf.concat([self.z, self.z_label], axis=1))
+        self.dis_fake = self.discriminator(tf.concat([self.z_sample, self.label], axis=1))
 
         # generate image from z:
         self.img_generate = self.decoder(self.z)
@@ -167,23 +155,15 @@ class AAE(BaseModel):
 
         (self.ae_train_op,
          self.ae_learning_rate,
-         self.ae_global_step) = get_optimizer_by_config(self.config['auto-encoder optimizer'],
-                                                        self.config['auto-encoder optimizer params'],
-                                                        self.loss_recon, self.encoder.vars + self.decoder.vars,
-                                                        self.global_step)
+         self.ae_global_step) = self.build_optimizer('auto-encoder', self.loss_recon, self.encoder.vars + self.decoder.vars)
+         
         (self.d_train_op,
          self.d_learning_rate,
-         self.d_global_step) = get_optimizer_by_config(self.config['discriminator optimizer'],
-                                                       self.config['discriminator optimizer params'],
-                                                       self.loss_adv_down, self.discriminator.vars,
-                                                       self.global_step)
+         self.d_global_step) = self.build_optimizer('discriminator', self.loss_adv_down, self.discriminator.vars)
 
         (self.e_train_op,
          self.e_learning_rate,
-         self.e_global_step) = get_optimizer_by_config(self.config['encoder optimizer'],
-                                                       self.config['encoder optimizer params'],
-                                                       self.loss_adv_up, self.encoder.vars,
-                                                       self.global_step)
+         self.e_global_step) = self.build_optimizer('encoder', self.loss_adv_up, self.encoder.vars)
 
         # model saver
         self.saver = tf.train.Saver(self.discriminator.store_vars
@@ -195,43 +175,35 @@ class AAE(BaseModel):
         if self.is_summary:
             # summary scalars are logged per step
             sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'auto-encoder/loss', self.ae_loss))
-            sum_list.append(tf.summary.scalar(
-                'auto-encoder/lr', self.ae_learning_rate))
+            sum_list.append(tf.summary.scalar('auto-encoder/loss', self.ae_loss))
+            sum_list.append(tf.summary.scalar('auto-encoder/lr', self.ae_learning_rate))
             self.ae_sum_scalar = tf.summary.merge(sum_list)
 
             sum_list = []
-            sum_list.append(tf.summary.scalar(
-                'discrimintor/loss', self.d_loss))
-            sum_list.append(tf.summary.scalar(
-                'discrimintor/lr', self.d_learning_rate))
+            sum_list.append(tf.summary.scalar('discrimintor/loss', self.d_loss))
+            sum_list.append(tf.summary.scalar('discrimintor/lr', self.d_learning_rate))
             self.d_sum_scalar = tf.summary.merge(sum_list)
 
             sum_list = []
             sum_list.append(tf.summary.scalar('encoder/loss', self.e_loss))
-            sum_list.append(tf.summary.scalar(
-                'encoder/lr', self.e_learning_rate))
+            sum_list.append(tf.summary.scalar('encoder/lr', self.e_learning_rate))
             self.e_sum_scalar = tf.summary.merge(sum_list)
 
             # summary hists are logged by calling self.summary()
             sum_list = []
-            sum_list += [tf.summary.histogram('discriminator/'+var.name, var)
-                         for var in self.discriminator.vars]
-            sum_list += [tf.summary.histogram('encoder/'+var.name, var)
-                         for var in self.encoder.vars]
-            sum_list += [tf.summary.histogram('decoder/'+var.name, var)
-                         for var in self.decoder.vars]
+            sum_list += [tf.summary.histogram('discriminator/'+var.name, var) for var in self.discriminator.vars]
+            sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
+            sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
             self.sum_hist = tf.summary.merge(sum_list)
         else:
             self.d_sum_scalar = None
             self.g_sum_scalar = None
             self.sum_hist = None
 
+
     '''
 		train operations
 	'''
-
     def train_on_batch_supervised(self, sess, x_batch, y_batch):
 
         z_batch, z_label_batch = self.sample_prior(x_batch.shape[0])

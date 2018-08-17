@@ -44,6 +44,24 @@ class BaseImageListDataset(BaseDataset):
 		self.config = config
 		self.batch_size = int(config.get('batch_size', 128))
 
+
+		assert('output shape' in config)
+
+
+		self.is_random_scaling = config.get('random scaling', True)
+		self.is_random_mirroring = config.get('random mirroring', True)
+		self.is_random_cropping = config.get('random cropping', True)
+		self.scaling_range = config.get('scaling range', [0.5, 1.5])
+		self.crop_range = self.config.get('crop range', [0.1, 0.9])
+		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
+		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
+		self.output_shape = config.get('output shape', [256, 256, 3])
+		self.output_size = self.output_shape[0:2]
+		self.output_h = self.output_shape[0]
+		self.output_w = self.output_shape[1]
+		self.output_c = self.output_shape[2]
+
+
 		# please fill in the following field in the drived dataset class
 		self._dataset_dir = None
 		self.train_imagelist_fp = None      # the txt file which contains the list of images and labels
@@ -54,10 +72,11 @@ class BaseImageListDataset(BaseDataset):
 											# line 3 : image2.jpg,0,0
 											# ...
 
-	def read_dataset(self):
+	
+
+	def build_dataset(self):
 		assert(self.train_imagelist_fp != None)
 		assert(self.val_imagelist_fp != None)
-
 
 		self.train_images, self.train_labels = self.read_imagelist(self.train_imagelist_fp)
 		self.val_images, self.val_labels = self.read_imagelist(self.val_imagelist_fp)
@@ -144,131 +163,30 @@ class BaseImageListDataset(BaseDataset):
 			assert self.test_images != None
 			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
 		
-
 		img = io.imread(image_fp)
+
+		# in case of single channel image
+		if img.ndims == 2:
+			img = cv2.merge([img, img, img])
+
+
+		if phase in ['train', 'trainval']:
+			if self.is_random_scaling:
+				img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+			if self.is_random_mirroring:
+				img = self.random_mirroring(img)
+		elif phase in ['val']:
+			scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
+			img = self.random_scaling(img, minval=scale, maxval=scale)
+
+		if phase in ['train', 'trainval']:
+			img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
+		elif phase in ['val']:
+			img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=[0.5,0.5])
 
 		if method == 'supervised':
 			return img, image_label
+		else:
+			return img
 
-	# def _get_labelled_image_indices(self, nb_images_per_class):
-	# 	pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
-	# 	if os.path.exists(pickle_filepath):
-	# 		return pickle.load(open(pickle_filepath, 'rb'))
-	# 	else:
-	# 		train_indices = []
-	# 		for i in range(self.nb_classes):
-	# 			indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_class).tolist()
-	# 			train_indices += indices
-	# 		train_indices = np.array(train_indices)
-	# 		pickle.dump(train_indices, open(pickle_filepath, 'wb'))
-	# 		return train_indices
-
-	# '''
-	# 	method for direct access images
-	# 	E.g.
-	# 	for index, batch_x, batch_y in dataset.iter_train_images_supervised():
-	# 		(training...)
-	# '''
-	# def iter_train_images_supervised(self):
-	# 	index = np.arange(self.x_train_l.shape[0])
-	# 	if self.shuffle_train:
-	# 		np.random.shuffle(index)
-	# 	for i in range(int(self.x_train_l.shape[0] / self.batch_size)):
-	# 		batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
-	# 		batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
-	# 		if 'output shape' in self.config:
-	# 			batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-	# 		batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
-	# 		yield i, batch_x, batch_y
-
-	# def iter_train_images_unsupervised(self):
-	# 	index = np.arange(self.x_train_u.shape[0])
-	# 	if self.shuffle_train:
-	# 		np.random.shuffle(index)
-	# 	for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
-	# 		batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
-	# 		if 'output shape' in self.config:
-	# 			batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-	# 		yield i, batch_x
-
-	# def iter_test_images(self):
-	# 	index = np.arange(self.x_test.shape[0])
-	# 	if self.shuffle_test:
-	# 		np.random.shuffle(index)
-
-	# 	for i in range(int(self.x_test.shape[0] / self.batch_size)):
-	# 		batch_x = self.x_test[index[i*self.batch_size:(i+1)*self.batch_size], :]
-	# 		batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
-
-	# 		if 'output shape' in self.config:
-	# 			batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			
-	# 		batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
-	# 		yield i, batch_x, batch_y
-	# '''
-
-	# '''
-	# def get_image_indices(self, phase, method='supervised'):
-	# 	'''
-
-	# 	'''
-	# 	if phase == 'train':
-	# 		if method == 'supervised':
-	# 			indices = np.array(range(self.x_train_l.shape[0]))
-	# 		elif method == 'unsupervised' : 
-	# 			indices = np.array(range(self.x_train_u.shape[0]))
-	# 		else:
-	# 			raise Exception("None method named " + str(method))
-	# 		if self.shuffle_train:
-	# 			np.random.shuffle(indices)
-	# 		return indices
-
-	# 	elif phase == 'val':
-	# 		indices = np.array(range(self.x_test.shape[0]))
-	# 		if self.shuffle_test:
-	# 			np.random.shuffle(indices)
-	# 		return indices
-
-	# 	elif phase == 'test':
-	# 		indices = np.array(range(self.x_test.shape[0]))
-	# 		if self.shuffle_test:
-	# 			np.random.shuffle(indices)
-	# 		return indices
-
-	# 	else:
-	# 		raise Exception("None phase named " + str(phase))
-
-	# def read_image_by_index(self, index, phase='train', method='supervised'):
-	# 	assert(method in ['supervised', 'unsupervised'])
-	# 	assert(phase in ['train', 'val', 'test'])
-
-	# 	if method == 'supervised':
-	# 		if phase == 'train':
-	# 			label = np.zeros((self.nb_classes,))
-	# 			label[self.y_train_l[index]] = 1.0
-	# 			return self.x_train_l[index].reshape(self.output_shape), label
-	# 		elif phase == 'val' or phase == 'test':
-	# 			label = np.zeros((self.nb_classes, ))
-	# 			label[self.y_test[index]] = 1.0
-	# 			return self.x_test[index].reshape(self.output_shape), label
-
-	# 	elif method == 'unsupervised':
-	# 		if phase == 'train':
-	# 			return self.x_train_u[index].reshape(self.output_shape)
-	# 		elif phase == 'val' or phase == 'test':
-	# 			return self.x_test[index].reshape(self.output_shape)
-
-
-
-	# @property
-	# def nb_labelled_images(self):
-	# 	return self.x_train_l.shape[0]
-
-	# @property
-	# def nb_unlabelled_images(self):
-	# 	return self.x_train_u.shape[0]
-
-	# @property
-	# def nb_test_images(self):
-	# 	return self.x_test.shape[0]
 

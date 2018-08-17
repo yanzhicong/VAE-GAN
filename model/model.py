@@ -27,44 +27,58 @@ def get_model(model_name, model_params):
     if model_name == 'cvaegan':
         from .cvaegan import CVAEGAN
         return CVAEGAN(model_params)
+    
     elif model_name == 'vae':
         from .vae import VAE
         return VAE(model_params)
+    
     elif model_name == 'cvae':
         from .cvae import CVAE
         return CVAE(model_params)
+    
     elif model_name == 'aae':
         from .aae import AAE
         return AAE(model_params)
+    
     elif model_name == 'aae_ssl' or model_name == 'aae_semi':
         from .aae_ssl import AAESemiSupervised
         return AAESemiSupervised(model_params)
+    
     elif model_name == 'aae_ssl2' or model_name == 'aae_semi2':
         from .aae_ssl2 import AAESemiSupervised
         return AAESemiSupervised(model_params)
+    
     elif model_name == 'classification':
         from .classification import Classification
         return Classification(model_params)
+    
     elif model_name == 'segmentation':
         from .segmentation import Segmentation
         return Segmentation(model_params)
+    
     elif model_name == 'stargan':
         from .stargan import StarGAN
         return StarGAN(model_params)
+    
     elif model_name == 'semidgm':
         from .semi_dgm import SemiDeepGenerativeModel
         return SemiDeepGenerativeModel(model_params)
+    
     elif model_name == 'semidgm2':
         from .semi_dgm2 import SemiDeepGenerativeModel2
         return SemiDeepGenerativeModel2(model_params)
+    
     elif model_name == 'dcgan':
         from .dcgan import DCGAN
         return DCGAN(model_params)
+    
     elif model_name == 'wgan_gp' or model_name == 'wgan':
         from .wgan_gp import WGAN_GP
         return WGAN_GP(model_params)
+    
     elif model_name == 'improved_gan':
         from .improved_gan import ImprovedGAN
         return ImprovedGAN(model_params)
+        
     else:
         raise Exception("None model named " + model_name)

@@ -32,13 +32,14 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 from .basenetwork import BaseNetwork
 
-class VGG(BaseNetwork):
+class Resnet(BaseNetwork):
 
 	def __init__(self, config, is_training):
 		BaseNetwork.__init__(self, config, is_training)
 		self.config = config
 		self.reuse = False
 
+		raise NotImplementedError
 
 	def residual_block(self, name, inputs, nb_filters, ksize, resample='none', no_dropout=False):
 		outputs = inputs
@@ -48,7 +49,6 @@ class VGG(BaseNetwork):
 				outputs = self.conv2d('conv2', outputs, nb_filters, ksize, stride=1, **self.conv_args)
 				shortcuts = inputs
 				outputs = outputs + inputs
-
 
 
 	# def __call__(self, x):

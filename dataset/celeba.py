@@ -131,7 +131,6 @@ class CelebA(BaseDataset):
 			return img, image_attr
 
 		elif method == 'unsupervised':
-
 			assert(phase in ['train'])
 			image_filepath = os.path.join(self._dataset_dir, 'images', self.image_list[ind])
 			img = io.imread(image_filepath)

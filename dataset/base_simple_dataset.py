@@ -44,6 +44,7 @@ class BaseSimpleDataset(BaseDataset):
 		self.config = config
 		self.batch_size = int(config.get('batch_size', 128))
 
+
 		# please fill in the following field in the drived dataset class
 		self.x_train = None
 		self.y_train = None
@@ -99,32 +100,35 @@ class BaseSimpleDataset(BaseDataset):
 	'''
 		method for direct access images
 		E.g.
-		for index, batch_x, batch_y in dataset.iter_train_images_supervised():
+		for index, batch_x, batch_y in dataset.iter_train_images(method='supervisd'):
 			(training...)
 	'''
-	def iter_train_images_supervised(self):
-		index = np.arange(self.x_train_l.shape[0])
-		if self.shuffle_train:
-			np.random.shuffle(index)
-		for i in range(int(self.x_train_l.shape[0] / self.batch_size)):
-			batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
-			batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
-			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
-			yield i, batch_x, batch_y
+	def iter_train_images(self, method='supervised'):
+		assert method in ['supervised', 'unsupervised']
+		
+		if method == 'supervised':
+			index = np.arange(self.x_train_l.shape[0])
+			if self.shuffle_train:
+				np.random.shuffle(index)
+			for i in range(int(self.x_train_l.shape[0] / self.batch_size)):
+				batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
+				batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
+				if 'output shape' in self.config:
+					batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
+				batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
+				yield i, batch_x, batch_y
+		elif method == 'unsupervised':
 
-	def iter_train_images_unsupervised(self):
-		index = np.arange(self.x_train_u.shape[0])
-		if self.shuffle_train:
-			np.random.shuffle(index)
-		for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
-			batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
-			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
-			yield i, batch_x
+			index = np.arange(self.x_train_u.shape[0])
+			if self.shuffle_train:
+				np.random.shuffle(index)
+			for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
+				batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
+				if 'output shape' in self.config:
+					batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
+				yield i, batch_x
 
-	def iter_test_images(self):
+	def iter_val_images(self):
 		index = np.arange(self.x_test.shape[0])
 		if self.shuffle_test:
 			np.random.shuffle(index)
@@ -138,6 +142,8 @@ class BaseSimpleDataset(BaseDataset):
 			
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y
+
+
 	'''
 
 	'''

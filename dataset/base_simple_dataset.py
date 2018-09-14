@@ -61,7 +61,6 @@ class BaseSimpleDataset(BaseDataset):
 		self.y_test = None
 		self.nb_classes = None
 
-
 	def build_dataset(self):
 		assert(self.x_train is not None and self.y_train is not None)
 		assert(self.x_test is not None and self.y_test is not None)
@@ -77,8 +76,7 @@ class BaseSimpleDataset(BaseDataset):
 				os.makedirs(self.extra_file_path)
 
 			# if semisupervised training, prepare labelled train set indices,
-			self.nb_labelled_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
-			self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_class)
+			self.labelled_image_indices = self._get_labelled_image_indices()
 
 			# unlabelled train set
 			self.x_train_u = self.x_train
@@ -93,8 +91,14 @@ class BaseSimpleDataset(BaseDataset):
 			self.x_train_u = self.x_train
 
 
-	def _get_labelled_image_indices(self, nb_images_per_class):
-		pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
+	def _get_labelled_image_indices(self):
+		
+		if 'labelled indices filepath' in self.config:
+			pickle_filepath = self.config['labelled indices filepath']
+		else:
+			nb_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
+			pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
+
 		if os.path.exists(pickle_filepath):
 			return pickle.load(open(pickle_filepath, 'rb'))
 		else:

@@ -58,28 +58,31 @@ class BaseValidator(object):
 	def parallel_data_reading(self, dataset, indices, phase, method, buffer_depth, nb_threads=4):
 		
 		self.t_should_stop = False
+
 		data_queue = queue.Queue(maxsize=buffer_depth)
 
-		def read_data_inner_loop(dataset, data_inner_queue, indices, t_ind, nb_threads):
+		def read_data_inner_loop(dataset, data_queue, indices, t_ind, nb_threads):
 			for i, ind in enumerate(indices):
 				if i % nb_threads == t_ind:
 					# read img and label by its index
 					img, label = dataset.read_image_by_index(ind, 'val', 'supervised')
 					if isinstance(img, list) and isinstance(label, list):
 						for _img, _label in zip(img, label):
-							data_inner_queue.put((img, label))
+							data_queue.put((img, label))
 					elif img is not None:
-						data_inner_queue.put((img, label))
+						data_queue.put((img, label))
 
-		def read_data_loop(indices, dataset, data_inner_queue, nb_threads):
+
+		def read_data_loop(indices, dataset, data_queue, nb_threads):
 			threads = [threading.Thread(target=read_data_inner_loop, 
-								args=(dataset, data_inner_queue, indices, t_ind, nb_threads)) for t_ind in range(nb_threads)]
+				args=(dataset, data_queue, indices, t_ind, nb_threads)) for t_ind in range(nb_threads)]
 			for t in threads:
 				t.start()
 			for t in threads:
 				t.join()
 			self.t_should_stop = True
 
+		
 		t = threading.Thread(target=read_data_loop, args=(indices, dataset, data_queue, nb_threads))
 		t.start()
 

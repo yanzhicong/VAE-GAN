@@ -100,19 +100,18 @@ class DatasetValidator(BaseValidator):
 		nb_samples = np.minimum(len(indices), self.nb_samples)
 		indices = np.random.choice(indices, size=nb_samples, replace=False)
 
+
 		self.t_should_stop = False
-		t, data_queue = self.parallel_data_reading(dataset, indices, 'val', 'supervised', self.batch_size(self.buffer_depth))
+		t, data_queue = self.parallel_data_reading(dataset, indices, 'val', 'supervised', self.batch_size*self.buffer_depth)
 
 		batch_x = []
 		batch_y = []
 
-		while not self.t_should_stop:
+		while not self.t_should_stop or not data_queue.empty():
 			if not data_queue.empty():
 				img, label = data_queue.get()
 				batch_x.append(img)
 				batch_y.append(label)
-			else:
-				time.sleep(1)
 
 			if len(batch_x) == self.batch_size:
 				batch_p = model.predict(sess, np.array(batch_x))
@@ -127,6 +126,7 @@ class DatasetValidator(BaseValidator):
 			pred_list.append(np.array(batch_p))
 
 		t.join()
+
 
 		label_list = np.concatenate(label_list, axis=0)
 		pred_list = np.concatenate(pred_list, axis=0)

@@ -36,7 +36,7 @@ import matplotlib.pyplot as plt
 
 from utils.metric import get_metric
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 class ValidSegmentation(BaseValidator):
 

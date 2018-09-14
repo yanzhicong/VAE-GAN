@@ -30,7 +30,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 class ScatterPlot(BaseValidator):
 	
@@ -65,7 +65,7 @@ class ScatterPlot(BaseValidator):
 
 			elif self.watch_variable == 'hidden dist':	
 				if self.distribution == 'normal':
-					z_mean, z_log_var = model.hidden_variable_distribution(sess, batch_x)
+					z_mean, z_log_var = model.hidden_variable(sess, batch_x)
 					x_pos_array.append(
 						np.concatenate([	z_mean[:, self.x_dim:self.x_dim+1], 
 											np.exp(z_log_var[:, self.x_dim:self.x_dim+1]) ], axis=1)
@@ -76,7 +76,7 @@ class ScatterPlot(BaseValidator):
 					)
 					label_array.append(np.argmax(batch_y, axis=1))
 				elif self.distribution == 'none':
-					z_sample = model.hidden_variable_distribution(sess, batch_x)
+					z_sample = model.hidden_variable(sess, batch_x)
 					x_pos_array.append(z_sample[:, self.x_dim])
 					y_pos_array.append(z_sample[:, self.y_dim])
 					label_array.append(np.argmax(batch_y, axis=1))

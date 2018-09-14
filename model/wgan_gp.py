@@ -41,9 +41,7 @@ from .base_model import BaseModel
 
 
 class WGAN_GP(BaseModel):
-
-	"""
-		Implementation of "Improved Training of Wasserstein GANs"
+	""" Implementation of "Improved Training of Wasserstein GANs"
 		Ishaan Gulrajani, Faruk Ahmed, Martin Arjovsky, Vincent Dumoulin, Aaron Courville
 		
 		@article{DBLP:journals/corr/GulrajaniAADC17,
@@ -271,7 +269,7 @@ class WGAN_GP(BaseModel):
 	'''
 	def summary(self, sess):
 		if self.has_summary:
-			sum = sess.run(self.sum_hist)
-			return sum
+			summ = sess.run(self.sum_hist)
+			return summ
 		else:
 			return None

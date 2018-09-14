@@ -111,13 +111,17 @@ class BaseTrainer(object):
 		else:
 			self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
 		
+	#
+	#	please implement the following functions in derived class
+	#
+	def train(self, sess, dataset, model):
+		raise NotImplementedError
 
 
 	def train_initialize(self, sess, model):
+		"""
+		"""
 		self.sess = sess
-		# all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-		# for var in all_vars:
-		# 	print(var.name, ' --> ', var.get_shape(	))
 		sess.run(tf.global_variables_initializer())
 		sess.run(tf.local_variables_initializer())
 		if self.config.get('continue train', False):
@@ -126,11 +130,10 @@ class BaseTrainer(object):
 			else:
 				print("Load Checkpoint Failed")
 
-	def train(self, sess, dataset, model):
-		raise NotImplementedError
+
 
 	def train_inner_step(self, epoch, model, validate_dataset, batch_x, batch_y=None, log_disp=True):
-		'''
+		"""
 			the inner function for train a batch of images,
 			input :
 				epoch, batch_x, batch_y : train batch,
@@ -138,7 +141,7 @@ class BaseTrainer(object):
 				dataset : 
 			return :
 				step : the current train step
-		'''
+		"""
 
 		start_time = clock()
 
@@ -192,53 +195,47 @@ class BaseTrainer(object):
 		return step
 
 
-	'''
-		multi thread util functions for read dataset images
-		for example:
-
-	'''
-	def read_data_inner_loop(self, 
-				coord, dataset, data_inner_queue, 
-				indices, t_ind, nb_threads,
-				epoch, phase='train', method='supervised'):
-		'''
-			a inner read data loop thread, only be create or joined by read_data_loop.
-			read data and put into @param.data_inner_queue in loop
-		'''
-		if method == 'supervised':
-			for i, ind in enumerate(indices):
-				if not coord.should_stop():
-					if i % nb_threads == t_ind:
-						# read img and label by its index
-						img, label = dataset.read_image_by_index(ind, phase, method)
-						if isinstance(img, list) and isinstance(label, list):
-							for _img, _label in zip(img, label):
-								data_inner_queue.put((epoch, img, label))
-						elif img is not None:
-							data_inner_queue.put((epoch, img, label))
-				else:
-					break
-		elif method == 'unsupervised':
-			for i, ind in enumerate(indices):
-				if not coord.should_stop():
-					if i % nb_threads == t_ind:
-						# read img by its index
-						img = dataset.read_image_by_index(ind, phase, method)
-						if isinstance(img, list):
-							for _img in img:
-								if _img is not None:
-									data_inner_queue.put((epoch, _img))
-						elif img is not None:
-							data_inner_queue.put((epoch, img))
-				else:
-					break		
-		else:
-			raise Exception("wrong method of " + method)
-
+	#
+	#	util functions for read dataset images in multiple thread
+	#	
 	def read_data_loop(self, coord, dataset, data_inner_queue, phase='train', method='supervised', nb_threads=4):
-		'''
-			create multiple threads to read data into @param.data_inner_queue
-		'''
+		"""create multiple threads to read data into @param.data_inner_queue
+		"""
+		def read_data_inner_loop(coord, dataset, 
+			data_inner_queue, indices, t_ind, nb_threads,
+			epoch, phase='train', method='supervised'):
+			""" read data and put into @param.data_inner_queue in loop
+			"""
+			if method == 'supervised':
+				for i, ind in enumerate(indices):
+					if not coord.should_stop():
+						if i % nb_threads == t_ind:
+							# read img and label by its index
+							img, label = dataset.read_image_by_index(ind, phase, method)
+							if isinstance(img, list) and isinstance(label, list):
+								for _img, _label in zip(img, label):
+									data_inner_queue.put((epoch, img, label))
+							elif img is not None:
+								data_inner_queue.put((epoch, img, label))
+					else:
+						break
+			elif method == 'unsupervised':
+				for i, ind in enumerate(indices):
+					if not coord.should_stop():
+						if i % nb_threads == t_ind:
+							# read img by its index
+							img = dataset.read_image_by_index(ind, phase, method)
+							if isinstance(img, list):
+								for _img in img:
+									if _img is not None:
+										data_inner_queue.put((epoch, _img))
+							elif img is not None:
+								data_inner_queue.put((epoch, img))
+					else:
+						break		
+			else:
+				raise Exception("wrong method of " + method)
+
 		epoch = 0
 		nb_threads = int(self.config.get('nb threads', nb_threads))
 		while not coord.should_stop():
@@ -247,7 +244,7 @@ class BaseTrainer(object):
 			indices = dataset.get_image_indices(phase=phase, method=method)
 
 			# create multiple thread to read data
-			threads = [threading.Thread(target=self.read_data_inner_loop, 
+			threads = [threading.Thread(target=read_data_inner_loop, 
 								args=(coord, dataset, data_inner_queue, 
 										indices, t_ind, nb_threads, 
 										epoch, phase, method)) for t_ind in range(nb_threads)]
@@ -258,9 +255,8 @@ class BaseTrainer(object):
 
 
 	def read_data_transport_loop(self, coord, data_inner_queue, data_queue, phase='train', method='supervised'):
-		'''
-			take data from @param.data_inner_queue into batches and put to @param.data_queue
-		'''
+		""" Take data from @param.data_inner_queue into batches and put to @param.data_queue
+		"""
 		epoch_list = []
 		batch_x = []
 		batch_y = []

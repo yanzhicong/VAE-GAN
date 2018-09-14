@@ -60,7 +60,6 @@ class MSCOCO(BaseDataset):
 
 		train_json_file = os.path.join(self._dataset_dir, 'annotations', 'instances_train' + self.year + '.json')
 		val_json_file = os.path.join(self._dataset_dir, 'annotations', 'instances_val' + self.year + '.json')
-
 		self.train_image_dir = os.path.join(self._dataset_dir, 'train'+self.year)
 		self.val_image_dir = os.path.join(self._dataset_dir, 'val'+self.year)
 

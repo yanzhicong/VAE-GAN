@@ -43,16 +43,13 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
 from utils.metric import get_metric
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 
 MODEL_DIR = './validator/inception_score/imagenet'
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 
-
-
 g1=tf.Graph()
-
 
 def _init_inception():
 	# global softmax
@@ -101,6 +98,8 @@ def _init_inception():
 			return softmax
 
 class InceptionScore(BaseValidator):
+	"""	Test generative model with Inception Score measurement, and write inception score to tensorboard summary
+	"""
 
 	def __init__(self, config):
 
@@ -110,7 +109,7 @@ class InceptionScore(BaseValidator):
 		self.nb_samples = config.get('num_samples', 100)
 		self.z_shape = config['z shape']
 		self.rounds = config.get('rounds', 10)
-		self.scalar_range = config.get('scalar range', [0.0, 1.0])		# model output range,
+		self.scalar_range = config.get('scalar range', [0.0, 1.0])		# the output range of generative model,
 																		# for sigmoid activation model is [0.0, 1.0],
 																		# and for tanh activation model is [-1.0, 1.0]
 		self.softmax = _init_inception()
@@ -185,7 +184,4 @@ class InceptionScore(BaseValidator):
 				kl = np.mean(np.sum(kl, 1))
 				scores.append(np.exp(kl))
 			return np.mean(scores), np.std(scores)
-
-#   exp(   mean(   probs * (log(probs) - log( mean(probs, axis=0) )
-# 						   )  )
 

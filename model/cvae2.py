@@ -164,7 +164,7 @@ class CVAE2(BaseModel):
 		x_batch = sess.run([self.x_test], feed_dict = feed_dict)
 		return x_batch
 
-	def hidden_variable_distribution(self, sess, x_batch):
+	def hidden_variable(self, sess, x_batch):
 		if self.config.get('flatten', False):
 			x_batch = x_batch.reshape([x_batch.shape[0], -1])
 

@@ -39,11 +39,8 @@ from .base_trainer import BaseTrainer
 
 
 class SemiSupervisedTrainer(BaseTrainer):
-	'''
-		a semisupervised trainer class
+	""" Semisupervised trainer class
 		optional parameters including:
-			'pretrain supervised step' : in the first, the model will be trained in supervised manner
-			'pretrain unsupervised step' : then, the model will be trained in unsupervised manner
 			'supervised step',
 			'unsupervised step' : after above two train process, the model will be trained in
 									both supervised manner and unsupervised manner in cycle,
@@ -52,8 +49,8 @@ class SemiSupervisedTrainer(BaseTrainer):
 			'train steps' :  the total maximum train steps
 			'continue train' : whether to load the checkpoint
 
-		other parameters please refer to trainer/base_trainer.py class BaseTrainer,
-	'''
+		other parameters please refer to trainer/base_trainer.py BaseTrainer class,
+	"""
 	def __init__(self, config, model, sess):
 		self.config = config
 		self.model = model
@@ -92,15 +89,11 @@ class SemiSupervisedTrainer(BaseTrainer):
 		self.unsu_loss = 0
 
 	def train(self, sess, dataset, model):
-
-		# if 'summary hyperparams string' in self.config:
-		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
-		# else:
-		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-
-		# start threads for queuing supervised train data and unsupervised train data
-		# the supervised train data is stored in self.supervised_image_queue
-		# the unsupervised train data is stored in self.unsupervised_image_queue
+		"""
+		"""
+		#	Start threads for queuing supervised train data and unsupervised train data,
+		#	the supervised train data is stored in self.supervised_image_queue,
+		#	the unsupervised train data is stored in self.unsupervised_image_queue
 		self.coord = tf.train.Coordinator()
 		threads = [threading.Thread(target=self.read_data_loop, 
 										args=(self.coord, dataset, self.supervised_image_inner_queue, self.dataset_phase, 'supervised')),
@@ -135,7 +128,6 @@ class SemiSupervisedTrainer(BaseTrainer):
 						break
 			else :
 				raise Exception('Wrong train manner ' + str(train_manner))
-
 
 		# finally training in both supervised and unsupervised manner
 		while True:

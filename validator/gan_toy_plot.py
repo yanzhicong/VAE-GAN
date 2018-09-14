@@ -30,20 +30,20 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 class GanToyPlot(BaseValidator):
 	
 	def __init__(self, config):
-	
 		super(GanToyPlot, self).__init__(config)
+		self.config = config
 		self.assets_dir = config['assets dir']
-		self.log_dir = config.get('log dir', 'gan_toy')
+		self.log_dir = self.config.get('log dir', 'gan_toy')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
 
-		self.z_shape = [int(i) for i in config.get('z shape', [2])]
-		self.nb_points = int(config.get('nb points', 100))
-		self.plot_range = int(config.get('plot range', 3))
+		self.z_shape = [int(i) for i in self.config.get('z shape', [2])]
+		self.nb_points = int(self.config.get('nb points', 100))
+		self.plot_range = int(self.config.get('plot range', 3))
 		if not os.path.exists(self.log_dir):
 			os.mkdir(self.log_dir)
 

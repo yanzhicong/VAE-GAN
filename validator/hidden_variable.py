@@ -32,15 +32,16 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import norm
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 
 class HiddenVariable(BaseValidator):
+	"""
+	"""
+	
 	def __init__(self, config):
-		'''
-				plot the function x = f(z) to a grid
-		'''
-
+		"""plot the function x = f(z) to a grid
+		"""
 		super(HiddenVariable, self).__init__(config)
 
 		self.z_dim = int(config['z_dim'])	 # the dim of z

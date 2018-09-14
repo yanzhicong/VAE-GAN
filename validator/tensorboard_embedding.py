@@ -37,21 +37,24 @@ import tensorflow.contrib.layers as tcl
 from tensorflow.contrib.tensorboard.plugins import projector
 
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
-class EmbeddingValidator(BaseValidator):
+class TensorboardEmbedding(BaseValidator):
+	""" Plot the model output or mediate features into tensorboard embedding panel.
+	
+	"""
 
 	def __init__(self, config):
-		super(EmbeddingValidator, self).__init__(config)
+		super(TensorboardEmbedding, self).__init__(config)
 
-		self.assets_dir = config['assets dir']
-		self.log_dir = config.get('log dir', 'embedding')
+		self.assets_dir = self.config['assets dir']
+		self.log_dir = self.config.get('log dir', 'embedding')
 		self.log_dir = os.path.join(self.assets_dir, self.log_dir)
 
-		self.z_shape = list(config['z shape'])
-		self.x_shape = list(config['x shape'])
-		self.nb_samples = config.get('nb samples', 1000)
-		self.batch_size = config.get('batch_size', 100)
+		self.z_shape = list(self.config['z shape'])
+		self.x_shape = list(self.config['x shape'])
+		self.nb_samples = self.config.get('nb samples', 1000)
+		self.batch_size = self.config.get('batch_size', 100)
 
 		self.nb_samples = self.nb_samples // self.batch_size * self.batch_size
 
@@ -75,7 +78,6 @@ class EmbeddingValidator(BaseValidator):
 
 		self.plot_array_var = tf.get_variable('test', shape=[self.nb_samples*2, int(np.product(self.x_shape))])
 		self.saver = tf.train.Saver([self.plot_array_var])
-
 
 	def validate(self, model, dataset, sess, step):
 

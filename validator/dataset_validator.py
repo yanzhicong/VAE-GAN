@@ -38,23 +38,33 @@ import tensorflow.contrib.layers as tcl
 
 from utils.metric import get_metric
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
+
 
 class DatasetValidator(BaseValidator):
+	""" measure the model performance with val dataset.
+	the metric and metric type can be configured
+
+	the model must implement the [predict] function
+
+	Optional parameters in @params.config:
+		'nb samples' : 
+		'batch_size' : 
+		'metric', 'metric type' : 
+	"""
 
 	def __init__(self, config):
-
-
 		super(DatasetValidator, self).__init__(config)
 
 		self.config = config
-		self.nb_samples = config.get('num_samples', 5000)
-		self.batch_size = config.get('batch_size', 128)
-		self.buffer_depth = self.config.get('buffer depth', 50)
+		self.nb_samples = self.config.get('nb samples', 5000)
+		self.batch_size = self.config.get('batch_size', 128)
 
-		self.metric = config.get('metric', 'accuracy')
-		self.metric_type = config.get('metric type', 'top1')
-		self.assets_dir = config['assets dir']
+		self.metric = self.config.get('metric', 'accuracy')
+		self.metric_type = self.config.get('metric type', 'top1')
+		self.assets_dir = self.config['assets dir']
+
+		self.buffer_depth = self.config.get('buffer depth', 50)
 
 		if self.metric == 'accuracy':
 			self.has_summary = True
@@ -68,10 +78,10 @@ class DatasetValidator(BaseValidator):
 			self.predict = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
 							name='test_predict')
 			self.accuracy = get_metric(self.metric, self.metric_type, 
-						{'probs' : self.predict, 'labels' : self.label, 'decay' : 1})			
+						{'probs' : self.predict, 'labels' : self.label, 'decay' : 1})
 
 			self.summary_list = []
-			self.summary_list.append(tf.summary.scalar('test acc ' + self.metric_type, self.accuracy))
+			self.summary_list.append(tf.summary.scalar('test_acc_' + self.metric_type, self.accuracy))
 
 			self.log_filepath = os.path.join(self.assets_dir, 'test_dataset_' + self.metric + "_" + self.metric_type + '.csv')
 
@@ -90,38 +100,15 @@ class DatasetValidator(BaseValidator):
 		nb_samples = np.minimum(len(indices), self.nb_samples)
 		indices = np.random.choice(indices, size=nb_samples, replace=False)
 
-		train_data_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 		self.t_should_stop = False
-
-		def read_data_inner_loop(dataset, data_inner_queue, indices, t_ind, nb_threads):
-			for i, ind in enumerate(indices):
-				if i % nb_threads == t_ind:
-					# read img and label by its index
-					img, label = dataset.read_image_by_index(ind, 'val', 'supervised')
-					if isinstance(img, list) and isinstance(label, list):
-						for _img, _label in zip(img, label):
-							data_inner_queue.put((img, label))
-					elif img is not None:
-						data_inner_queue.put((img, label))
-
-		def read_data_loop(indices, dataset, data_inner_queue, nb_threads=4):
-			threads = [threading.Thread(target=read_data_inner_loop, 
-								args=(dataset, data_inner_queue, indices, t_ind, nb_threads)) for t_ind in range(nb_threads)]
-			for t in threads:
-				t.start()
-			for t in threads:
-				t.join()
-			self.t_should_stop = True
-
-		t = threading.Thread(target=read_data_loop, args=(indices, dataset, train_data_inner_queue))
-		t.start()
+		t, data_queue = self.parallel_data_reading(dataset, indices, 'val', 'supervised', self.batch_size(self.buffer_depth))
 
 		batch_x = []
 		batch_y = []
 
 		while not self.t_should_stop:
-			if not train_data_inner_queue.empty():
-				img, label = train_data_inner_queue.get()
+			if not data_queue.empty():
+				img, label = data_queue.get()
 				batch_x.append(img)
 				batch_y.append(label)
 			else:

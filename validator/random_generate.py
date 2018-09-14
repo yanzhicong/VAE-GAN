@@ -31,10 +31,19 @@ import matplotlib.pyplot as plt
 import cv2
 from scipy.stats import norm
 
-from .basevalidator import BaseValidator
+from .base_validator import BaseValidator
 
 class RandomGenerate(BaseValidator):
+	"""	Randomly generate images from generative models and save to the disk,
+	the target model must implement [generate] function
 	
+	Optional parameters in @params.config:
+		'z shape', 'x shape' : 
+		'nb col', 'nb row' : 
+		'scalar range' : 
+		'fix z' : 
+		'nb classes' : 
+	"""
 	def __init__(self, config):
 	
 		super(RandomGenerate, self).__init__(config)
@@ -56,7 +65,6 @@ class RandomGenerate(BaseValidator):
 		self.nb_classes = config.get('nb classes', 0)
 		if self.nb_classes != 0:
 			self.nb_row_images = self.nb_classes		
-
 
 		if self.fix_z:
 			batch_size = self.nb_col_images * self.nb_row_images
@@ -98,8 +106,6 @@ class RandomGenerate(BaseValidator):
 
 		else:
 			batch_x = model.generate(sess, batch_z)
-
-
 
 		fig, axes = plt.subplots(nrows=self.nb_row_images, ncols=self.nb_col_images, figsize=(self.nb_col_images, self.nb_row_images),
 								subplot_kw={'xticks': [], 'yticks': []})

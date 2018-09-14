@@ -59,7 +59,7 @@ class GanToy(BaseDataset):
 				( -1.0/np.sqrt(2), -1.0/np.sqrt(2))
 			]
 			self.centers = np.array([ (scale*x, scale*y) for x, y in centers])
-			self.centers = np.tile(self.centeres, (1000, 1))
+			self.centers = np.tile(self.centers, (1000, 1))
 			self.centers = self.centers + np.random.randn(*self.centers.shape) * self.variance
 
 		elif self.dataset == '25gaussians':

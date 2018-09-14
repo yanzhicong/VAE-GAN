@@ -25,20 +25,62 @@
 
 import os
 import sys
+import queue
+import threading
 
 sys.path.append('.')
 sys.path.append('../')
 
 
 class BaseValidator(object):
+	"""	The base of validator classes.
+	validator is another import module in this project
+	During training process, the validator.validate is called at intervals to view the
+	model performence and detect bugs in model.
+	"""
 	def __init__(self, config):
 		self.config = config
 		self.assets_dir = config['assets dir']
 		self.has_summary = False
 
+	#
+	# Please override the following functions in derived class
+	# 
 	def build_summary(self, model):
-		return NotImplementedError
+		pass
 
 	def validate(self, model, dataset, sess, step):
 		return NotImplementedError
 
+	#
+	# Util functions
+	#
+	def parallel_data_reading(self, dataset, indices, phase, method, buffer_depth, nb_threads=4):
+		
+		self.t_should_stop = False
+		data_queue = queue.Queue(maxsize=buffer_depth)
+
+		def read_data_inner_loop(dataset, data_inner_queue, indices, t_ind, nb_threads):
+			for i, ind in enumerate(indices):
+				if i % nb_threads == t_ind:
+					# read img and label by its index
+					img, label = dataset.read_image_by_index(ind, 'val', 'supervised')
+					if isinstance(img, list) and isinstance(label, list):
+						for _img, _label in zip(img, label):
+							data_inner_queue.put((img, label))
+					elif img is not None:
+						data_inner_queue.put((img, label))
+
+		def read_data_loop(indices, dataset, data_inner_queue, nb_threads):
+			threads = [threading.Thread(target=read_data_inner_loop, 
+								args=(dataset, data_inner_queue, indices, t_ind, nb_threads)) for t_ind in range(nb_threads)]
+			for t in threads:
+				t.start()
+			for t in threads:
+				t.join()
+			self.t_should_stop = True
+
+		t = threading.Thread(target=read_data_loop, args=(indices, dataset, data_queue, nb_threads))
+		t.start()
+
+		return t, data_queue

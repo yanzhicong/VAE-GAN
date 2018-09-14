@@ -3,6 +3,7 @@ import sys
 import time
 import numpy as np
 import tensorflow as tf
+from functools import partial
 # from abc import ABCMeta, abstractmethod
 
 
@@ -15,7 +16,7 @@ from discriminator.discriminator import get_discriminator
 
 
 from utils.optimizer import get_optimizer_by_config
-
+from utils.learning_rate import get_global_step
 
 class BaseModel(object):
 
@@ -84,7 +85,7 @@ class BaseModel(object):
 		"""
 		raise NotImplementedError
 
-	def hidden_distribution(self, sess, x_batch):
+	def hidden_variable(self, sess, x_batch):
 		""" Given a batch of input data, return the corresponding hidden variable
 		"""
 		raise NotImplementedError
@@ -137,6 +138,11 @@ class BaseModel(object):
 		return get_discriminator(self.config[name], net_config, self.is_training)
 
 
+	def build_step_var(self, name):
+		step, step_update = get_global_step(name)
+		return step, step_update
+
+
 	def build_loss(self, type, name, args):
 		pass
 	
@@ -161,6 +167,19 @@ class BaseModel(object):
 
 		return train_op, learning_rate_var, step_var
 	
+	def build_train_function(self, name, loss, vars, step=None, step_update=None, summary=None, build_summary=False, sum_list=None):
+		"""
+		"""
+		train_op, learning_rate_var, step_var = self.build_optimizer(name, loss, vars, step, step_update)
+
+		if build_summary:
+			if sum_list is None:
+				sum_list = []
+			sum_list.append(tf.summary.scalar(name + '/loss', loss))
+			sum_list.append(tf.summary.scalar(name + '/lr', learning_rate_var))
+			summary = tf.summary.merge(sum_list)
+		return partial(self.train, update_op=train_op, step=step_var, learning_rate=learning_rate_var, loss=loss, summary=summary), learning_rate_var
+
 	def draw_sample( self, mean, log_var):
 		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )
 		sample = mean + tf.exp( 0.5 * log_var ) * epsilon
@@ -170,12 +189,8 @@ class BaseModel(object):
 	#
 	#
 	def train(self, sess, feed_dict,
-				update_op=None, 
-				step=None,
-				learning_rate=None,
-				loss=None,
-				summary=None,
-				):
+				update_op=None, step=None, learning_rate=None, loss=None,
+				summary=None):
 		if step is None and hasattr(self, 'global_step'):
 			step = self.global_step
 		if learning_rate is None:

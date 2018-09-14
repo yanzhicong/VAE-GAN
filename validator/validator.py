@@ -24,7 +24,7 @@
 
 def get_validator(name, config):
     if name == 'hidden_variable':
-        # 查看隐变量对应的输入
+        # view the data generated from hidden variable
         from .hidden_variable import HiddenVariable
         return HiddenVariable(config)
     elif name == 'scatter_plot':
@@ -36,9 +36,9 @@ def get_validator(name, config):
     elif name == 'random_generate':
         from .random_generate import RandomGenerate
         return RandomGenerate(config)
-    elif name == 'embedding_visualize':
-        from .embedding_validator import EmbeddingValidator
-        return EmbeddingValidator(config)
+    elif name == 'embedding_visualize' or name == 'tensorboard embedding':
+        from .tensorboard_embedding import TensorboardEmbedding
+        return TensorboardEmbedding(config)
     elif name == 'validate_segmentation':
         from .valid_segmentation import ValidSegmentation
         return ValidSegmentation(config)

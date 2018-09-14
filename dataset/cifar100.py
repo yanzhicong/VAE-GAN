@@ -75,7 +75,6 @@ class Cifar100(BaseDataset):
 	# 	self.x_test = np.reshape(test_data, [-1, 3, 32, 32]).transpose([0, 2, 3, 1]).astype(np.float32) / 255.0
 	# 	self.y_test = test_label
 
-
 	# 	# whether perpare semi-supervised datset or not
 	# 	if self.config.get('semi-supervised', False):
 

@@ -333,10 +333,9 @@ class AAESemiSupervised(BaseModel):
 			self.g_sum_scalar = None
 			self.sum_hist = None
 
-	'''
-		train operations
-	'''
-
+	#
+	#	train operations
+	#
 	def train_on_batch_supervised(self, sess, x_batch, y_batch):
 		summary_list = []
 
@@ -353,7 +352,6 @@ class AAESemiSupervised(BaseModel):
 		summary_list.append((step_e, summary_e))
 		step, _ = sess.run([self.global_step, self.global_step_update])
 		return step, lr_e, loss_e, summary_list
-
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
@@ -409,10 +407,6 @@ class AAESemiSupervised(BaseModel):
 															learning_rate=self.ez_learning_rate,
 															loss=self.ez_loss,
 															summary=self.ez_sum_scalar)
-			feed_dict = {
-				self.img: x_batch,
-				self.is_training: True,
-			}
 			step_ey, lr_ey, loss_ey, summary_ey = self.train(sess, feed_dict, update_op=self.ey_train_op,
 															step=self.ey_step,
 															learning_rate=self.ey_learning_rate,
@@ -425,10 +419,9 @@ class AAESemiSupervised(BaseModel):
 
 		return step, "[ae:%0.6f, gan:%0.6f]"%(lr_ae, lr_dz), "[ae:%0.4f, dz:%0.4f, dy:%0.4f, ez:%0.4f, ey:%0.4f]"%(loss_ae,loss_dz,loss_dy,loss_ez,loss_ey), summary_list,
 
-	'''
-		test operation
-	'''
-
+	#
+	#	test operation
+	#
 	def predict(self, sess, x_batch):
 		feed_dict = {
 			self.img: x_batch,
@@ -438,7 +431,7 @@ class AAESemiSupervised(BaseModel):
 		pred = sess.run([self.img_y], feed_dict=feed_dict)[0]
 		return pred
 
-	def hidden_variable_distribution(self, sess, x_batch):
+	def hidden_variable(self, sess, x_batch):
 		feed_dict = {
 			self.img: x_batch,
 			self.is_training: False
@@ -458,10 +451,9 @@ class AAESemiSupervised(BaseModel):
 		sample_x = sess.run([self.img_generate], feed_dict=feed_dict)[0]
 		return sample_x
 
-	'''
-		summary operation
-	'''
-
+	#
+	#	summary operation
+	#
 	def summary(self, sess):
 		if self.has_summary:
 			summ = sess.run(self.sum_hist)

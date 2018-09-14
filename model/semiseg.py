@@ -283,7 +283,7 @@ class SemiSupervisedSegmentationModel(BaseModel):
 		y_pred = sess.run([self.ytprobs], feed_dict = feed_dict)[0]
 		return y_pred
 
-	def hidden_variable_distribution(self, sess, x_batch):
+	def hidden_variable(self, sess, x_batch):
 		'''
 			p(z | x)
 		'''

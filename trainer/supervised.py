@@ -57,11 +57,6 @@ class SupervisedTrainer(BaseTrainer):
 
 	def train(self, sess, dataset, model):
 		
-		# if 'summary hyperparams string' in self.config:
-		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir + '/' + self.config['summary hyperparams string'], sess.graph)
-		# else:
-		# 	self.summary_writer = tf.summary.FileWriter(self.summary_dir, sess.graph)
-		
 		self.train_initialize(sess, model)
 
 		# if in multi thread model, start threads for read data
@@ -76,7 +71,7 @@ class SupervisedTrainer(BaseTrainer):
 
 		if self.multi_thread : 
 			# in multi thread model, the image data were read in by dataset.get_train_indices()
-			# and dataset.read_train_image_by_index()
+			# and dataset.read_image_by_index()
 			while True:
 				epoch, batch_x, batch_y = self.train_data_queue.get()
 				step = self.train_inner_step(epoch, model, dataset, batch_x, batch_y)

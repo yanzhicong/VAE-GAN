@@ -47,7 +47,8 @@ def get_optimizer_by_config(name, config, target, variables,
                         global_step=None, 
                         global_step_update=None, 
                         global_step_name='global_step'):
-
+    """
+    """
     if global_step is None:
         global_step, global_step_update = get_global_step(global_step_name)
 

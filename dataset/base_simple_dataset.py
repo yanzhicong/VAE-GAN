@@ -37,13 +37,22 @@ from .base_dataset import BaseDataset
 
 
 class BaseSimpleDataset(BaseDataset):
+	"""	The base for simple and small dataset like mnist, cifar10, svhn
+	the data will be load into memory at start.
+
+
+
+	In the derived class, you just need to do the following thing in __init__ function:
+	1. call super.__init__(self, config)
+	2. fill the self.x_train, self.y_train, self.x_test, self.y_test with data
+	3. call self.build_dataset()
+	"""
 
 	def __init__(self, config):
 		
 		super(BaseSimpleDataset, self).__init__(config)
 		self.config = config
 		self.batch_size = int(config.get('batch_size', 128))
-
 
 		# please fill in the following field in the drived dataset class
 		self.x_train = None
@@ -196,8 +205,6 @@ class BaseSimpleDataset(BaseDataset):
 				return self.x_train_u[index].reshape(self.output_shape)
 			elif phase == 'val' or phase == 'test':
 				return self.x_test[index].reshape(self.output_shape)
-
-
 
 	@property
 	def nb_labelled_images(self):

@@ -159,7 +159,7 @@ class VAE(BaseModel):
 		return x_batch
 
 
-	def hidden_variable_distribution(self, sess, x_batch):
+	def hidden_variable(self, sess, x_batch):
 		feed_dict = {
 			self.x_real : x_batch,
 			self.is_training : False

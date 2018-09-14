@@ -37,6 +37,17 @@ from .base_dataset import BaseDataset
 
 
 class BaseImageListDataset(BaseDataset):
+	""" The base dataset class for a number of images and labels.
+	if you have a number of images and labels, you can prepare a imagelist.txt file.
+	this dataset class is just for classification
+
+	Optional params in @params.config:
+		'flexible scaling' : if set to True, the image will be resize to just fit the output shape, while keeping w/h ratio the same
+		'random scaling' : if set to True, the image will be randomly resized after flexible scaling
+		'random mirroring' : 
+		'random cropping' : 
+		''
+	"""
 
 	def __init__(self, config):
 		
@@ -246,5 +257,3 @@ class BaseImageListDataset(BaseDataset):
 
 		# return 
 		return img, image_label if method == 'supervised' else img
-
-

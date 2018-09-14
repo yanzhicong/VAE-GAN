@@ -87,13 +87,12 @@ class Classification(BaseModel):
 		# for var in self.classifier.store_vars:
 		# 	print(var.name, ' --> ', var.get_shape())
 
-		(self.train_op, 
-			self.learning_rate, 
-				self.global_step) = self.build_optimizer('optimizer', self.loss, self.classifier.vars)
-
+		self.global_step, self.global_step_update = self.build_step_var('global_step')
+	
+		self.train_classifier, self.learning_rate = self.build_train_function('optimizer', self.loss, self.classifier.vars, 
+						step=self.global_step, step_update=self.global_step_update)
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
-
 
 	def build_summary(self):
 		if self.has_summary:
@@ -126,21 +125,13 @@ class Classification(BaseModel):
 			self.is_training : True
 		}
 
-
 		step = sess.run([self.global_step])[0]
 
 		if step % 100 == 0:
-			return self.train(sess, feed_dict, 
-							update_op=self.train_op,
-							learning_rate=self.learning_rate,
-							loss=self.loss,
-							summary=self.sum_scalar2)
+			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar2)
 		else:
-			return self.train(sess, feed_dict, 
-							update_op=self.train_op,
-							learning_rate=self.learning_rate,
-							loss=self.loss,
-							summary=self.sum_scalar)
+			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar)
+
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		raise NotImplementedError
@@ -172,7 +163,6 @@ class Classification(BaseModel):
 		if isinstance(feature_name, str):
 			features = features[0]
 		return features
-
 
 	'''
 		summary operations

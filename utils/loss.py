@@ -26,7 +26,9 @@
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
-
+#
+#	kl divergence loss
+#
 def kl_gaussian_loss(mean, log_var, instance_weight=None):
 	if instance_weight is None:
 		return -0.5 * tf.reduce_mean(1.0 + log_var - tf.exp(log_var) - tf.square(mean))
@@ -46,6 +48,9 @@ def kl_bernoulli_loss(logits=None, probs=None, instance_weight=None, lossen=0.02
 
 
 def kl_categorical_loss(logits=None, probs=None, instance_weight=None, lossen=0.02):
+	"""
+
+	"""
 	if logits is not None:
 		probs = tf.nn.softmax(logits)
 	if probs is None:
@@ -74,32 +79,36 @@ def l1_loss(x, y, instance_weight=None):
 		return tf.reduce_mean(tf.reduce_mean(tf.abs(x-y), axis=-1) * instance_weight)
 
 
+#
+#	Cross entropy loss
+#
 def classify_cross_entropy_loss(logits, labels, instance_weight=None):
+	""" classification cross entropy loss
+	the last channel of logits and labels is nb_class, each sample's label must be one hot
+	"""
 	if instance_weight is None:
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
 	else:
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits) * instance_weight)
 
 
+def classify_binary_entropy_loss(logits, labels, instance_weight=None, prob_clamp=1e-5):
+	""" classification cross entropy loss
+	the last channel of logits and labels is nb_class and each class is indiviual, 
+	which means each sample's label need not to be one hot
+	"""
+	logits = tf.reshape(logits, [tf.shape(logits)[0], -1])
+	labels = tf.reshape(labels, [tf.shape(labels)[0], -1])
+	probs = tf.sigmoid(logits)
+	probs = tf.maximum(probs, prob_clamp)
+	probs = tf.minimum(probs, 1-prob_clamp)
+	if instance_weight is None:
+		return tf.reduce_mean(labels * tf.log(probs) + (1 - labels) * tf.log(probs))
+	else:
+		return tf.reduce_mean(tf.reduce_mean(labels * tf.log(probs) + (1 - labels) * tf.log(probs), axis=-1) * instance_weight)
+
+
 def segmentation_cross_entropy_loss(logits, mask, instance_weight=None):
-
-	# print('segmentation_cross_entropy_loss')
-	# bs = logits.get_shape()[0]
-	# h = logits.get_shape()[1]
-	# w = logits.get_shape()[2]
-	# nb_classes = logits.get_shape()[3]
-	# logits = tf.reshape(logits, [-1, h*w, nb_classes])
-	# mask = tf.reshape(mask, [-1, h*w, nb_classes])
-	# print(logits.get_shape())
-	# print(mask.get_shape())
-	# loss = tf.nn.softmax_cross_entropy_with_logits(labels=mask, logits=logits)
-
-	# # probs = tf.nn.softmax(logits, axis=2)
-	# # print(probs.get_shape())
-	# # loss = tf.reduce_mean(tf.reduce_sum(- mask * tf.log(probs), axis=2), axis=1)
-	# # print(loss.get_shape())
-	# return tf.reduce_mean(loss)
-
 	if instance_weight is None:
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=mask, logits=logits))
 	else:
@@ -126,15 +135,21 @@ def feature_matching_l2_loss(fx, fy, fnames):
 	return loss
 
 
-'''
-	adversarial down loss:
-		for training discriminator in gan networks
-'''
+#
+#	adversarial down loss:
+#		for training discriminator in gan networks
+#
 def adv_down_wassterstein_loss(dis_real, dis_fake):
+	"""the adversarial loss of discriminator,
+	which has only 1 output of real/fake prob
+	"""
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	return - tf.reduce_mean(dis_real) + tf.reduce_mean(dis_fake)
 
 def adv_down_cross_entropy_loss(dis_real, dis_fake):
+	"""the adversarial loss of discriminator,
+	which has only 1 output of real/fake prob
+	"""
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.zeros_like(dis_fake)))
 	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=tf.ones_like(dis_fake)))
@@ -142,10 +157,10 @@ def adv_down_cross_entropy_loss(dis_real, dis_fake):
 	return loss
 
 def adv_down_supervised_cross_entropy_loss(dis_real, dis_fake, label, label_smooth=1.0):
-	# print(dis_real.get_shape())
-	# print(dis_fake.get_shape())
-	# print(dis_real.get_shape() == dis_fake.get_shape())
-	# print(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
+	""" the supervised adversarial loss of discriminator,
+	which has nb_class+1 outputs, the first nb_class outputs is the probs of each classes,
+	and the last output is the prob of fake images
+	"""
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
 	fake_label = tf.concat([tf.zeros_like(label), tf.ones(shape=[tf.shape(label)[0], 1])], axis=1)
@@ -155,21 +170,22 @@ def adv_down_supervised_cross_entropy_loss(dis_real, dis_fake, label, label_smoo
 	return loss
 
 def adv_down_unsupervised_cross_entropy_loss(dis_real, dis_fake):
+	""" the unsupervised adversarial loss of discriminator,
+	which has nb_class+1 outputs, the first nb_class outputs is the probs of each classes,
+	and the last output is the prob of fake images
+	"""
 	assert(dis_real.get_shape()[1:] == dis_fake.get_shape()[1:])
 	assert(dis_real.get_shape().ndims == 2)
-
-	# prob_real = tf.nn.softmax(dis_real)
-	# prob_fake = tf.nn.softmax(dis_fake)
 
 	loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.zeros_like(dis_fake))[:, -1])
 	loss += tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_real, labels=tf.ones_like(dis_fake))[:, -1])
 	loss /= 2.0
 	return loss
 
-'''
-	adversarial up loss:
-		for training generator in gan networks
-'''
+#
+#	adversarial up loss:
+#		for training generator in gan networks
+#
 def adv_up_wassterstein_loss(dis_fake):
 	return - tf.reduce_mean(dis_fake)
 
@@ -177,8 +193,6 @@ def adv_up_cross_entropy_loss(dis_fake):
 	return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=tf.ones_like(dis_fake)))
 
 def adv_up_supervised_cross_entropy_loss(dis_fake, label, label_smooth=0.9):
-	# real_label = tf.concat([label, tf.zeros(shape=[tf.shape(label)[0], 1])], axis=1)
-	# return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=dis_fake, labels=real_label*label_smooth))
 	return tf.constant(0.0, dtype=tf.float32)
 
 def adv_up_unsupervised_cross_entropy_loss(dis_fake):
@@ -192,12 +206,6 @@ def gradient_penalty_l2_loss(x, y):
 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
 	return gradient_penalty
 
-# def gradient_penalty_l2_per_pixel_loss(x, y):
-# 	gradients = tf.gradients(y, xs=[x])[0]
-# 	g_rank = len(gradients.get_shape())
-# 	slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), axis=[g_rank-1]))
-# 	gradient_penalty = tf.reduce_mean(tf.square(slopes - 1.))
-# 	return gradient_penalty
 
 loss_dict = {
 	'kl' : {
@@ -212,6 +220,7 @@ loss_dict = {
 	},
 	'classification' : {
 		'cross entropy' : classify_cross_entropy_loss,
+		'binary entropy' : classify_binary_entropy_loss
 	},
 	'segmentation' : {
 		'cross entropy' : segmentation_cross_entropy_loss,

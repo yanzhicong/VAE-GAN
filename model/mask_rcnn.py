@@ -177,7 +177,6 @@ class Mask_RCNN(BaseModel):
 			# detection_boxes = detections.get_boxes()
 
 
-
 	def build_rpn(self, features):
 		pass
 

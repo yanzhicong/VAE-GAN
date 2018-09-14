@@ -107,7 +107,7 @@ class BaseNetwork(object):
 	def uniform_initializer(self, stdev):
 		return tf.random_uniform_initializer(-stdev*np.sqrt(3), stdev*np.sqrt(3))
 
-	def conv2d(self, name, x, nb_filters, ksize, stride, 
+	def conv2d(self, name, x, nb_filters, ksize, stride=1, 
 				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
 
 		_act_fn = self.config.get(name + ' activation', act_fn)
@@ -281,8 +281,9 @@ class BaseNetwork(object):
 			self.end_points[name] = x
 		return x
 
-	# def upsample2d(self, name, x, stride,  disp=True, collect_end_points=True):
-	# 	return x
+	def upsample2d(self, name, x, size):
+		# tf.resize_images
+		pass
 
 	@property
 	def vars(self):

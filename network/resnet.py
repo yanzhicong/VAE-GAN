@@ -30,7 +30,7 @@ sys.path.append('../')
 
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
-from .basenetwork import BaseNetwork
+from .base_network import BaseNetwork
 
 class Resnet(BaseNetwork):
 

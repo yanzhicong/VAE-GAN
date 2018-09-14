@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # MIT License
-# 
+#
 # Copyright (c) 2018 ZhicongYan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,29 +24,51 @@
 
 import os
 import sys
-
+sys.path.append('.')
+sys.path.append("../")
 
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
+import numpy as np
 
-sys.path.append('../')
+from utils.learning_rate import get_global_step
+from utils.loss import get_loss
 
-from utils.weightsinit import get_weightsinit
-from utils.activation import get_activation
-from utils.normalization import get_normalization
+from .base_model import BaseModel
 
-from network.base_network import BaseNetwork
-from network.vgg import VGG
 
-class ClassifierSimple(BaseNetwork):
-	def __init__(self, config, is_training):
-		BaseNetwork.__init__(self, config, is_training)
-		self.network = VGG(config, is_training)
-		
-	def __call__(self, i):
-		x, end_points = self.network(i)
-		return x
+def BaseDetectionModel(BaseModel):
+	def __init__(self, config):
+		BaseModel.__init__(self, config)
+		self.config = config
 
-	def features(self, i):
-		x, end_points = self.network(i)
-		return x, end_points
+
+	def build_proposal_layer(self, inputs, proposal_count, mns_threshold):
+		"""
+		"""
+		post_nms_rois_training = self.config.get('nb post-nms rois in training', 2000)
+		post_nms_rois_inference = self.config.get('nb post-nms rois in inference', 1000)
+
+		rpn_nms_threshold = self.config.get('proposal nms threshold', 0.7)
+
+		def train_proposal():
+
+			scores = inputs[0][:, :, 1]
+			deltas = inputs[1]
+			deltas = deltas * np.reshape(self.config)
+
+			pass
+		def test_proposal():
+			pass
+
+		pass
+
+
+	def detect(self, batch_x):
+		pass
+
+
+
+	# def get_anchors():
+	# 	pass
+

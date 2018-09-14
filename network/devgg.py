@@ -35,7 +35,7 @@ from utils.weightsinit import get_weightsinit
 from utils.activation import get_activation
 from utils.normalization import get_normalization
 
-from .basenetwork import BaseNetwork
+from .base_network import BaseNetwork
 
 arg_scope = tf.contrib.framework.arg_scope
 

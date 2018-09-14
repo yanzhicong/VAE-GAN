@@ -12,7 +12,7 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 from network.devgg import DEVGG
-from network.basenetwork import BaseNetwork
+from network.base_network import BaseNetwork
 
 
 class DecoderSimple(BaseNetwork):

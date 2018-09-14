@@ -31,40 +31,34 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-from utils.learning_rate import get_learning_rate
-from utils.learning_rate import get_global_step
-from utils.optimizer import get_optimizer
-from utils.optimizer import get_optimizer_by_config
-from utils.loss import get_loss
-
-
 from math import sin, cos, sqrt
 
-from .basemodel import BaseModel
+from utils.learning_rate import get_global_step
+from utils.loss import get_loss
+
+from .base_model import BaseModel
 
 
 class AAE(BaseModel):
+    """ Implementation of "Adversarial Autoencoders"
+        Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey
 
-    """
-            Implementation of "Adversarial Autoencoders"
-            Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, Brendan Frey
-
-            @article{DBLP:journals/corr/MakhzaniSJG15,
-                    author    = {Alireza Makhzani and
-                                            Jonathon Shlens and
-                                            Navdeep Jaitly and
-                                            Ian J. Goodfellow},
-                    title     = {Adversarial Autoencoders},
-                    journal   = {CoRR},
-                    volume    = {abs/1511.05644},
-                    year      = {2015},
-                    url       = {http://arxiv.org/abs/1511.05644},
-                    archivePrefix = {arXiv},
-                    eprint    = {1511.05644},
-                    timestamp = {Wed, 07 Jun 2017 14:42:14 +0200},
-                    biburl    = {https://dblp.org/rec/bib/journals/corr/MakhzaniSJG15},
-                    bibsource = {dblp computer science bibliography, https://dblp.org}
-            }
+        @article{DBLP:journals/corr/MakhzaniSJG15,
+                author    = {Alireza Makhzani and
+                                        Jonathon Shlens and
+                                        Navdeep Jaitly and
+                                        Ian J. Goodfellow},
+                title     = {Adversarial Autoencoders},
+                journal   = {CoRR},
+                volume    = {abs/1511.05644},
+                year      = {2015},
+                url       = {http://arxiv.org/abs/1511.05644},
+                archivePrefix = {arXiv},
+                eprint    = {1511.05644},
+                timestamp = {Wed, 07 Jun 2017 14:42:14 +0200},
+                biburl    = {https://dblp.org/rec/bib/journals/corr/MakhzaniSJG15},
+                bibsource = {dblp computer science bibliography, https://dblp.org}
+        }
     """
 
     def __init__(self, config,
@@ -115,12 +109,9 @@ class AAE(BaseModel):
 
     def build_model(self):
         # network config
-        self.config['discriminator params']['name'] = 'Discriminator'
-        self.config['encoder params']['name'] = 'Encoder'
-        self.config['decoder params']['name'] = 'Decoder'
-        self.discriminator = self.build_discriminator('discriminator')
-        self.encoder = self.build_encoder('encoder')
-        self.decoder = self.build_decoder('decoder')
+        self.discriminator = self.build_discriminator('discriminator', params={'name':'Discriminator'})
+        self.encoder = self.build_encoder('encoder', params={'name':'Encoder'})
+        self.decoder = self.build_decoder('decoder', params={'name':'Decoder'})
 
         # build model
         self.img = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='img')
@@ -172,7 +163,7 @@ class AAE(BaseModel):
                                     + [self.global_step])
 
     def build_summary(self):
-        if self.is_summary:
+        if self.has_summary:
             # summary scalars are logged per step
             sum_list = []
             sum_list.append(tf.summary.scalar('auto-encoder/loss', self.ae_loss))
@@ -200,10 +191,9 @@ class AAE(BaseModel):
             self.g_sum_scalar = None
             self.sum_hist = None
 
-
-    '''
-		train operations
-	'''
+    #
+	#	train operations
+	#
     def train_on_batch_supervised(self, sess, x_batch, y_batch):
 
         z_batch, z_label_batch = self.sample_prior(x_batch.shape[0])
@@ -218,7 +208,6 @@ class AAE(BaseModel):
                                                          learning_rate=self.ae_learning_rate,
                                                          loss=self.ae_loss,
                                                          summary=self.ae_sum_scalar)
-
         summary_list.append((step_ae, summary_ae))
 
         feed_dict = {
@@ -245,7 +234,6 @@ class AAE(BaseModel):
                                                      learning_rate=self.e_learning_rate,
                                                      loss=self.e_loss,
                                                      summary=self.e_sum_scalar)
-
         summary_list.append((step_e, summary_e))
 
         step, _ = sess.run([self.global_step, self.global_step_update])
@@ -255,10 +243,9 @@ class AAE(BaseModel):
     def train_on_batch_unsupervised(self, sess, x_batch):
         raise NotImplementedError
 
-    '''
-		test operation
-	'''
-
+    #
+	#	test operations
+	#
     def generate(self, sess, z_batch):
         feed_dict = {
             self.z: z_batch,
@@ -275,12 +262,11 @@ class AAE(BaseModel):
         sample_z = sess.run([self.z_sample], feed_dict=feed_dict)[0]
         return sample_z
 
-    '''
-		summary operation
-	'''
-
+    #
+	#	summary operations
+	#
     def summary(self, sess):
-        if self.is_summary:
+        if self.has_summary:
             summ = sess.run(self.sum_hist)
             return summ
         else:

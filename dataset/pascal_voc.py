@@ -127,7 +127,6 @@ class PASCAL_VOC(BaseDataset):
 
 		self.batch_size = int(config.get('batch_size', 128))
 
-
 		self.is_random_scaling = config.get('random scaling', True)
 		self.is_random_mirroring = config.get('random mirroring', True)
 		self.is_random_cropping = config.get('random cropping', True)
@@ -311,8 +310,8 @@ class PASCAL_VOC(BaseDataset):
 
 				return img, mask_c
 
-
 			elif self.task in ['segmentation_class', 'segmentation', 'segmentation_object']:
+
 				if phase == 'train':
 					image_filepath = os.path.join(self._dataset_dir, self.train_image_list[ind])
 					mask_filepath = os.path.join(self._dataset_dir, self.train_mask_list[ind])
@@ -366,6 +365,7 @@ class PASCAL_VOC(BaseDataset):
 				return img, label
 			else:	
 				raise NotImplementedError
+
 		elif method == 'unsupervised':
 
 			if self.task == 'segmentation_class_aug':

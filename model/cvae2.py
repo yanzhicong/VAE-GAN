@@ -43,7 +43,7 @@ from utils.optimizer import get_optimizer
 from utils.sample import get_sample
 from utils.loss import get_loss
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 
@@ -62,7 +62,7 @@ class CVAE2(BaseModel):
 
 		self.build_model()
 
-		if self.is_summary:
+		if self.has_summary:
 			self.build_summary()
 
 	def build_model(self):
@@ -180,7 +180,7 @@ class CVAE2(BaseModel):
 		summary operation
 	'''
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			sum = sess.run(self.sum_hist)
 			return sum
 		else:

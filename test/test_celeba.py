@@ -14,18 +14,9 @@ from dataset.celeba import CelebA
 
 if __name__ == '__main__':
 
-	# config = {
-	# 	"output shape" : [64, 64, 3],
-	# 	"scaling range" : [0.15, 0.25],
-	# 	"crop range" : [0.3, 0.7],
-	# 	"task" :  "classification",
-	# 	"random mirroring" : False
-	# }
-
 	config = {
 		"output shape" : [256, 256, 3],
         "scalar range" : [0, 1]
-		# "random mirroring" : False
 	}
 
 

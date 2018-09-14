@@ -36,7 +36,7 @@ from discriminator.discriminator import get_discriminator
 
 from utils.sample import get_sample
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class CVAEGAN(BaseModel):

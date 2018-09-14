@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # MIT License
-# 
+#
 # Copyright (c) 2018 ZhicongYan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,11 +24,13 @@
 
 
 import os
-import struct
-import gzip
 import numpy as np
-# import matplotlib.pyplot as plt
-import pickle
+
+from skimage import io
+
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+from pycocotools import mask as maskUtils
 
 from .base_dataset import BaseDataset
 
@@ -36,82 +38,115 @@ from .base_dataset import BaseDataset
 class MSCOCO(BaseDataset):
 
 	def __init__(self, config):
+
+		super(MSCOCO, self).__init__(config)
+		self.config = config
+
+		self._dataset_dir = 'E:\\Kaggle\\Data\\MS_COCO'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = '/mnt/data01/dataset/MS_COCO'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = 'D:\\Data\\MS_COCO'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = self.config.get('dataset dir', '')
+		if not os.path.exists(self._dataset_dir):
+			raise Exception("MS_COCO : the dataset dir " + self._dataset_dir + " is not exists")
+
+
+		self.year = str(self.config.get('year', 2017))
+		self.task = str(self.config.get('task', 'instances'))
+		assert self.year in ['2017', '2014']
+		assert self.task in ['instances']
+
+		train_json_file = os.path.join(self._dataset_dir, 'annotations', 'instances_train' + self.year + '.json')
+		val_json_file = os.path.join(self._dataset_dir, 'annotations', 'instances_val' + self.year + '.json')
+
+		self.train_image_dir = os.path.join(self._dataset_dir, 'train'+self.year)
+		self.val_image_dir = os.path.join(self._dataset_dir, 'val'+self.year)
+
+		if not os.path.exists(train_json_file):
+			raise Exception("MS_COCO : the train json file " + train_json_file + " is not exists")
+		if not os.path.exists(val_json_file):
+			raise Exception("MS_COCO : the val json file " + val_json_file + " is not exists")
+		if not os.path.exists(self.train_image_dir):
+			raise Exception("MS_COCO : the train image dir " + self.train_image_dir + " is not exists")
+		if not os.path.exists(self.val_image_dir):
+			raise Exception("MS_COCO : the val image dir " + self.val_image_dir + " is not exists")
+
+		self.show_warning = self.config.get('show warning', False)
+
+		self.train_coco = COCO(train_json_file)
+		self.val_coco = COCO(val_json_file)
+
+		class_ids = self.train_coco.getCatIds()
+		self.class_id_list = class_ids
+
+		image_id_list = []
+		for i in class_ids:
+			image_id_list += self.train_coco.getImgIds(catIds=[i])
+		image_id_list = list(set(image_id_list))
+		self.train_image_id_list = image_id_list
+
+		image_id_list = []
+		for i in class_ids:
+			image_id_list += self.val_coco.getImgIds(catIds=[i])
+		image_id_list = list(set(image_id_list))
+		self.val_image_id_list = image_id_list
+
+
+	def get_image_indices(self, phase, method='supervised'):
+		assert phase in ['train', 'val', 'trainval']
+		assert method in ['supervised']
+
+		if phase == 'train':
+			indices = np.array(self.train_image_id_list.copy())
+			if self.shuffle_train:
+				np.random.shuffle(indices)
+		elif phase == 'val':
+			indices = np.array(self.val_image_id_list.copy())
+			if self.shuffle_val:
+				np.random.shuffle(indices)
+		elif phase == 'trainval':
+			indices = np.array(range(len(self.train_image_id_list) + len(self.val_image_id_list)))
+			if self.shuffle_train:
+				np.random.shuffle(indices)
+
+		return indices
+
+	def read_image_by_index(self, ind, phase, method):
+		assert phase in ['train', 'val', 'trainval']
+		assert method in ['supervised']
+
+		if phase == 'train':
+			path = self.train_image_dir
+			coco = self.train_coco
+			i = ind
+		elif phase == 'val':
+			path = self.val_image_dir
+			coco = self.val_coco
+			i = ind
+		elif phase == 'trainval':
+			if ind < len (self.train_image_id_list):
+				path = self.train_image_dir
+				coco = self.train_coco
+				i = self.train_image_id_list[ind]
+			else:
+				path = self.val_image_dir
+				coco = self.val_coco
+				i = self.val_image_id_list[ind - len(self.train_image_id_list)]
+
+		image_path = os.path.join(path, coco.imgs[i]['file_name'])
+		anno = coco.loadAnns(coco.getAnnIds(imgIds=[i], catIds=self.class_id_list, iscrowd=None))
 		
-	# 	super(MSCOCO, self).__init__(config)
-	# 	self.config = config
+		try:
+			img = io.imread(image_path)
+		except Exception:
+			if self.show_warning:
+				print('Warning : read image ' + image_path + ' failed')
+			return None, None
+		return img, anno
 
-	# 	self._dataset_dir = 'D:/Data/MNIST'
-	# 	if not os.path.exists(self._dataset_dir):
-	# 		self._dataset_dir = 'C:/Data/MNIST'
-	# 	if not os.path.exists(self._dataset_dir):
-	# 		self._dataset_dir = '/mnt/data01/dataset/MNIST'
-	# 	if not os.path.exists(self._dataset_dir):
-	# 		self._dataset_dir = '/mnt/sh_flex_storage/zhicongy/dataset/MNIST'
-	# 	if not os.path.exists(self._dataset_dir):
-	# 		self._dataset_dir = config.get('dataset_dir', self._dataset_dir)
-	# 	if not os.path.exists(self._dataset_dir):
-	# 		raise Exception("MNIST : the dataset dir " + self._dataset_dir + " is not exist")
-
-	# 	self.name = 'mnist'
-	# 	self.input_shape = config.get('output shape', [28, 28, 1])
-	# 	self.batch_size = int(config.get('batch_size', 128))
-	# 	self.nb_classes = 10
-
-	# 	self.y_train, self.x_train = self._read_data(
-	# 		os.path.join(self._dataset_dir, 'train-labels-idx1-ubyte.gz'),
-	# 		os.path.join(self._dataset_dir, 'train-images-idx3-ubyte.gz')
-	# 	)
-
-	# 	self.y_test, self.x_test = self._read_data(
-	# 		os.path.join(self._dataset_dir, 't10k-labels-idx1-ubyte.gz'),
-	# 		os.path.join(self._dataset_dir, 't10k-images-idx3-ubyte.gz')
-	# 	)
-
-	# 	self.x_train = self.x_train.astype(np.float32) / 255.0
-	# 	self.x_test = self.x_test.astype(np.float32) / 255.0
-
-	# 	if self.config.get('semi-supervised', False):
-	# 		self.extra_file_path = './dataset/extra_files'
-	# 		if not os.path.exists(self.extra_file_path):
-	# 			os.mkdir(self.extra_file_path)
-	# 		self.extra_file_path = os.path.join(self.extra_file_path, self.name)
-	# 		if not os.path.exists(self.extra_file_path):
-	# 			os.mkdir(self.extra_file_path)
-
-	# 		self.nb_labelled_images_per_class = self.config.get('nb_labelled_images_per_class', 100)
-	# 		self.labelled_image_indices = self._get_labelled_image_indices(self.nb_labelled_images_per_class)
-
-	# 		self.x_train_u = self.x_train
-			
-	# 		self.x_train_l = self.x_train[self.labelled_image_indices]
-	# 		self.y_train_l = self.y_train[self.labelled_image_indices]
-	# 	else:
-	# 		self.x_train_l = self.x_train
-	# 		self.y_train_l = self.y_train
-
-
-	# def _get_labelled_image_indices(self, nb_images_per_class):
-	# 	pickle_filepath = os.path.join(self.extra_file_path, 'labelled_image_indices_%d.pkl'%nb_images_per_class)
-	# 	if os.path.exists(pickle_filepath):
-	# 		return pickle.load(open(pickle_filepath, 'rb'))
-	# 	else:
-			
-	# 		train_indices = []
-	# 		for i in range(self.nb_classes):
-	# 			indices = np.random.choice(np.where(self.y_train == i)[0], size=nb_images_per_class).tolist()
-	# 			train_indices += indices
-	# 		train_indices = np.array(train_indices)
-	# 		pickle.dump(train_indices, open(pickle_filepath, 'wb'))
-	# 		return train_indices
-
-	
-	# def _read_data(self, label_url, image_url):
-	# 	with gzip.open(label_url) as flbl:
-	# 		magic, num = struct.unpack(">II",flbl.read(8))
-	# 		label = np.fromstring(flbl.read(),dtype=np.int8)
-	# 	with gzip.open(image_url,'rb') as fimg:
-	# 		magic, num, rows, cols = struct.unpack(">IIII",fimg.read(16))
-	# 		image = np.fromstring(fimg.read(),dtype=np.uint8).reshape(len(label),rows,cols)
-	# 	return (label, image)
-
+	def show_image_and_anno(self, plt, img, anns):
+		plt.imshow(img)
+		self.train_coco.showAnns(anns)
 

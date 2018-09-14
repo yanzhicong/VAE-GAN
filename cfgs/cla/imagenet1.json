@@ -13,7 +13,7 @@
         "name" : "inception",
 
         "input shape" : [299, 299, 3],
-        "nb_classes" : 1000,
+        "nb classes" : 1000,
 
         "optimizer" : "sgd",
         "optimizer params" : {

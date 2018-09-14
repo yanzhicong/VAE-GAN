@@ -31,14 +31,19 @@ class Violence(BaseImageListDataset):
 		super(Violence, self).__init__(config)
 		self.name = 'Violence'
 		self.time_string = config.get('time string', '201808142212')
+		self.nb_classes = 2
 
 		self._dataset_dir = 'F:\\Documents\\new BK\\已整理好--与BK有关的复杂场景-肉眼不好区分的等等情形都作为负面样本'
+		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = '/mnt/data03/dataset/new BK/已整理好--与BK有关的复杂场景-肉眼不好区分的等等情形都作为负面样本'
 		if not os.path.exists(self._dataset_dir):
 			raise Exception("Violence : the dataset dir " + self._dataset_dir + " is not exist")
 
 		self._imagelist_dir = 'F:\\Documents\\new BK\\Proj'
-		if not os.path.exists(self._dataset_dir):
-			raise Exception("Violence : the imagelist dir " + self._dataset_dir + " is not exist")
+		if not os.path.exists(self._imagelist_dir):
+			self._imagelist_dir = '/mnt/data03/dataset/new BK/Proj'
+		if not os.path.exists(self._imagelist_dir):
+			raise Exception("Violence : the imagelist dir " + self._imagelist_dir + " is not exist")
 
 		self.train_imagelist_fp = os.path.join(self._imagelist_dir, 'train_' + self.time_string + '.txt')
 		self.val_imagelist_fp = os.path.join(self._imagelist_dir, 'val_' + self.time_string + '.txt')

@@ -38,7 +38,7 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 
-from network.basenetwork import BaseNetwork
+from network.base_network import BaseNetwork
 
 
 

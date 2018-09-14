@@ -38,7 +38,7 @@ class ImageNet(BaseDataset):
 		super(ImageNet, self).__init__(config)
 		
 		self.name = 'imagenet2012'
-		self._dataset_dir = 'F:\\Kaggle\\Data\\Imagenet\\imagenet_object_localization\\ILSVRC'
+		self._dataset_dir = 'F:\\Data\\Imagenet\\imagenet_object_localization\\ILSVRC'
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = '/mnt/data01/dataset/ImageNet/ILSVRC'
 		self._dataset_dir = self.config.get('dataset_dir', self._dataset_dir)

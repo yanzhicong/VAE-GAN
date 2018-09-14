@@ -42,7 +42,7 @@ from utils.optimizer import get_optimizer
 from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class SemiSupervisedSegmentationModel(BaseModel):
@@ -161,7 +161,7 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 	def build_summary(self):
 
-		if self.is_summary:
+		if self.has_summary:
 
 			# summary scalars are logged per step
 			sum_list = []
@@ -298,7 +298,7 @@ class SemiSupervisedSegmentationModel(BaseModel):
 		summary operations
 	'''
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			sum = sess.run(self.histogram_summary)
 			return sum
 		else:

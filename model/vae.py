@@ -46,7 +46,7 @@ from utils.optimizer import get_optimizer_by_config
 from utils.sample import get_sample
 from utils.loss import get_loss
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 class VAE(BaseModel):
 
@@ -110,7 +110,7 @@ class VAE(BaseModel):
 
 	def build_summary(self):
 		# summary scalars are logged per step
-		if self.is_summary:
+		if self.has_summary:
 			sum_list = []
 			sum_list.append(tf.summary.scalar('encoder/kl_loss', self.kl_loss))
 			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
@@ -172,7 +172,7 @@ class VAE(BaseModel):
 	'''
 
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			sum = sess.run(self.sum_hist)
 			return sum
 		else:

@@ -40,7 +40,7 @@ from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 from utils.metric import get_metric
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class Segmentation(BaseModel):
@@ -92,7 +92,7 @@ class Segmentation(BaseModel):
 
 	def build_summary(self):
 		# summary scalars are logged per step
-		if self.is_summary:
+		if self.has_summary:
 
 			sum_list = []
 			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
@@ -158,7 +158,7 @@ class Segmentation(BaseModel):
 
 	'''
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			summ = sess.run(self.sum_hist)
 			return summ
 		else:

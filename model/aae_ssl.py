@@ -41,7 +41,7 @@ from utils.loss import get_loss
 
 from math import sin, cos, sqrt
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class AAESemiSupervised(BaseModel):
@@ -142,23 +142,21 @@ class AAESemiSupervised(BaseModel):
 		else:
 			raise ValueError()
 
-	def discriminator_prior(self, z_batch):
-		assert(self.z_dim == 2)
-		if self.prior_distribution == 'mixGaussian':
-			pass
-
 	def build_model(self):
 		# network config
-		self.config['z discriminator params']['name'] = 'Z_Discriminator'
-		self.config['y discriminator params']['name'] = 'Y_Discriminator'
-		self.config['encoder params']['name'] = 'Encoder'
-		self.config['encoder params']['output_dims'] = self.z_dim + \
-			self.nb_classes
-		self.config['decoder params']['name'] = 'Decoder'
-		self.z_discriminator = self.build_discriminator('z discriminator')
-		self.y_discriminator = self.build_discriminator('y discriminator')
-		self.encoder = self.build_encoder('encoder')
-		self.decoder = self.build_decoder('decoder')
+		self.z_discriminator = self.build_discriminator('z discriminator', params={
+			'name' : 'Z_Discriminator'
+		})
+		self.y_discriminator = self.build_discriminator('y discriminator', params={
+			'name' : 'Y_Discriminator'
+		})
+		self.encoder = self.build_encoder('encoder', params={
+			'name' : 'Encoder',
+			'output_dims' : self.z_dim + self.nb_classes
+		})
+		self.decoder = self.build_decoder('decoder', params={
+			'name' : 'Decoder'
+		})
 
 		# build model
 		self.img = tf.placeholder(
@@ -288,7 +286,7 @@ class AAESemiSupervised(BaseModel):
 									+ [self.global_step])
 
 	def build_summary(self):
-		if self.is_summary:
+		if self.has_summary:
 			# summary scalars are logged per step
 			sum_list = []
 			sum_list.append(tf.summary.scalar('auto-encoder/loss', self.loss_recon))
@@ -465,7 +463,7 @@ class AAESemiSupervised(BaseModel):
 	'''
 
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			summ = sess.run(self.sum_hist)
 			return summ
 		else:

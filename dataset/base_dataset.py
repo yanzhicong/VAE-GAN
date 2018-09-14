@@ -41,7 +41,6 @@ class BaseDataset(object):
 		self.shuffle_test = self.config.get('shuffle test', False)
 		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
 
-	
 
 	'''
 		interface
@@ -146,6 +145,26 @@ class BaseDataset(object):
 			colored_mask[np.where(mask == ind)[0], :] = np.array(color)
 		colored_mask = colored_mask.reshape(list(mask_shape) + [3, ])
 		return colored_mask
+
+	def flexible_scaling(self, img, min_h, min_w, mask=None):
+		img_h = img.shape[0]
+		img_w = img.shape[1]
+
+		scale_h = min_h / img_h
+		scale_w = min_w / img_w
+
+		scale = np.maximum(scale_h, scale_w)
+
+		h_new = int(img.shape[0] * scale)
+		w_new = int(img.shape[1] * scale)
+
+		if mask is not None:
+			img = cv2.resize(img,(w_new, h_new))
+			mask = cv2.resize(mask, (w_new, h_new), interpolation=cv2.INTER_NEAREST)
+			return img, mask
+		else:
+			img = cv2.resize(img,(w_new, h_new))
+			return img
 
 
 	def random_scaling(self, img, minval=0.5, maxval=1.5, mask=None):

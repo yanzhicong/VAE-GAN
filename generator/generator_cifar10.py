@@ -37,7 +37,7 @@ from utils.normalization import get_normalization
 
 # from network.vgg import VGG
 
-from network.basenetwork import BaseNetwork
+from network.base_network import BaseNetwork
 from network.devgg import DEVGG
 
 
@@ -392,7 +392,7 @@ def Deconv2D(
 		return result
 
 
-from network.basenetwork import BaseNetwork
+from network.base_network import BaseNetwork
 
 
 class GeneratorCifar10(BaseNetwork):

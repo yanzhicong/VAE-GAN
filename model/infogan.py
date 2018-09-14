@@ -44,7 +44,7 @@ from utils.optimizer import get_optimizer_by_config
 from utils.sample import get_sample
 from utils.loss import get_loss
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class InfoGAN(BaseModel):
@@ -137,7 +137,7 @@ class InfoGAN(BaseModel):
 
 
 	def build_summary(self):
-		if self.is_summary:
+		if self.has_summary:
 			# summary scalars are logged per step
 			sum_list = []
 			sum_list.append(tf.summary.scalar('discriminator/adversarial', self.d_loss_adv))
@@ -229,7 +229,7 @@ class InfoGAN(BaseModel):
 		summary operation
 	'''
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			sum = sess.run(self.sum_hist)
 			return sum
 		else:

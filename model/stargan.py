@@ -37,7 +37,7 @@ from discriminator.discriminator import get_discriminator
 from utils.sample import get_sample
 from utils.loss import get_loss
 
-from .basemodel import BaseModel
+from .base_model import BaseModel
 
 
 class StarGAN(BaseModel):
@@ -176,7 +176,7 @@ class StarGAN(BaseModel):
 
 	def build_summary(self):
 
-		if self.is_summary:
+		if self.has_summary:
 			sum_list = []
 			sum_list.append(tf.summary.scalar('discriminator/adv_loss', self.d_adv_loss))
 			sum_list.append(tf.summary.scalar('discriminator/cls_loss', self.d_cls_loss))
@@ -222,7 +222,7 @@ class StarGAN(BaseModel):
 		summary operations
 	'''
 	def summary(self, sess):
-		if self.is_summary:
+		if self.has_summary:
 			sum = sess.run(self.histogram_summary)
 			return sum
 		else:

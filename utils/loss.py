@@ -115,6 +115,9 @@ def segmentation_cross_entropy_loss(logits, mask, instance_weight=None):
 		return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=mask, logits=logits) * instance_weight)
 
 
+#
+#	regulation loss
+# 
 def regularization_l1_loss(var_list):
 	loss = 0
 	for var in var_list:
@@ -255,5 +258,4 @@ def get_loss(loss_name, loss_type, loss_params):
 		if loss_type in loss_dict[loss_name]:
 			return loss_dict[loss_name][loss_type](**loss_params)
 	raise Exception("None loss named " + loss_name + " " + loss_type)
-
 

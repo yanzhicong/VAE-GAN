@@ -41,11 +41,9 @@ from .base_model import BaseModel
 
 class CVAEGAN(BaseModel):
 
-    def __init__(self, config,
-        **kwargs
-    ):
+    def __init__(self, config):
         
-        super(CVAEGAN, self).__init__(input_shape=config['input shape'], **kwargs)
+        super(CVAEGAN, self).__init__(config)
 
         raise NotImplementedError
 

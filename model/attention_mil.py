@@ -34,7 +34,6 @@ import numpy as np
 
 from classifier.classifier import get_classifier
 
-
 from utils.optimizer import get_optimizer
 from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
@@ -44,92 +43,131 @@ from .base_model import BaseModel
 
 
 class Attention_MIL(BaseModel):
+	""" Implementation of "Attention-based Deep Multiple Instance Learning"
+		Maximilian Ilse, Jakub M. Tomczak, Max Welling
 
-	def __init__(self, config,
-		**kwargs
-	):
-		super(Attention_MIL, self).__init__(config, **kwargs)
+		@article{DBLP:journals/corr/abs-1802-04712,
+			author    = {Maximilian Ilse and
+						Jakub M. Tomczak and
+						Max Welling},
+			title     = {Attention-based Deep Multiple Instance Learning},
+			journal   = {CoRR},
+			volume    = {abs/1802.04712},
+			year      = {2018},
+			url       = {http://arxiv.org/abs/1802.04712},
+			archivePrefix = {arXiv},
+			eprint    = {1802.04712},
+			timestamp = {Mon, 13 Aug 2018 16:48:13 +0200},
+			biburl    = {https://dblp.org/rec/bib/journals/corr/abs-1802-04712},
+			bibsource = {dblp computer science bibliography, https://dblp.org}
+		}
+	"""
 
-		self.input_shape = config['input shape']
-		self.nb_classes = config['nb classes']
+	def __init__(self, config,**kwargs):
+
+		super(Attention_MIL, self).__init__(config)
 		self.config = config
+
+		assert 'input shape' in self.config
+		assert 'z dims' in self.config
+		assert 'nb classes' in self.config
+
+		self.input_shape = self.config['input shape']
+		self.z_dims = self.config['z dims']
+		self.nb_classes = self.config['nb classes']
+		self.mil_pooling = self.config.get('MIL pooling', 'maxpooling')
+
+		assert self.mil_pooling in ['maxpooling', 'avgpooling']
 		
 		self.build_model()
 		self.build_summary()
 
 	def build_model(self):
+		self.feature_ext_net = self.build_classifier('feature_ext', params={
+			'name' : 'feature_ext',
+			'output_dims' : self.z_dims
+		})
 
-		self.config['classifier params']['name'] = 'classifier'
-		self.classifier = self.build_classifier('classifier')
+		if self.mil_pooling == 'avgpooling':
+			self.attention_net = self.build_classifier('attention', params={
+				'name' : 'attention_net',
+				'output_dims' : 1
+			})
 
-		# for training
-		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
-		self.label = tf.placeholder(tf.float32, shape=[None, self.nb_classes], name='label')
+		self.classifier = self.build_classifier('classifier', params={
+			'name' : 'classifier',
+			'output_dims' : self.nb_classes
+		})
 
-		self.logits, self.end_points = self.classifier.features(self.x)
+		#
+		# Build model
+		#
+		# 1. inputs
+		self.x_bag = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_bag')
+		self.label = tf.placeholder(tf.float32, shape=[self.nb_classes], name='label')
 
-		self.loss = get_loss('classification', self.config['classification loss'], 
-						{'logits' : self.logits, 'labels' : self.label})
+		# 2.  feature extraction
+		self.features = self.classifier(self.x_bag)
+
+		# 3. mil pooling
+		if self.mil_pooling == 'maxpooling':
+			self.bag_feature = tf.reduce_max(self.features, axis=0)
+			self.bag_feature = tf.reshape(self.bag_feature, [1, -1])
+		elif self.mil_pooling == 'avgpooling':
+			self.instance_weight = self.attention_net(self.features)
+
+			shape = tf.shape(self.instance_weight)
+			self.instance_weight = tf.reshape(self.instance_weight, [1, -1])
+			self.instance_weight = tf.nn.softmax(self.instance_weight)
+			self.instance_weight = tf.reshape(self.instance_weight, shape)
+
+			self.bag_feature = tf.reduce_sum(self.features * self.instance_weight, axis=0)
+			self.bag_feature = tf.reshape(self.bag_feature, [1, -1])
+
+
+		# 4. classify
+		self.logits = self.classifier(self.bag_feature)
+		self.probs = tf.sigmoid(self.logits)
+		self.bag_label = tf.reshape(self.label, [1, -1])
+
+		# 5. loss and metric
+		self.loss = get_loss('classification', 'binary entropy', 
+						{'logits' : self.logits, 'labels' : self.bag_label})
 		self.train_acc = get_metric('accuracy', 'top1', 
-						{'logits': self.logits, 'labels':self.label})
+						{'logits': self.logits, 'labels':self.bag_label})
 
-		# for testing
-		# self.test_x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='test_x_input')
-		# self.test_logits = self.classifier(self.test_x)
-		self.probs = tf.nn.softmax(self.logits)
-		
-		# print('vars')
-		# for var in self.classifier.vars:
-		# 	print(var.name, ' --> ', var.get_shape())
-
-		# print('store_vars')
-		# for var in self.classifier.store_vars:
-		# 	print(var.name, ' --> ', var.get_shape())
-
+		# build optimizer
 		self.global_step, self.global_step_update = self.build_step_var('global_step')
-	
-		self.train_classifier, self.learning_rate = self.build_train_function('optimizer', self.loss, self.classifier.vars, 
-						step=self.global_step, step_update=self.global_step_update)
+
+		sum_list = []
+		sum_list.append(tf.summary.scalar('train acc', self.train_acc))
+		self.train_classifier, _ = self.build_train_function('optimizer', self.loss, self.classifier.vars, 
+						step=self.global_step, step_update=self.global_step_update, sum_list=sum_list)
+
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
 
 	def build_summary(self):
 		if self.has_summary:
-			# summary scalars are logged per step
-			sum_list = []
-			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-			sum_list.append(tf.summary.scalar('train loss', self.loss))
-			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
-			self.sum_scalar = tf.summary.merge(sum_list)
-
-			for key, var in self.end_points.items():
-				sum_list.append(tf.summary.histogram('netout/' + key, var))
-			self.sum_scalar2 = tf.summary.merge(sum_list)
-
 			# summary hists are logged by calling self.summary()
-			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
+			sum_list = self.feature_ext_net.histogram_summary_list
+			if self.mil_pooling == 'avgpooling':
+				sum_list += self.attention_net.histogram_summary_list
+			sum_list += self.classifier.histogram_summary_list
 			self.sum_hist = tf.summary.merge(sum_list)
 		else:
-			self.sum_scalar = None
-			self.sum_scalar2 = None
 			self.sum_hist = None
 
 	'''
 		train operations
 	'''
-	def train_on_batch_supervised(self, sess, x_batch, y_batch):
+	def train_on_batch_supervised(self, sess, x_batch, y_label):
 		feed_dict = {
-			self.x : x_batch,
-			self.label : y_batch,
+			self.x_bag : x_batch,
+			self.label : y_label,
 			self.is_training : True
 		}
-
-		step = sess.run([self.global_step])[0]
-
-		if step % 100 == 0:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar2)
-		else:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar)
+		return self.train_classifier(sess, feed_dict)
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
@@ -140,36 +178,17 @@ class Attention_MIL(BaseModel):
 	'''
 	def predict(self, sess, x_batch):
 		feed_dict = {
-			self.x : x_batch,
+			self.x_bag : x_batch,
 			self.is_training : False
 		}
-		y = sess.run([self.probs], feed_dict = feed_dict)[0]
+		y = sess.run([self.probs], feed_dict=feed_dict)[0][0, :]
 		return y
 
-	def reduce_features(self, sess, x_batch, feature_name):
-		assert(isinstance(feature_name, str) or isinstance(feature_name, list))
-		if isinstance(feature_name, str):
-			feature_name_list = [feature_name,]
-		else:
-			feature_name_list = feature_name
-		feature_list = [self.end_points[f] for f in feature_name_list]
+	def attention(self, sess, x_batch):
+		assert self.mil_pooling == 'avgpooling'
 		feed_dict = {
-			self.x : x_batch,
+			self.x_bag : x_batch,
 			self.is_training : False
 		}
-		features = sess.run(feature_list, feed_dict=feed_dict)
-
-		if isinstance(feature_name, str):
-			features = features[0]
-		return features
-
-	'''
-		summary operations
-
-	'''
-	def summary(self, sess):
-		if self.has_summary:
-			sum = sess.run(self.sum_hist)
-			return sum
-		else:
-			return None
+		instance_weight = sess.run([self.instance_weight], feed_dict=feed_dict)[0]
+		return instance_weight

@@ -45,10 +45,8 @@ from .base_model import BaseModel
 
 class Segmentation(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
-		super(Segmentation, self).__init__(config, **kwargs)
+	def __init__(self, config):
+		super(Segmentation, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.mask_shape = config['mask shape']

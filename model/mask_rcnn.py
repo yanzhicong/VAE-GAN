@@ -45,7 +45,7 @@ from network.base_network import BaseNetwork
 
 class PyramidRpnNetwork(BaseNetwork):
 	def __init__(self, config):
-		BaseNetwork.__init__(self, config)
+		super(PyramidRpnNetwork, self).__init__(config)
 		self.config = config
 		self.reuse = False
 
@@ -130,6 +130,8 @@ class Mask_RCNN(BaseModel):
 		backbone_feature = [features[f] for f in backbone_feature_names]
 
 		fpn_output = self.fpn(backbone_feature)
+
+		raise NotImplementedError
 
 		# build anchors
 		# anchors = self.build_anchors(anchors)

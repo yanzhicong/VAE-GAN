@@ -47,11 +47,9 @@ from .base_model import BaseModel
 
 class SemiSupervisedSegmentationModel(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(SemiSupervisedSegmentationModel, self).__init__(config, **kwargs)
+		super(SemiSupervisedSegmentationModel, self).__init__(config)
 
 		raise NotImplementedError
 

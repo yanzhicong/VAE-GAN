@@ -21,13 +21,16 @@ from utils.learning_rate import get_global_step
 class BaseModel(object):
 
 
-	def __init__(self, config, **kwargs):
+	def __init__(self, config):
 		"""Initialization
 		"""
 		self.name = config['name']
 		self.has_summary = config.get('summary', False)
 		self.is_training = tf.placeholder(tf.bool, name='is_training')
 		self.config = config
+
+
+		self.sum_hist = None
 
 
 	def checkpoint_load(self, sess, log_dir):
@@ -101,7 +104,12 @@ class BaseModel(object):
 		If there is	no summary needed or you want to skip logging summary for speed, please return 
 		None in the derived	function.
 		"""
-		return None
+		if self.sum_hist is not None:
+			summ = sess.run(self.sum_hist)
+			return summ
+		else:
+			return None
+
 
 
 	#

@@ -23,27 +23,25 @@
 # ==============================================================================
 
 
-# 
-
-def get_trainer(name, config, model, sess):
-
-    if name == 'superivsed':
-        from .supervised import SupervisedTrainer
-        return SupervisedTrainer(config, model, sess)
-
-    elif name == 'unsupervised' : 
-        from .unsupervised import UnsupervisedTrainer
-        return UnsupervisedTrainer(config, model, sess)
-
-    elif name == 'semisupervised' or name == 'semi-supervised':
-        from .semisupervised import SemiSupervisedTrainer
-        return SemiSupervisedTrainer(config, model, sess)
-    
-    elif name == 'supervised mil':
-        from .supervised_mil import SupervisedMILTrainer
-        return SupervisedMILTrainer(config, model, sess)
-
-    else:
-        raise Exception('None trainer named ' + name)
+import os
+import numpy as np
+from skimage import io
+import cv2
 
 
+from .base_dataset import BaseDataset
+
+
+class BaseMILDataset(BaseDataset):
+	""" The base dataset class for supporting multiple-instance learning.
+
+	"""
+
+	def __init__(self, config):
+		
+		super(BaseMILDataset, self).__init__(config)
+		self.config = config
+
+	def crop_image_to_bag(self, img, output_shape, *, 
+			max_nb_crops=None, nb_crops=None, nb_crop_col=None, nb_crop_row=None):
+		pass

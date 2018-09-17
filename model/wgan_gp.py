@@ -63,11 +63,9 @@ class WGAN_GP(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(WGAN_GP, self).__init__(config, **kwargs)
+		super(WGAN_GP, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']

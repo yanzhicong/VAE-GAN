@@ -49,11 +49,9 @@ from .base_model import BaseModel
 
 class InfoGAN(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(InfoGAN, self).__init__(config, **kwargs)
+		super(InfoGAN, self).__init__(config)
 
 		raise NotImplementedError
 

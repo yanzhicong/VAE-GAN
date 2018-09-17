@@ -62,11 +62,9 @@ class AAE(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-				 **kwargs
-				 ):
+	def __init__(self, config):
 
-		super(AAE, self).__init__(config, **kwargs)
+		super(AAE, self).__init__(config)
 		self.config = config
 
 		self.input_shape = self.config['input shape']

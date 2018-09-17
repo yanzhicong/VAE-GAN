@@ -349,4 +349,6 @@ class BaseNetwork(object):
 	def all_vars(self):
 		return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
 
-
+	@property
+	def histogram_summary_list(self):
+		return [tf.summary.histogram(var.name, var) for var in self.store_vars]

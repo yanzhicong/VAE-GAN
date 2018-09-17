@@ -45,10 +45,8 @@ from .base_model import BaseModel
 
 class Classification(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
-		super(Classification, self).__init__(config, **kwargs)
+	def __init__(self, config):
+		super(Classification, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.nb_classes = config['nb classes']

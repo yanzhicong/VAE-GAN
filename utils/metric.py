@@ -23,6 +23,8 @@
 # ==============================================================================
 
 
+
+
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import tensorflow.contrib.metrics as tcm
@@ -35,12 +37,30 @@ def _assign_moving_average(variable, value, decay):
         return tf.assign_sub(variable, update_delta, name=scope)
 
 def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
+    """ calculate moving accuracy for multi class classification
+    Arguments:
+        labels : [batch_size, nb_classes],   must be one-hot
+        logits or probs : [batch_size, nb_classes]
+        decay : float in range [0, 1]
+    """
     if probs is not None:
         acc = tcm.accuracy(predictions=tf.argmax(probs, axis=-1), labels=tf.argmax(labels, axis=-1))
     elif logits is not None:
-        acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1)) 
+        acc = tcm.accuracy(predictions=tf.argmax(logits, axis=-1), labels=tf.argmax(labels, axis=-1))
     else:
         raise Exception('in metric accuracy, the probability vector cannot be None')
+
+    if decay == 1.0:
+        return acc
+    else:
+        var = tf.Variable(0.0, name='acc_top_1')
+        return _assign_moving_average(var, acc, decay)
+
+
+def accuracy_per_class(labels, probs, threshold=0.5, decay=0.01):
+
+    pred = tf.cast(probs > threshold, tf.int32)
+    acc = tf.reduce_sum(tf.cast(labels == pred, tf.int32)) / tf.reduce_sum(tf.ones_like(labels))
 
     if decay == 1.0:
         return acc
@@ -74,6 +94,13 @@ metric_dict = {
     'accuracy' :  {
         'top1' : accuracy_top_1
     },
+    'moving accuracy' : {
+        'top1' : accuracy_top_1,
+    },
+
+    'moving accuracy per class' : {
+        'acc' : accuracy_per_class
+    },
     'segmentation' : {
         'miou' : segmentation_miou
     }
@@ -84,6 +111,4 @@ def get_metric(metric_name, metric_type, metric_params):
         if metric_type in metric_dict[metric_name]:
             return metric_dict[metric_name][metric_type](**metric_params)
     raise Exception("None metric named " + metric_name + ' of type ' + metric_type)
-
-
 

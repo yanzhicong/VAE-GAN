@@ -32,6 +32,22 @@ import cv2
 
 
 class BaseDataset(object):
+	""" Base dataset class
+
+	defines the dataset class interface and implements some util function
+
+	the util functions instruction:
+		1. label transform: 
+			to_categorical, from_categorical
+		2. mask to colormap and colormap to mask:
+			mask_colormap_decode, mask_colormap_encode
+		3. image resize:
+			flexible_scaling, random_scaling,
+		4. image crop:
+			crop_and_pad_image, random_crop_and_pad_image,
+		5. output scalar rescale:
+			scale_output, unscale_output
+	"""
 
 	def __init__(self, config):
 		
@@ -42,26 +58,46 @@ class BaseDataset(object):
 		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
 
 
-	'''
-		interface
-	'''
+	#
+	#	interface, please implement them in the derived class
+	#
 	def get_image_indcies(self, phase, method):
+		"""	return the image indices list 
+
+		Arguments:
+			phase : common input are "train", "val", "trainval", "test"
+			method : common input are "supervised", "unsupervised"
+		
+		1. the phase "test" is always with method "unsupervised".
+		2. 
+		"""
 		raise NotImplementedError
+
 	def read_image_by_index(self, ind, phase, method):
-		raise NotImplementedError
-	def nb_images(self, phase, method):
+		"""	Read image by its ind
+
+		Arguments:
+			phase : common input are "train", "val", "trainval", "test"
+			method : common input are "supervised", "unsupervised"
+
+		1. in "supervised" method, this function returns the pre-processed image and its label
+		2. if the dataset provides multiple-instance interface, this function returns a bag of images and the bag's label
+		3. in "unsupervised" method, this function returns the pre-processed image
+		"""
 		raise NotImplementedError
 
 
 	def iter_train_images(self, method='supervised'):
+		"""
+		"""
 		raise NotImplementedError
 	def iter_val_images(self):
 		raise NotImplementedError
 
 
-	'''
-		util functions
-	'''
+	#
+	#	util functions
+	#
 	def to_categorical(self, y, num_classes):
 		"""
 			Copyed from keras
@@ -98,14 +134,14 @@ class BaseDataset(object):
 		"""
 		return np.argmax(cat, axis=-1)
 
+
 	def mask_colormap_encode(self, colored_mask, color_map, default_value=-1):
-		'''
-			from colored mask to 1-channel mask
+		""" from colored mask to 1-channel mask
 			Inputs : 
 				colored_mask : [h, w, c]
 			output : 
 				mask : [h, w]
-		'''
+		"""
 		if len(colored_mask.shape) != 3 or colored_mask.shape[2] != 3:
 			raise ValueError('Unsupported color mask shape : ', colored_mask.shape)
 
@@ -131,13 +167,12 @@ class BaseDataset(object):
 
 
 	def mask_colormap_decode(self, mask, color_map, default_color=[224, 224, 192]):
-		'''
-			from colored mask to 1-channel mask
+		""" from colored mask to 1-channel mask
 			Inputs : 
 				colored_mask : [h, w, c]
 			output : 
 				mask : [h, w]
-		'''
+		"""
 		mask_shape = mask.shape
 		mask = mask.reshape([-1])
 		colored_mask = np.ones([int(np.product(mask_shape)), 3,], dtype=np.uint8) * (np.array(default_color).reshape([1, 3]))
@@ -203,9 +238,8 @@ class BaseDataset(object):
 
 
 	def crop_and_pad_image(self, img, bbox):
-		'''
-			crop and pad image
-		'''
+		""" crop and pad image
+		"""
 		def pad_img_to_fit_bbox(img, x0, x1, y0, y1):
 			img = np.pad(img, (
 								(	np.abs(np.minimum(0, y0)), 
@@ -227,13 +261,12 @@ class BaseDataset(object):
 
 
 	def random_crop_and_pad_image(self, img, size, mask=None, center_range=[0.2, 0.8]):
-		'''
-			randomly crop and pad image to the given size
+		""" randomly crop and pad image to the given size
 			Arguments : 
 				img : array of shape(h, w, c)
 				size : [crop_image_width, crop_image_height]
 
-		'''
+		"""
 		h, w, c = img.shape
 		crop_w, crop_h = size[0:2]
 
@@ -273,19 +306,17 @@ class BaseDataset(object):
 
 
 	def scale_output(self, data):
-		'''
-			input data is in range of [0.0, 1.0]
+		""" input data is in range of [0.0, 1.0]
 			this function rescale the data to the range of config parameters "scalar range"
-		'''
+		"""
 		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
 			return data
 		else:
 			return data * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
 
 	def unscale_output(self, data):
-		'''
-			the reverse function of scale_output
-		'''
+		""" the reverse function of scale_output
+		"""
 		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
 			return data
 		else:

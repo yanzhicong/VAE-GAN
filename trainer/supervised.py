@@ -54,7 +54,6 @@ class SupervisedTrainer(BaseTrainer):
 			self.train_data_inner_queue = queue.Queue(maxsize=self.batch_size*self.buffer_depth)
 
 
-
 	def train(self, sess, dataset, model):
 		
 		self.train_initialize(sess, model)
@@ -62,8 +61,10 @@ class SupervisedTrainer(BaseTrainer):
 		# if in multi thread model, start threads for read data
 		if self.multi_thread:
 			self.coord = tf.train.Coordinator()
-			threads = [threading.Thread(target=self.read_data_loop, 
+			threads = [	# this thread is for reading data and put data into self.train_data_inner_queue
+						threading.Thread(target=self.read_data_loop, 
 											args=(self.coord, dataset, self.train_data_inner_queue, self.dataset_phase, 'supervised')),
+						# this thread is for grouping data into batches and put into self.train_data_queue
 						threading.Thread(target=self.read_data_transport_loop, 
 											args=(self.coord, self.train_data_inner_queue, self.train_data_queue, self.dataset_phase, 'supervised'))]
 			for t in threads:

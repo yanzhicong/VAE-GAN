@@ -1,0 +1,1259 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"initilzier",
+				"initializers"
+			],
+			[
+				"scala",
+				"scalar_range"
+			],
+			[
+				"conv2d",
+				"conv2d"
+			],
+			[
+				"disc",
+				"discriminator"
+			],
+			[
+				"inception_score",
+				"inception_score_std"
+			],
+			[
+				"genee",
+				"generated_x"
+			],
+			[
+				"dataset",
+				"dataset_indices"
+			],
+			[
+				"toy",
+				"gan_toy"
+			],
+			[
+				"y",
+				"yield"
+			],
+			[
+				"batch_nrom",
+				"batch_normalization"
+			],
+			[
+				"fea",
+				"fused_batch_norm"
+			],
+			[
+				"clip",
+				"clip_discriminator"
+			],
+			[
+				"we",
+				"weight_clip_bound"
+			],
+			[
+				"log",
+				"logits"
+			],
+			[
+				"colored",
+				"colored_pred"
+			],
+			[
+				"color",
+				"colored_pred"
+			],
+			[
+				"is_ran",
+				"is_random_cropping"
+			],
+			[
+				"is_random_mi",
+				"is_random_mirroring"
+			],
+			[
+				"is_randm",
+				"is_random_cropping"
+			],
+			[
+				"com",
+				"combind_crop"
+			],
+			[
+				"summary",
+				"image_summary"
+			],
+			[
+				"num",
+				"num_classes"
+			],
+			[
+				"default",
+				"default_value"
+			],
+			[
+				"max",
+				"_maxpool_layer_name"
+			],
+			[
+				"mo",
+				"moving_vars_collection"
+			],
+			[
+				"moving_var",
+				"moving_vars_collection"
+			],
+			[
+				"_init",
+				"_winit_fn"
+			],
+			[
+				"get_",
+				"get_weightsinit"
+			],
+			[
+				"nrom",
+				"norm_fn"
+			],
+			[
+				"zero",
+				"zero_debias_moving_mean"
+			],
+			[
+				"as",
+				"assign_moving_average"
+			],
+			[
+				"moving_",
+				"moving_averages"
+			],
+			[
+				"get_optimie",
+				"get_optimizer_by_config"
+			],
+			[
+				"dat",
+				"_dataset_dir"
+			],
+			[
+				"discrimin",
+				"DiscriminatorCifar10"
+			],
+			[
+				"encod",
+				"EncoderSimple"
+			],
+			[
+				"plot",
+				"plot_array_list"
+			],
+			[
+				"plot_a",
+				"plot_array_var"
+			],
+			[
+				"discrim",
+				"discriminator_training_steps"
+			],
+			[
+				"discri",
+				"discriminator_warming_steps"
+			],
+			[
+				"get_pti",
+				"get_optimizer_by_config"
+			],
+			[
+				"batch",
+				"batch_norm"
+			],
+			[
+				"m2_supvise",
+				"m2_supervised_learning_rate"
+			],
+			[
+				"global",
+				"global_step"
+			],
+			[
+				"global_step",
+				"global_step_name"
+			],
+			[
+				"d_loss",
+				"d_loss_gp"
+			],
+			[
+				"dis_poss",
+				"dis_possible_feature"
+			],
+			[
+				"class",
+				"hx_classifier"
+			],
+			[
+				"pre",
+				"pretrain_steps"
+			],
+			[
+				"his",
+				"histogram_summary"
+			],
+			[
+				"gen",
+				"generator_summary"
+			],
+			[
+				"discr",
+				"discriminator_summary"
+			],
+			[
+				"dis",
+				"discrimintor_vars"
+			],
+			[
+				"recon",
+				"recon_img"
+			],
+			[
+				"num_ulab",
+				"num_ulab_batch"
+			],
+			[
+				"json",
+				"jsonstring"
+			],
+			[
+				"m2_su_loss",
+				"m2_su_loss_recon"
+			],
+			[
+				"weight",
+				"weights_initializer"
+			],
+			[
+				"m2_super",
+				"m2_supervised_train_op"
+			],
+			[
+				"_",
+				"_draw_sample"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"contents": "{\n    // The tab key will cycle through the settings when first created\n    // Visit http://wbond.net/sublime_packages/sftp/settings for help\n    \n    // sftp, ftp or ftps\n    \"type\": \"sftp\",\n\n    \"save_before_upload\": true,\n    \"upload_on_save\": true,\n    \"sync_down_on_open\": false,\n    \"sync_skip_deletes\": false,\n    \"sync_same_age\": true,\n    \"confirm_downloads\": false,\n    \"confirm_sync\": true,\n    \"confirm_overwrite_newer\": false,\n    \n    \n    \"host\": \"10.164.41.4\",\n    \"port\" : 22,\n    \"user\": \"zhicong\",\n    \"password\": \"431600yzc\",\n    \"remote_path\": \"/home/zhicong/ws01/GAN/CVAEGAN\",\n\n    // \"host\": \"10.164.14.206\",\n    // \"port\" : 22,\n    // \"user\": \"zhicong\",\n    // \"password\": \"431600yzc\",\n    // \"remote_path\": \"E:/zhicong/GAN/CVAEGAN\",\n\n    // \"host\" : \"flexdl03.sh.intel.com\",\n    // \"port\" : 22,\n    // \"user\" : \"zhicongy\",\n    // \"password\" : \"431600Yzc@\",\n    // \"remote_path\" : \"/home/zhicongy/ws/GAN/producttest4\",\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    \n    \"ignore_regexes\": [\n        \"\\\\.sublime-(project|workspace)\", \n        \"sftp-config(-alt\\\\d?)?\\\\.json\",\n        \"sftp-settings\\\\.json\", \"/venv/\", \"\\\\.svn/\", \"\\\\.hg/\", \"\\\\.git/\",\n        \"\\\\.bzr\", \"_darcs\", \"CVS\", \"\\\\.DS_Store\", \"Thumbs\\\\.db\", \"desktop\\\\.ini\"\n        ,\"assets*\"\n        ,\"\\\\__pycache__*\", \"\\\\validator\\\\inception_score\\\\*\"\n    ],\n    //\"file_permissions\": \"664\",\n    //\"dir_permissions\": \"775\",\n    //\"extra_list_connections\": 0,\n\n    \"connect_timeout\": 30,\n    //\"keepalive\": 120,\n    //\"ftp_passive_mode\": true,\n    //\"ftp_obey_passive_host\": false,\n    //\"ssh_key_file\": \"~/.ssh/id_rsa\",\n    //\"sftp_flags\": [\"-F\", \"/path/to/ssh_config\"],\n    \n    //\"preserve_modification_times\": false,\n    //\"remote_time_offset_in_hours\": 0,\n    //\"remote_encoding\": \"utf-8\",\n    //\"remote_locale\": \"C\",\n    //\"allow_config_upload\": false,\n}\n",
+			"file": "sftp-config.json",
+			"file_size": 1855,
+			"file_write_time": 131815531752421534,
+			"settings":
+			{
+				"buffer_size": 2551,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "encoder/encoder_googlenet.py",
+			"settings":
+			{
+				"buffer_size": 6657,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "network/inception_v3.py",
+			"settings":
+			{
+				"buffer_size": 7434,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "network/resnet.py",
+			"settings":
+			{
+				"buffer_size": 7438,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"br",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"bro",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"upload",
+				"SFTP: Upload Folder"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"brose",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"browse Remote",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"sftp",
+				"SFTP: Browse Remote…"
+			],
+			[
+				"SFTP",
+				"SFTP: Map to Remote…"
+			],
+			[
+				"install ",
+				"Package Control: Install Package"
+			],
+			[
+				"package",
+				"Install Package Control"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 136.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/Documents/GAN/Projects/CVAEGAN",
+		"/C/Documents/GAN/Projects/CVAEGAN/network"
+	],
+	"file_history":
+	[
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/embedding_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/network/basenetwork.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/basevalidator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/basemodel.py",
+		"/C/Program Files/JetBrains/WebStorm 2018.2.1/bin/webstorm.exe.vmoptions",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/mnist/result4/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/basedataset.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/scatter_plot_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/wgan_gp2.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/imagenet1.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/trainer/basetrainer.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/impgan/mnist.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/generator/generator_cifar10.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/wgan/cifar10_2.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/wgan/README.md",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/wgan/cifar10.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/mnist/result1/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/embedding/checkpoint",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0002100.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0000800.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0004600.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0004700.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0000400.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0000200.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/random_generate.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/wgan_gp1/generated/0000100.png",
+		"/C/Documents/GAN/Projects/CVAEGAN/encoder/encoder.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/network/vgg.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/loss.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/trainer/semisupervised.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/test/test_mnist.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm1_cifar10.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/semi_dgm.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/cifar10.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/mnist.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm2.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/cvae.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/cvae2.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/wgan_gp.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/optimizer.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/model.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/wgan_gp.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/learning_rate.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/trainer/supervised.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/network/devgg.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/normalization.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/trainer/unsupervised.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/generator/generator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/generator/generator_simple.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/discriminator/discriminator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/discriminator/discriminator_simple.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/cvaegan.py",
+		"/C/Documents/GAN/Projects/semisupervised_vae/utils.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/classifier/classifier.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/classifier/classifier_simple.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/encoder/encoder_simple.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/decoder/decoder_simple.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/dcgan.py",
+		"/C/Documents/GAN/Projects/StarGAN-Tensorflow/model.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/test/test_imagenet.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/network/inception_block.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/metric.py",
+		"/C/Documents/GAN/Projects/ssl_bad_gan/pixelcnn.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/sftp-config.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/utils/weightsinit.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/dataset_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/hidden_variable_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/pca_plot_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/validator/test_dataset_validator.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/vae.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/production.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm4/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/.gitignore",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm3/log/regularization_0_0020/events.out.tfevents.1530075860.FlexDL03",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm3/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm3/log/regularization_0_0010/events.out.tfevents.1530075831.FlexDL03",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm3/log/regularization_0_0000/events.out.tfevents.1530075272.FlexDL03",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm3/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm1.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/semi_dgm2.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/test/test_cifar10.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/train.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm4/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/cfgs/semidgm3.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm10/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm10/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm8/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm9/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm15/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm14/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm13/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/extra_files/production.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm11/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm12/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/test.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm2/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm6/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm7/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm2/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/cifar100.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm1/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/dataset/pascal_voc.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm/semidgm5/test_dataset_accuracy_top1.csv",
+		"/C/Users/yznzh/AppData/Roaming/Sublime Text 3/Packages/User/Diffy.sublime-settings",
+		"/C/Users/yznzh/AppData/Roaming/Sublime Text 3/Packages/Diffy/Diffy.sublime-settings",
+		"/C/Documents/GAN/Projects/CVAEGAN/model/semi_dgm3.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/test/test_inception.py",
+		"/C/Documents/GAN/Projects/CVAEGAN/test/test_vgg.py",
+		"/C/Documents/GAN/Projects/vae_ssl/models/ExactM2.py",
+		"/C/Documents/GAN/Projects/semisupervised_vae/genclass.py",
+		"/C/Documents/GAN/Projects/vae_ssl/models/AbstractModel.py",
+		"/C/Documents/GAN/Projects/vae_ssl/models/AbstractSemiVAE.py",
+		"/C/Users/yznzh/AppData/Roaming/Sublime Text 3/Packages/SFTP/Default (Windows).sublime-keymap",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm1/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm2/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm7/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm4/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm3/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm5/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm5/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm3/semidgm6/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm5/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm2/config_file.json",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm6/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm1/test_dataset_accuracy_top1.csv",
+		"/C/Documents/GAN/Projects/CVAEGAN/assets/semidgm2/semidgm7/config_file.json"
+	],
+	"find":
+	{
+		"height": 23.0
+	},
+	"find_in_files":
+	{
+		"height": 134.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "sftp-config.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2551,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1981,
+								1981
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/JavaScript/JSON.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 171.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "encoder/encoder_googlenet.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6657,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5868,
+								5868
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 1074.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "network/inception_v3.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7434,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4841,
+								4841
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1452.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "network/resnet.py",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7438,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1766,
+								1766
+							]
+						],
+						"settings":
+						{
+							"incomplete_sync": null,
+							"remote_loading": false,
+							"synced": false,
+							"syntax": "Packages/Python/Python.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 97.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 22.0
+	},
+	"input":
+	{
+		"height": 38.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.sftp":
+	{
+		"height": 116.0
+	},
+	"pinned_build_system": "",
+	"project": "VAE-GAN.sublime-project",
+	"replace":
+	{
+		"height": 42.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"googlenet",
+				"encoder\\encoder_googlenet.py"
+			],
+			[
+				"dcgan.py",
+				"CVAEGAN\\model\\dcgan.py"
+			],
+			[
+				"mnsit.json",
+				"CVAEGAN\\cfgs\\impgan\\mnist.json"
+			],
+			[
+				"network",
+				"CVAEGAN\\network\\basenetwork.py"
+			],
+			[
+				"mnist.json",
+				"CVAEGAN\\cfgs\\impgan\\mnist.json"
+			],
+			[
+				"improve",
+				"CVAEGAN\\model\\improved_gan.py"
+			],
+			[
+				"sftp-config.",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"metric.py",
+				"CVAEGAN\\utils\\metric.py"
+			],
+			[
+				"weightsinit.py",
+				"CVAEGAN\\utils\\weightsinit.py"
+			],
+			[
+				"segmentation",
+				"CVAEGAN\\model\\segmentation.py"
+			],
+			[
+				"",
+				"CVAEGAN\\test\\test_pascal_voc.py"
+			],
+			[
+				"pascal_voc.py",
+				"CVAEGAN\\dataset\\pascal_voc.py"
+			],
+			[
+				"test_pascal_voc",
+				"CVAEGAN\\test\\test_pascal_voc.py"
+			],
+			[
+				"cifar10.json",
+				"CVAEGAN\\cfgs\\wgan\\cifar10.json"
+			],
+			[
+				"weights",
+				"CVAEGAN\\utils\\weightsinit.py"
+			],
+			[
+				"sftp",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"devgg",
+				"CVAEGAN\\network\\devgg.py"
+			],
+			[
+				"sftp-config.json",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"weightinit",
+				"CVAEGAN\\utils\\weightsinit.py"
+			],
+			[
+				"product.json",
+				"CVAEGAN\\cfgs\\wgan\\product.json"
+			],
+			[
+				"random_generate",
+				"CVAEGAN\\validator\\random_generate.py"
+			],
+			[
+				"pro",
+				"CVAEGAN\\dataset\\production.py"
+			],
+			[
+				"random_generat",
+				"CVAEGAN\\validator\\random_generate.py"
+			],
+			[
+				"randomgenerate",
+				"CVAEGAN\\validator\\random_generate.py"
+			],
+			[
+				"generator_conv",
+				"CVAEGAN\\generator\\generator_conv.py"
+			],
+			[
+				"cifar10.py",
+				"CVAEGAN\\dataset\\cifar10.py"
+			],
+			[
+				"mnist",
+				"CVAEGAN\\dataset\\mnist.py"
+			],
+			[
+				"testmnist",
+				"CVAEGAN\\testmnist.py"
+			],
+			[
+				"mnist2.json",
+				"CVAEGAN\\cfgs\\cla\\mnist2.json"
+			],
+			[
+				"mnist4.json",
+				"CVAEGAN\\cfgs\\cla\\mnist4.json"
+			],
+			[
+				"mnist3.json",
+				"CVAEGAN\\cfgs\\cla\\mnist3.json"
+			],
+			[
+				"semisuperivsed",
+				"CVAEGAN\\trainer\\semisupervised.py"
+			],
+			[
+				"unsupervised",
+				"CVAEGAN\\trainer\\unsupervised.py"
+			],
+			[
+				"supervised",
+				"CVAEGAN\\trainer\\supervised.py"
+			],
+			[
+				"mnist4.jsno",
+				"CVAEGAN\\cfgs\\cla\\mnist4.json"
+			],
+			[
+				"classification",
+				"CVAEGAN\\model\\classification.py"
+			],
+			[
+				"vgg.py",
+				"CVAEGAN\\network\\vgg.py"
+			],
+			[
+				"basenetwork.py",
+				"CVAEGAN\\network\\basenetwork.py"
+			],
+			[
+				"embedding",
+				"CVAEGAN\\validator\\embedding_validator.py"
+			],
+			[
+				"sftp-config",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"mnist1.json",
+				"CVAEGAN\\cfgs\\cla\\mnist1.json"
+			],
+			[
+				"normalization",
+				"CVAEGAN\\utils\\normalization.py"
+			],
+			[
+				"embedding_validator.py",
+				"CVAEGAN\\validator\\embedding_validator.py"
+			],
+			[
+				"testmnist.py",
+				"CVAEGAN\\testmnist.py"
+			],
+			[
+				"wgan_gp.py",
+				"CVAEGAN\\model\\wgan_gp.py"
+			],
+			[
+				"activation",
+				"CVAEGAN\\utils\\activation.py"
+			],
+			[
+				"activatio",
+				"CVAEGAN\\utils\\activation.py"
+			],
+			[
+				"basedataset",
+				"CVAEGAN\\dataset\\basedataset.py"
+			],
+			[
+				"base",
+				"CVAEGAN\\network\\basenetwork.py"
+			],
+			[
+				"wgan",
+				"CVAEGAN\\model\\wgan_gp.py"
+			],
+			[
+				"read",
+				"CVAEGAN\\cfgs\\wgan\\README.md"
+			],
+			[
+				"random",
+				"CVAEGAN\\validator\\random_generate.py"
+			],
+			[
+				"weightsinit",
+				"CVAEGAN\\utils\\weightsinit.py"
+			],
+			[
+				"inc",
+				"CVAEGAN\\validator\\inception_score.py"
+			],
+			[
+				"sf",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"inception_score.py",
+				"CVAEGAN\\validator\\inception_score.py"
+			],
+			[
+				"no",
+				"CVAEGAN\\utils\\normalization.py"
+			],
+			[
+				"wgan_gp.yp",
+				"CVAEGAN\\model\\wgan_gp.py"
+			],
+			[
+				"wgan_gp",
+				"CVAEGAN\\model\\wgan_gp.py"
+			],
+			[
+				"loss",
+				"CVAEGAN\\utils\\loss.py"
+			],
+			[
+				"giti",
+				"CVAEGAN\\.gitignore"
+			],
+			[
+				"generator_cifar1",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"discrim",
+				"CVAEGAN\\discriminator\\discriminator_cifar10.py"
+			],
+			[
+				"generator_cifar10.p",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"generator.py",
+				"CVAEGAN\\generator\\generator.py"
+			],
+			[
+				"dis",
+				"CVAEGAN\\discriminator\\discriminator_cifar10.py"
+			],
+			[
+				"generator_s",
+				"CVAEGAN\\generator\\generator_simple.py"
+			],
+			[
+				"cifar10_2.json",
+				"CVAEGAN\\cfgs\\wgan\\cifar10_2.json"
+			],
+			[
+				"discri",
+				"CVAEGAN\\discriminator\\discriminator_cifar10.py"
+			],
+			[
+				"generator_Cifar10.py",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"geneat",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"discrimin",
+				"CVAEGAN\\discriminator\\discriminator_cifar10.py"
+			],
+			[
+				"gene",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"generator_cifar10.py",
+				"CVAEGAN\\generator\\generator_cifar10.py"
+			],
+			[
+				"geenrator.py",
+				"CVAEGAN\\generator\\generator.py"
+			],
+			[
+				"nromalization",
+				"CVAEGAN\\utils\\normalization.py"
+			],
+			[
+				"vgg",
+				"CVAEGAN\\network\\vgg.py"
+			],
+			[
+				"discriminator_cifar10.py",
+				"CVAEGAN\\discriminator\\discriminator_cifar10.py"
+			],
+			[
+				"baseentwork",
+				"CVAEGAN\\network\\basenetwork.py"
+			],
+			[
+				"devgg.py",
+				"CVAEGAN\\network\\devgg.py"
+			],
+			[
+				"basetrainer",
+				"CVAEGAN\\trainer\\basetrainer.py"
+			],
+			[
+				"basetrainer.py",
+				"CVAEGAN\\trainer\\basetrainer.py"
+			],
+			[
+				"wgan.py",
+				"CVAEGAN\\model\\wgan_gp.py"
+			],
+			[
+				"encoder_simple.py",
+				"CVAEGAN\\encoder\\encoder_simple.py"
+			],
+			[
+				"semidgm2.py",
+				"CVAEGAN\\model\\semi_dgm2.py"
+			],
+			[
+				"optimizer",
+				"CVAEGAN\\utils\\optimizer.py"
+			],
+			[
+				"semidgm2",
+				"CVAEGAN\\cfgs\\semidgm2.json"
+			],
+			[
+				"mn",
+				"CVAEGAN\\cfgs\\cla\\mnist1.json"
+			],
+			[
+				"train.py",
+				"CVAEGAN\\train.py"
+			],
+			[
+				"basedataset.py",
+				"CVAEGAN\\dataset\\basedataset.py"
+			],
+			[
+				"classifier.py",
+				"CVAEGAN\\classifier\\classifier.py"
+			],
+			[
+				"classifier_simp",
+				"CVAEGAN\\classifier\\classifier_simple.py"
+			],
+			[
+				"basemodel.py",
+				"CVAEGAN\\model\\basemodel.py"
+			],
+			[
+				"trai.py",
+				"CVAEGAN\\train.py"
+			],
+			[
+				"toy",
+				"CVAEGAN\\cfgs\\wgan\\toy.json"
+			],
+			[
+				"emb",
+				"CVAEGAN\\validator\\embedding_validator.py"
+			],
+			[
+				"validator.py",
+				"CVAEGAN\\validator\\validator.py"
+			],
+			[
+				"dataset.py",
+				"CVAEGAN\\dataset\\dataset.py"
+			],
+			[
+				"ignore",
+				"CVAEGAN\\.gitignore"
+			],
+			[
+				"dataset",
+				"CVAEGAN\\validator\\dataset_validator.py"
+			],
+			[
+				"dataset_validator.py",
+				"CVAEGAN\\validator\\dataset_validator.py"
+			],
+			[
+				"random_generate.py",
+				"CVAEGAN\\validator\\random_generate.py"
+			],
+			[
+				"toy.json",
+				"CVAEGAN\\cfgs\\wgan\\toy.json"
+			],
+			[
+				"wgan_gp.json",
+				"CVAEGAN\\cfgs\\wgan\\wgan_gp.json"
+			],
+			[
+				"basenetwork",
+				"CVAEGAN\\network\\basenetwork.py"
+			],
+			[
+				"gan_toy",
+				"CVAEGAN\\dataset\\gan_toy.py"
+			],
+			[
+				"gan_top",
+				"CVAEGAN\\validator\\gan_toy_plot.py"
+			],
+			[
+				"sftp-config.jo",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"gan_toy.py",
+				"CVAEGAN\\dataset\\gan_toy.py"
+			],
+			[
+				"pascal_vc.py",
+				"CVAEGAN\\dataset\\pascal_voc.py"
+			],
+			[
+				"gan_toy_plot.py",
+				"CVAEGAN\\validator\\gan_toy_plot.py"
+			],
+			[
+				"gan_toy_p",
+				"CVAEGAN\\validator\\gan_toy_plot.py"
+			],
+			[
+				"gan_to",
+				"CVAEGAN\\dataset\\gan_toy.py"
+			],
+			[
+				"loss.py",
+				"CVAEGAN\\utils\\loss.py"
+			],
+			[
+				"ga ",
+				"CVAEGAN\\dataset\\gan_toy.py"
+			],
+			[
+				"scatter",
+				"CVAEGAN\\validator\\scatter_plot_validator.py"
+			],
+			[
+				"dataset_vali",
+				"CVAEGAN\\validator\\dataset_validator.py"
+			],
+			[
+				"validator.",
+				"CVAEGAN\\validator\\validator.py"
+			],
+			[
+				"sft",
+				"CVAEGAN\\sftp-config.json"
+			],
+			[
+				"normalizatoin",
+				"CVAEGAN\\utils\\normalization.py"
+			],
+			[
+				"generator",
+				"CVAEGAN\\generator\\generator_conv.py"
+			],
+			[
+				"pascal",
+				"CVAEGAN\\dataset\\pascal_voc.py"
+			],
+			[
+				"production",
+				"CVAEGAN\\dataset\\production.py"
+			],
+			[
+				"basedatset",
+				"CVAEGAN\\dataset\\basedataset.py"
+			],
+			[
+				"test_pascal",
+				"CVAEGAN\\test\\test_pascal_voc.py"
+			],
+			[
+				"pascal_voc",
+				"CVAEGAN\\dataset\\pascal_voc.py"
+			],
+			[
+				"test_psacal_voc.py",
+				"CVAEGAN\\test\\test_pascal_voc.py"
+			],
+			[
+				"git",
+				"CVAEGAN\\.gitignore"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 329.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

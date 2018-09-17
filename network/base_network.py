@@ -110,10 +110,19 @@ class BaseNetwork(object):
 	def conv2d(self, name, x, nb_filters, ksize, stride=1, 
 				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
 
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
@@ -168,10 +177,20 @@ class BaseNetwork(object):
 	def deconv2d(self, name, x, nb_filters, ksize, stride, 
 				norm_fn='none', norm_params=None, act_fn='relu', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
 
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
+
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
 			split = _winit_fn.split()
@@ -218,11 +237,21 @@ class BaseNetwork(object):
 
 
 	def fc(self, name, x, nb_nodes, norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', disp=True, collect_end_points=True):
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
+		
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
 
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
@@ -284,6 +313,21 @@ class BaseNetwork(object):
 	def upsample2d(self, name, x, size):
 		# tf.resize_images
 		pass
+
+	def activation(self, x, act_fn='relu'):
+		if not callable(act_fn):
+			act_fn = get_activation(act_fn)
+		return act_fn(x)
+
+	def zero_padding2d(self, x, padding):
+		if isinstance(padding, int):
+			padding = ((padding, padding), (padding, padding))
+		elif isinstance(padding, list) or isinstance(padding, tuple) and isinstance(padding[0], int) and isinstance(padding[1], int):
+			padding = ((padding[0], padding[0]), (padding[1], padding[1]))
+		
+		else:
+			raise ValueError('BaseNetwork : padding error')
+		return tf.spatial_2d_padding(x, padding=padding, data_format='channels_last')
 
 	@property
 	def vars(self):

@@ -169,9 +169,13 @@ def fused_batch_norm(inputs,
 		def fused_batch_norm_inference():
 			outputs = tf.nn.batch_normalization(inputs, moving_mean, moving_variance, offset, scale, epsilon)
 			return outputs
-		outputs = tf.cond(pred=is_training,
-								true_fn=fused_batch_norm_training,
-								false_fn=fused_batch_norm_inference)
+
+		if isinstance(is_training, bool):
+			return fused_batch_norm_training() if is_training else fused_batch_norm_inference()
+		else:
+			outputs = tf.cond(pred=is_training,
+									true_fn=fused_batch_norm_training,
+									false_fn=fused_batch_norm_inference)
 		return outputs
 
 	elif inputs_rank == 2:
@@ -221,7 +225,10 @@ def fused_batch_norm2(inputs,
 			variance = ( (1.0/batch_size) * moving_variance + ((batch_size-1.0)/batch_size) * variance )
 			return tf.nn.batch_normalization(inputs, mean, variance, offset, scale, epsilon), mean, variance
 
-		outputs, batch_mean, batch_var = tf.cond(pred=is_training,
+		if isinstance(is_training, bool):
+			outputs, batch_mean, batch_var = fused_batch_norm_training() if is_training else fused_batch_norm_inference()
+		else:
+			outputs, batch_mean, batch_var = tf.cond(pred=is_training,
 												true_fn=fused_batch_norm_training,
 												false_fn=fused_batch_norm_inference)
 

@@ -137,11 +137,9 @@ class BaseModel(object):
 			net_config.update(params)
 		return get_discriminator(self.config[name], net_config, self.is_training)
 
-
 	def build_step_var(self, name):
 		step, step_update = get_global_step(name)
 		return step, step_update
-
 
 	def build_loss(self, type, name, args):
 		pass

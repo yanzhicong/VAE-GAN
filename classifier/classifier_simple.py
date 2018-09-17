@@ -36,12 +36,18 @@ from utils.activation import get_activation
 from utils.normalization import get_normalization
 
 from network.base_network import BaseNetwork
-from network.vgg import VGG
 
 class ClassifierSimple(BaseNetwork):
 	def __init__(self, config, is_training):
 		BaseNetwork.__init__(self, config, is_training)
-		self.network = VGG(config, is_training)
+
+		self.base_network = config.get('base network', 'vgg')
+		if self.base_network == 'vgg':
+			from network.vgg import VGG
+			self.network = VGG(config, is_training)
+		elif self.base_network == 'resnet':
+			from network.resnet import Resnet
+			self.network = Resnet(config, is_training)
 		
 	def __call__(self, i):
 		x, end_points = self.network(i)

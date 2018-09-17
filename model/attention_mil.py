@@ -43,12 +43,12 @@ from utils.metric import get_metric
 from .base_model import BaseModel
 
 
-class Classification(BaseModel):
+class Attention_MIL(BaseModel):
 
 	def __init__(self, config,
 		**kwargs
 	):
-		super(Classification, self).__init__(config, **kwargs)
+		super(Attention_MIL, self).__init__(config, **kwargs)
 
 		self.input_shape = config['input shape']
 		self.nb_classes = config['nb classes']

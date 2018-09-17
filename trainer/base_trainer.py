@@ -206,6 +206,7 @@ class BaseTrainer(object):
 			epoch, phase='train', method='supervised'):
 			""" read data and put into @param.data_inner_queue in loop
 			"""
+
 			if method == 'supervised':
 				for i, ind in enumerate(indices):
 					if not coord.should_stop():
@@ -232,7 +233,7 @@ class BaseTrainer(object):
 							elif img is not None:
 								data_inner_queue.put((epoch, img))
 					else:
-						break		
+						break
 			else:
 				raise Exception("wrong method of " + method)
 

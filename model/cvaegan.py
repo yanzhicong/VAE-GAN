@@ -41,10 +41,6 @@ from .base_model import BaseModel
 
 class CVAEGAN(BaseModel):
 
-
-    
-
-
     def __init__(self, config,
         **kwargs
     ):
@@ -92,7 +88,6 @@ class CVAEGAN(BaseModel):
         cls_possible, cls_possible_feature = self.classifier.features(x_possible)
 
         # encoder loss
-
 
         self.d_loss_adv = get_loss('discriminator adversarial', 'wassterstein', { 'dis_real' : dis_real, 'dis_fake' : dis_fake })
 

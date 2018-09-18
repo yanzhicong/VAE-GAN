@@ -42,7 +42,7 @@ from utils.metric import get_metric
 from .base_model import BaseModel
 
 
-class Attention_MIL(BaseModel):
+class AttentionMIL(BaseModel):
 	""" Implementation of "Attention-based Deep Multiple Instance Learning"
 		Maximilian Ilse, Jakub M. Tomczak, Max Welling
 
@@ -65,7 +65,7 @@ class Attention_MIL(BaseModel):
 
 	def __init__(self, config,**kwargs):
 
-		super(Attention_MIL, self).__init__(config)
+		super(AttentionMIL, self).__init__(config)
 		self.config = config
 
 		assert 'input shape' in self.config
@@ -75,7 +75,7 @@ class Attention_MIL(BaseModel):
 		self.input_shape = self.config['input shape']
 		self.z_dims = self.config['z dims']
 		self.nb_classes = self.config['nb classes']
-		self.mil_pooling = self.config.get('MIL pooling', 'maxpooling')
+		self.mil_pooling = self.config.get('MIL pooling', 'avgpooling')
 
 		assert self.mil_pooling in ['maxpooling', 'avgpooling']
 		
@@ -89,7 +89,7 @@ class Attention_MIL(BaseModel):
 		})
 
 		if self.mil_pooling == 'avgpooling':
-			self.attention_net = self.build_classifier('attention', params={
+			self.attention_net = self.build_classifier('attention_net', params={
 				'name' : 'attention_net',
 				'output_dims' : 1
 			})

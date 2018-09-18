@@ -27,6 +27,7 @@ import os
 import numpy as np
 from skimage import io
 import cv2
+import math
 
 from .base_dataset import BaseDataset
 from .base_imagelist_dataset import BaseImageListDataset
@@ -61,10 +62,9 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		self._dataset_dir = "F:\\Data\\GuangDongIndustrialBigData"
 		if not os.path.exists(self._dataset_dir):
-			self.dataset_dir = "/mnt/data03/tianchi/GuangDongIndustrialBigData	"
+			self._dataset_dir = "/mnt/data03/tianchi/GuangDongIndustrialBigData"
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = self.config.get('dataset dir', '')
-
 		if not os.path.exists(self._dataset_dir):
 			raise Exception("TianChiGuangdongDectect Dataset : the dataset dir is not exists")
 
@@ -99,6 +99,8 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
+		print(image_fp)
+
 		try:
 			img = io.imread(image_fp)
 			img = self._image_correct(img, image_fp)
@@ -111,7 +113,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			return None, None if method == 'supervised' else None
 
 
-		# # preeprocess image and label
+		# # preprocess image and label
 		# if phase in ['train', 'trainval']:
 		# 	if self.is_flexible_scaling:
 		# 		img = self.flexible_scaling(img, min_h=self.output_h, min_w=self.output_w)
@@ -141,57 +143,136 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 	
 	@classmethod
-	def find_most_possible_material_bound(cls, img):
-		"""
-		"""
-		img = cv2.resize(img, dsize=(int(img.shape[1]*0.3), int(img.shape[0]*0.3)))
-		img = cv2.GaussianBlur(img,(7,7),0)
-		edges = cv2.Canny(img, 50, 150, apertureSize = 3)
+	def find_most_possible_metal_area(cls, img, show_warning=True, minimal_width=200, detect_shrink=0.3):
+		""" Find the most possible area of metal, the area is convex polygon with four corners,
+		may be not a parallelogram, 
 
-		lines = cv2.HoughLines(edges,1,np.pi/180, 100) #这里对最后一个参数使用了验型的值
+		Arguments:
+
+		Output :
+			[[x1,y1],[x2,y2],[x3,y3],[x4,y4]] : the four coordinate of area corners, at the position of 
+												left-top, right-top, right-bottom, left-bottom, they all in the first or last row of image
+		""" 
+		h = img.shape[0]
+		w = img.shape[1]
+		default_area = [(0,0), (w,0), (w,h), (0,h)]
+
+		minimal_width = minimal_width * detect_shrink
+
+		img = cv2.resize(img, dsize=(int(img.shape[1]*detect_shrink), int(img.shape[0]*detect_shrink)))
+		img = cv2.GaussianBlur(img,(11,7),0)
+		edges = cv2.Canny(img, 50, 150, apertureSize = 3)
+		lines = cv2.HoughLines(edges, 1, np.pi/180, 100)
 
 		if lines is not None:
 			result = img.copy()
-
 			theta_list = [l[1] for l in lines[:, 0]]
 			theta_list = [int(t*180/np.pi) for t in theta_list]
 			counter = np.zeros(shape=[180,], dtype=np.int32)
 			for t in theta_list:
 				counter[t] += 1
-			
 			max_count_theta = np.argmax(counter)
-
-			# print(max_count_theta)
-
 			lines = lines[:, 0, :]
 			lines = [l for i, l in enumerate(lines) if theta_list[i] == max_count_theta]
+			lines.sort(key=lambda x:x[0])
 
-			for line in lines:
-				rho = line[0] #第一个元素是距离rho
-				theta = line[1] #第二个元素是角度theta
-				print(theta)
-				if  (theta < (np.pi/4. )) or (theta > (3.*np.pi/4.0)): #垂直直线
-							#该直线与第一行的交点
-					pt1 = (int(rho/np.cos(theta)),0)
-					#该直线与最后一行的焦点
-					pt2 = (int((rho - result.shape[0] * np.sin(theta)) / np.cos(theta)),result.shape[0])
-					#绘制一条白线
-					cv2.line( result, pt1, pt2, (255), 2)
-				else: #水平直线
-					# 该直线与第一列的交点
-					pt1 = (0,int(rho/np.sin(theta)))
-					#该直线与最后一列的交点
-					pt2 = (result.shape[1], int((rho-result.shape[1]*np.cos(theta))/np.sin(theta)))
-					#绘制一条直线
-					cv2.line(result, pt1, pt2, (255), 2)
+			remain_lines = []
+			for i, l in enumerate(lines):
+				if i == 0:
+					last_line = l
+					remain_lines.append(l)
+				else:
+					if abs(l[0] - last_line[0]) > minimal_width:
+						remain_lines.append(l)
+						last_line = l
+			lines = remain_lines
+
+			if len(lines) == 0:
+				if show_warning:
+					print("Guangdong Defect warning : nb lines is 0")
+				return default_area
+			elif len(lines) == 1:
+				if show_warning:
+					print("Guangdong Defect warning : only find 1 line  (angle : %f degree)"%(lines[0][1] * 180.0 / np.pi) )
+
+				rho = lines[0][0] / detect_shrink
+				theta = lines[0][1]
+
+				# this line separate the img to two areas, return the largest area
+				
+				pt1 = (0, int(rho/np.sin(theta)))
+				pt2 = (w, int((rho-w*np.cos(theta))/np.sin(theta)))
+				cpt = ((pt1[0]+pt2[0])/2.0, (pt1[1]+pt2[1])/2.0)
+
+				if cpt[1] > (h/2):
+					# return the top area
+					return [(0,0), (w,0), pt2, pt1]
+				else:
+					# return the bottom area
+					return [pt1, pt2, (w,h), (0,h)]
+
+			else:
+				top_line = lines[0]
+				bottom_line = lines[-1]
+
+				top_line[0] = top_line[0] / detect_shrink
+				bottom_line[0] = bottom_line[0] / detect_shrink
+
+				pt1 = (0, int(top_line[0]/np.sin(top_line[1])))
+				pt2 = (w, int((top_line[0]-w*np.cos(top_line[1]))/np.sin(top_line[1])))
+
+				pt3 = (0, int(bottom_line[0]/np.sin(bottom_line[1])))
+				pt4 = (w, int((bottom_line[0]-w*np.cos(bottom_line[1]))/np.sin(bottom_line[1])))
+
+				return [pt1, pt2, pt4, pt3]
+
+		else :
+			if show_warning:
+				print("Guangdong Defect warning : no line found")
+
+			return default_area
+	
+	@classmethod
+	def crop_and_reshape_image_area(cls, img, area, fixed_height=256, margin_ratio=0.1):
+		""" for a quadrangle area in the image, crop and transform it to a new image
+		"""
+		point0_, point1_, point2_, point3_ = area
+
+		point0_ = np.array(point0_)
+		point1_ = np.array(point1_)
+		point2_ = np.array(point2_)
+		point3_ = np.array(point3_)
+
+		# make a margin to the top and bottom of the area
+		point0 = point0_ - (point3_ - point0_) * (margin_ratio / 2.0)
+		point3 = point3_ + (point3_ - point0_) * (margin_ratio / 2.0)
+
+		point1 = point1_ - (point2_ - point1_) * (margin_ratio / 2.0)
+		point2 = point2_ + (point2_ - point1_) * (margin_ratio / 2.0)
+
+		area_h = abs(point3[1] - point0[1])
+		area_w = abs(point1[0] - point0[0])
+
+		output_h = int(fixed_height)
+		output_w = int(fixed_height * area_w / area_h)
+
+		dst_point0 = [0,0]
+		dst_point1 = [output_w, 0]
+		dst_point3 = [0, output_h]
+		src_tri = np.array([point0, point1, point3]).astype(np.float32)
+		dst_tri = np.array([dst_point0, dst_point1, dst_point3]).astype(np.float32)
+
+		trans_affine_matrix = cv2.getAffineTransform(src_tri, dst_tri)
+
+		affine_img = cv2.warpAffine(img, trans_affine_matrix, (output_w, output_h))
+
+		return affine_img
 
 
 	def __build_csv_files(self, filepath, stage, train_val_split=0.2):
 		""" Build csv files for reading the dataset, 
-		
 		"""
 		if stage == 'stage1':
-
 			data = {
 				'train_image_list':[],
 				'train_label_list':[],

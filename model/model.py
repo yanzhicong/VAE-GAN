@@ -76,5 +76,9 @@ def get_model(model_name, model_config):
         from .improved_gan import ImprovedGAN
         return ImprovedGAN(model_config)
 
+    elif model_name == 'attention_mil':
+        from .attention_mil import AttentionMIL
+        return AttentionMIL(model_config)
+
     else:
         raise Exception("None model named " + model_name)

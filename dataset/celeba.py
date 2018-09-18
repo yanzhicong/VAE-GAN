@@ -60,12 +60,12 @@ class CelebA(BaseDataset):
 			raise Exception("CelebA : the dataset dir " + self._dataset_dir + " is not exist")
 
 		if self.unsupervised:
-			self.image_list = self.read_image_list(read_label=False)
+			self.image_list = self.__read_image_list(read_label=False)
 		else:
-			self.image_list, self.label_list = self.read_image_list(read_label=True)
+			self.image_list, self.label_list = self.__read_image_list(read_label=True)
 
 
-	def read_image_list(self, read_label=True):
+	def __read_image_list(self, read_label=True):
 		list_attr_celeba_filepath = os.path.join(self._dataset_dir, 'list_attr_celeba.txt')
 		image_list = []
 		attr_list = []

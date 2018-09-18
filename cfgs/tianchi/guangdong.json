@@ -1,0 +1,93 @@
+{
+    "config name" : "guangdong_defect_classification",
+
+    "dataset" : "tianchi guangdong defect",
+    "dataset params" : {
+        "output shape" : [64, 64, 3]
+    },
+
+    "assets dir" : "assets/tianchi_guangdong/result1",
+
+    "model" : "attention_mil",
+    "model params" : {
+        "name" : "mnist",
+
+        "input shape" : [64, 64, 3],
+        "z dims" : 100,
+        "nb classes" : 10,
+
+        "optimizer" : "adam",
+        "optimizer params" : {
+            "lr" : 0.001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 10000,
+                "decay_rate" : 0.1
+            },
+            "beta1" : 0.5,
+            "beta2" : 0.9
+        },
+
+        "summary" : true,
+
+        "feature_ext" : "classifier",
+        "feature_ext params" : {
+            "batch_norm" : "fused_batch_norm",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 4,
+            "conv_nb_layers" : [2, 2, 3, 3],
+            "conv_nb_filters" : [64, 128, 256, 512],
+            "conv_nb_ksize" : [3, 3, 3, 3],
+            "no_maxpooling" : true,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [600, 600],
+
+            "debug" : true
+        },
+
+        "classifier" : "classifier",
+        "classifier params" : {
+            "batch_norm" : "fused_batch_norm",
+
+            "including_conv" : false,
+            "including_top" : true,
+
+            "fc_nb_nodes" : [256, 256],
+
+            "debug" : true
+        },
+
+
+        "attention_net" : "classifier",
+        "attention_net params" : {
+            "batch_norm" : "fused_batch_norm",
+
+            "including_conv" : false,
+            "including_top" : true,
+
+            "fc_nb_nodes" : [256, 256],
+
+            "debug" : true
+        }
+
+    },
+
+    "trainer" : "supervised_mil",
+    "trainer params" : {
+
+        "summary hyperparams string" : "lr_0_001_adam",
+
+
+        "train steps" : 1000000,
+        "summary steps" : 30000,
+        "log steps" : 100,
+        "save checkpoint steps" : 30000,
+
+        
+        "validators" : [
+        ]
+    }
+}
+

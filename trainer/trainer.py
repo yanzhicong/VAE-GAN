@@ -39,7 +39,7 @@ def get_trainer(name, config, model, sess):
         from .semisupervised import SemiSupervisedTrainer
         return SemiSupervisedTrainer(config, model, sess)
     
-    elif name == 'supervised mil':
+    elif name == 'supervised mil' or name == 'supervised_mil':
         from .supervised_mil import SupervisedMILTrainer
         return SupervisedMILTrainer(config, model, sess)
 

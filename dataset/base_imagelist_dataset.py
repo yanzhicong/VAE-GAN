@@ -248,7 +248,6 @@ class BaseImageListDataset(BaseDataset):
 		if img is None:
 			return None, None if method == 'supervised' else None
 
-
 		# preeprocess image and label
 		if phase in ['train', 'trainval']:
 			if self.is_flexible_scaling:

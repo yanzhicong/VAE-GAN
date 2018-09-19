@@ -79,10 +79,12 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		self.train_imagelist_fp = os.path.join(self.extra_fp, 'train_' + self.stage + '.csv')
 		self.val_imagelist_fp = os.path.join(self.extra_fp, 'val_' + self.stage + '.csv')
-		# self.test_imagelist_fp = os.path.join(self.extra_fp, 'test_' + self.stage + '.csv')
+		self.test_imagelist_fp = os.path.join(self.extra_fp, 'test_' + self.stage + '.csv')
 
 		if not os.path.exists(self.train_imagelist_fp) or not os.path.exists(self.val_imagelist_fp):
-			self.__build_csv_files(os.path.join(self.extra_fp, 'trainval_' + self.stage + '.csv'), self.stage)
+			self.__build_train_csv_files(self.stage)
+		if not os.path.exists(self.test_imagelist_fp):
+			self.__build_test_csv_files(self.stage)
 
 		# useing the method from BaseImageListDataset
 		self.build_dataset()
@@ -99,7 +101,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
-		print(image_fp)
+		# print(image_fp)
 
 		try:
 			img = io.imread(image_fp)
@@ -112,6 +114,14 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		if img is None:
 			return None, None if method == 'supervised' else None
 
+
+		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
+		area_img = self.crop_and_reshape_image_area(img, area)
+
+		area_img = area_img.astype(np.float32) / 255.0
+		self.scale_output(area_img)
+
+		image_bag, image_bbox, row, col = self.crop_image_to_bag(area_img, self.output_shape)
 
 		# # preprocess image and label
 		# if phase in ['train', 'trainval']:
@@ -139,16 +149,17 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		# img = self.scale_output(img)
 
-		return img, image_label if method == 'supervised' else img
+		return image_bag, image_label if method == 'supervised' else image_bag
 
 	
 	@classmethod
-	def find_most_possible_metal_area(cls, img, show_warning=True, minimal_width=200, detect_shrink=0.3):
+	def find_most_possible_metal_area(cls, img, show_warning=True, minimal_width=500, detect_shrink=0.2, blur_ksize=(19,9)):
 		""" Find the most possible area of metal, the area is convex polygon with four corners,
 		may be not a parallelogram, 
 
 		Arguments:
-
+			minimal_width
+			detect_shrink
 		Output :
 			[[x1,y1],[x2,y2],[x3,y3],[x4,y4]] : the four coordinate of area corners, at the position of 
 												left-top, right-top, right-bottom, left-bottom, they all in the first or last row of image
@@ -156,11 +167,10 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		h = img.shape[0]
 		w = img.shape[1]
 		default_area = [(0,0), (w,0), (w,h), (0,h)]
-
 		minimal_width = minimal_width * detect_shrink
 
 		img = cv2.resize(img, dsize=(int(img.shape[1]*detect_shrink), int(img.shape[0]*detect_shrink)))
-		img = cv2.GaussianBlur(img,(11,7),0)
+		img = cv2.GaussianBlur(img,blur_ksize,0)
 		edges = cv2.Canny(img, 50, 150, apertureSize = 3)
 		lines = cv2.HoughLines(edges, 1, np.pi/180, 100)
 
@@ -233,7 +243,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			return default_area
 	
 	@classmethod
-	def crop_and_reshape_image_area(cls, img, area, fixed_height=256, margin_ratio=0.1):
+	def crop_and_reshape_image_area(cls, img, area, fixed_height=256, margin_ratio=0.2):
 		""" for a quadrangle area in the image, crop and transform it to a new image
 		"""
 		point0_, point1_, point2_, point3_ = area
@@ -269,7 +279,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		return affine_img
 
 
-	def __build_csv_files(self, filepath, stage, train_val_split=0.2):
+	def __build_train_csv_files(self, stage, train_val_split=0.2):
 		""" Build csv files for reading the dataset, 
 		"""
 		if stage == 'stage1':
@@ -335,3 +345,13 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 					outfile.write(img + ',' + ','.join(label_str) + '\n')
 
 
+	def __build_test_csv_files(self, stage):
+		if stage == 'stage1':
+			image_list = os.listdir(os.path.join(self._dataset_dir, 'guangdong_round1_test_a_20180916'))
+			image_list = [os.path.join('guangdong_round1_test_a_20180916', fn) for fn in image_list if '.jpg' in fn]
+			
+
+			with open(self.test_imagelist_fp, 'w', encoding='utf-8') as outfile:
+				outfile.write('images\n')
+				for img in image_list:
+					outfile.write(img + '\n')

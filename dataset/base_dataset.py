@@ -61,7 +61,7 @@ class BaseDataset(object):
 	#
 	#	interface, please implement them in the derived class
 	#
-	def get_image_indcies(self, phase, method):
+	def get_image_indices(self, phase, method):
 		"""	return the image indices list 
 
 		Arguments:

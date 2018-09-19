@@ -58,6 +58,10 @@ class BaseNetwork(object):
 
 		act_fn = self.config.get('activation', 'relu')
 		norm_fn = self.config.get('normalization', 'batch_norm')
+		has_bias = self.config.get('has bias', True)
+		conv_has_bias = self.config.get('conv has bias', has_bias)
+		fc_has_bias = self.config.get('fc has bias', has_bias)
+		out_has_bias = self.config.get('out has bias', has_bias)
 		norm_params = self.norm_params.copy()
 		norm_params.update(self.config.get('normalization params', {}))
 		winit_fn = self.config.get('weightsinit', 'xavier')
@@ -72,6 +76,7 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias':conv_has_bias,
 		}
 
 		self.fc_args = {
@@ -80,6 +85,7 @@ class BaseNetwork(object):
 			'act_fn':act_fn,
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
+			'has_bias':fc_has_bias,
 		}
 
 		self.deconv_args = {
@@ -89,6 +95,7 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias' : conv_has_bias,
 		}
 
 		self.out_conv_args = {
@@ -96,19 +103,22 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias' : out_has_bias,
 		}
 
 		self.out_fc_args = {
 			'act_fn':output_act_fn,
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
+			'has_bias': out_has_bias,
 		}
 
 	def uniform_initializer(self, stdev):
 		return tf.random_uniform_initializer(-stdev*np.sqrt(3), stdev*np.sqrt(3))
 
-	def conv2d(self, name, x, nb_filters, ksize, stride=1, 
-				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
+	def conv2d(self, name, x, nb_filters, ksize, stride=1, *,
+				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', has_bias=True,
+				disp=True, collect_end_points=True):
 
 		if callable(act_fn):
 			_act_fn = 'func'
@@ -155,7 +165,7 @@ class BaseNetwork(object):
 		else:
 			x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
 						padding=_padding, 
-						use_bias=True,
+						use_bias=has_bias,
 						kernel_initializer=l_winit_fn,
 						bias_initializer=l_binit_fn,
 						trainable=True,	
@@ -174,8 +184,9 @@ class BaseNetwork(object):
 			self.end_points[name] = x
 		return x
 
-	def deconv2d(self, name, x, nb_filters, ksize, stride, 
-				norm_fn='none', norm_params=None, act_fn='relu', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
+	def deconv2d(self, name, x, nb_filters, ksize, stride, *,
+				norm_fn='none', norm_params=None, act_fn='relu', winit_fn='xavier', binit_fn='zeros', padding='SAME', has_bias=True,
+				disp=True, collect_end_points=True):
 
 		if callable(act_fn):
 			_act_fn = 'func'
@@ -220,7 +231,10 @@ class BaseNetwork(object):
 												scope=name)
 		else:
 			x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
-							padding=_padding, use_bias=True, kernel_initializer=l_winit_fn, bias_initializer=l_binit_fn,
+							padding=_padding, 
+							use_bias=has_bias, 
+							kernel_initializer=l_winit_fn, 
+							bias_initializer=l_binit_fn,
 							trainable=True, name=name)
 			with tf.variable_scope(name):
 				if l_norm_fn is not None:
@@ -236,7 +250,9 @@ class BaseNetwork(object):
 		return x
 
 
-	def fc(self, name, x, nb_nodes, norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', disp=True, collect_end_points=True):
+	def fc(self, name, x, nb_nodes, *,
+				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', has_bias=True,
+				disp=True, collect_end_points=True):
 		
 		if callable(act_fn):
 			_act_fn = 'func'
@@ -274,7 +290,7 @@ class BaseNetwork(object):
 					activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
 					weights_initializer=l_winit_fn, scope=name)
 		else:
-			x = tl.dense(x, nb_nodes, use_bias=True, kernel_initializer=l_winit_fn,
+			x = tl.dense(x, nb_nodes, use_bias=has_bias, kernel_initializer=l_winit_fn,
 													bias_initializer=l_binit_fn,
 						trainable=True, name=name)
 

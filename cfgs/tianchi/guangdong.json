@@ -3,7 +3,8 @@
 
     "dataset" : "tianchi guangdong defect",
     "dataset params" : {
-        "output shape" : [64, 64, 3]
+        "output shape" : [64, 64, 3],
+        "show warning" : false
     },
 
     "assets dir" : "assets/tianchi_guangdong/result1",
@@ -13,26 +14,27 @@
         "name" : "mnist",
 
         "input shape" : [64, 64, 3],
-        "z dims" : 100,
-        "nb classes" : 10,
+        "z dims" : 500,
+        "nb classes" : 11,
 
         "optimizer" : "adam",
         "optimizer params" : {
-            "lr" : 0.001,
+            "lr" : 0.0001,
             "lr scheme" : "exponential",
             "lr params" : {
-                "decay_steps" : 10000,
+                "decay_steps" : 30000,
                 "decay_rate" : 0.1
-            },
-            "beta1" : 0.5,
-            "beta2" : 0.9
+            }
+            // ,
+            // "beta1" : 0.5,
+            // "beta2" : 0.9
         },
 
         "summary" : true,
 
         "feature_ext" : "classifier",
         "feature_ext params" : {
-            "batch_norm" : "fused_batch_norm",
+            "normalization" : "fused_batch_norm",
 
             "including_conv" : true,
             "conv_nb_blocks" : 4,
@@ -42,32 +44,38 @@
             "no_maxpooling" : true,
 
             "including_top" : true,
-            "fc_nb_nodes" : [600, 600],
+            "fc_nb_nodes" : [1024, 1024],
+
+            "debug" : true
+        },
+
+        "attention_net" : "classifier",
+        "attention_net params" : {
+            "activation" : "none",
+            "normalization" : "none",
+            "weightsinit" : "xavier",
+
+            "including_conv" : false,
+            "including_top" : true,
+
+            "fc_nb_nodes" : [600],
+
+            "has bias": false,
 
             "debug" : true
         },
 
         "classifier" : "classifier",
         "classifier params" : {
-            "batch_norm" : "fused_batch_norm",
+            "normalization" : "none",
+            "activation" : "none",
 
             "including_conv" : false,
+
             "including_top" : true,
+            "fc_nb_nodes" : [600],
 
-            "fc_nb_nodes" : [256, 256],
-
-            "debug" : true
-        },
-
-
-        "attention_net" : "classifier",
-        "attention_net params" : {
-            "batch_norm" : "fused_batch_norm",
-
-            "including_conv" : false,
-            "including_top" : true,
-
-            "fc_nb_nodes" : [256, 256],
+            "has bias": false,
 
             "debug" : true
         }
@@ -76,17 +84,25 @@
 
     "trainer" : "supervised_mil",
     "trainer params" : {
+        "summary hyperparams string" : "lr_0_0001_adam5",
 
-        "summary hyperparams string" : "lr_0_001_adam",
-
-
-        "train steps" : 1000000,
-        "summary steps" : 30000,
+        "train steps" : 100000,
+        "summary steps" : 1000,
         "log steps" : 100,
-        "save checkpoint steps" : 30000,
+        "save checkpoint steps" : 10000,
 
         
         "validators" : [
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 500,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "multi-class acc",
+                    "nb samples" : 200,
+                    "mil" : true
+                }
+            }
         ]
     }
 }

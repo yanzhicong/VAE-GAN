@@ -15,11 +15,9 @@ from dataset.tianchi_guangdong_defect import TianChiGuangdongDefect
 
 if __name__ == '__main__':
 	config = {
-		"output shape" : [224, 224, 3]
+		"output shape" : [64, 64, 3]
 	}
 
-	# dataset = Violence(config)
-	# indices = dataset.get_image_indices('train')
 
 	dataset = TianChiGuangdongDefect(config)
 	indices = dataset.get_image_indices('trainval')
@@ -27,29 +25,20 @@ if __name__ == '__main__':
 	print(len(indices))
 
 	for ind in indices:
-		img, label = dataset.read_image_by_index(ind, phase='trainval', method='supervised')
+		img_bag, label = dataset.read_image_by_index(ind, phase='trainval', method='supervised')
 		print(label)
-		if img is not None:
-
-			result = img.copy()
-			area = dataset.find_most_possible_metal_area(img)
-			
-			# cv2.line(img, area[0], area[1], 255, 2)
-			# cv2.line(img, area[1], area[2], 255, 2)
-			# cv2.line(img, area[2], area[3], 255, 2)
-			# cv2.line(img, area[3], area[0], 255, 2)
-
-			cv2.fillConvexPoly(result, np.array(area, np.int32), 255)
-
-			result1 = dataset.crop_and_reshape_image_area(img, area)
+		if img_bag is not None:
 
 			plt.figure(0)
 			plt.clf()
-			plt.imshow(img)
-			plt.figure(1)
-			plt.clf()
-			plt.imshow(result)
-			plt.figure(2)
-			plt.clf()
-			plt.imshow(result1)
+
+			row = 4
+			col = int(len(img_bag) / row)
+
+			print(len(img_bag), row, col)
+
+			for i in range(row):
+				for j in range(col):
+					plt.subplot(row, col, i * col+j+1)
+					plt.imshow(img_bag[i*col+j])
 			plt.pause(3)

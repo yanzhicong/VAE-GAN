@@ -62,6 +62,8 @@ class DatasetValidator(BaseValidator):
 
 		self.metric = self.config.get('metric', 'accuracy')
 		self.metric_type = self.config.get('metric type', 'top1')
+
+		self.multiple_instance_learning = self.config.get('mil', False)
 		self.assets_dir = self.config['assets dir']
 
 		self.buffer_depth = self.config.get('buffer depth', 50)
@@ -77,8 +79,7 @@ class DatasetValidator(BaseValidator):
 							name='test_label')
 			self.predict = tf.placeholder(tf.float32, shape=[None, model.nb_classes],
 							name='test_predict')
-			self.accuracy = get_metric(self.metric, self.metric_type, 
-						{'probs' : self.predict, 'labels' : self.label, 'decay' : 1})
+			self.accuracy = get_metric(self.metric, self.metric_type, {'probs' : self.predict, 'labels' : self.label, 'decay' : 1})
 
 			self.summary_list = []
 			self.summary_list.append(tf.summary.scalar('test_acc_' + self.metric_type, self.accuracy))
@@ -100,36 +101,57 @@ class DatasetValidator(BaseValidator):
 		nb_samples = np.minimum(len(indices), self.nb_samples)
 		indices = np.random.choice(indices, size=nb_samples, replace=False)
 
-
 		self.t_should_stop = False
 		t, data_queue = self.parallel_data_reading(dataset, indices, 'val', 'supervised', self.batch_size*self.buffer_depth)
 
-		batch_x = []
-		batch_y = []
+		if self.multiple_instance_learning:
 
-		while not self.t_should_stop or not data_queue.empty():
-			if not data_queue.empty():
-				img, label = data_queue.get()
-				batch_x.append(img)
-				batch_y.append(label)
+			while not self.t_should_stop or not data_queue.empty():
+				if not data_queue.empty():
+					img_bag, label = data_queue.get()
+					img_bag_p = model.predict(sess, np.array(img_bag))
+					label_list.append(label)
+					pred_list.append(img_bag_p)
 
-			if len(batch_x) == self.batch_size:
+		else:
+				
+			batch_x = []
+			batch_y = []
+
+			while not self.t_should_stop or not data_queue.empty():
+				if not data_queue.empty():
+					img, label = data_queue.get()
+					batch_x.append(img)
+					batch_y.append(label)
+
+				if len(batch_x) == self.batch_size:
+					batch_p = model.predict(sess, np.array(batch_x))
+					label_list.append(np.array(batch_y))
+					pred_list.append(np.array(batch_p))
+					batch_x = []
+					batch_y = []
+
+			if len(batch_x) > 0:
 				batch_p = model.predict(sess, np.array(batch_x))
 				label_list.append(np.array(batch_y))
 				pred_list.append(np.array(batch_p))
-				batch_x = []
-				batch_y = []
-
-		if len(batch_x) > 0:
-			batch_p = model.predict(sess, np.array(batch_x))
-			label_list.append(np.array(batch_y))
-			pred_list.append(np.array(batch_p))
 
 		t.join()
 
 
-		label_list = np.concatenate(label_list, axis=0)
-		pred_list = np.concatenate(pred_list, axis=0)
+		if self.multiple_instance_learning:
+			label_list = np.array(label_list)
+			pred_list = np.array(pred_list)
+
+			# print(pred_list)
+			# print(label_list)
+			# print(pred_list[0])
+			# print(label_list[0])
+			# print(label_list.shape)
+			# print(pred_list.shape)
+		else:
+			label_list = np.concatenate(label_list, axis=0)
+			pred_list = np.concatenate(pred_list, axis=0)
 
 		if self.metric == 'accuracy' : 
 			feed_dict = {

@@ -32,12 +32,12 @@ import tensorflow.contrib.metrics as tcm
 
 def _assign_moving_average(variable, value, decay):
     with tf.name_scope(None, 'AssignMovingAvg', [variable, value, decay]) as scope:
-        decay = tf.convert_to_tensor(decay, name='decay')
+        decay = tf.convert_to_tensor(decay, name='decay', dtype=tf.float32)
         update_delta = (variable - value) * decay
         return tf.assign_sub(variable, update_delta, name=scope)
 
 def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
-    """ calculate moving accuracy for multi class classification
+    """ calculate moving accuracy for classification
     Arguments:
         labels : [batch_size, nb_classes],   must be one-hot
         logits or probs : [batch_size, nb_classes]
@@ -57,10 +57,12 @@ def accuracy_top_1(labels, logits=None, probs=None, decay=0.01):
         return _assign_moving_average(var, acc, decay)
 
 
-def accuracy_per_class(labels, probs, threshold=0.5, decay=0.01):
-
-    pred = tf.cast(probs > threshold, tf.int32)
-    acc = tf.reduce_sum(tf.cast(labels == pred, tf.int32)) / tf.reduce_sum(tf.ones_like(labels))
+def accuracy_multi_class_acc(labels, probs, threshold=0.5, decay=0.01):
+    """
+    """
+    preds = tf.cast(probs > threshold, tf.int32)
+    labels = tf.cast(labels > threshold, tf.int32)
+    acc = tf.cast(tf.reduce_sum(tf.cast(tf.equal(labels, preds), tf.int32)), tf.float32) / tf.cast(tf.reduce_sum(tf.ones_like(labels)), tf.float32)
 
     if decay == 1.0:
         return acc
@@ -92,14 +94,12 @@ def segmentation_miou(mask, nb_classes, logits=None, probs=None):
 
 metric_dict = {
     'accuracy' :  {
-        'top1' : accuracy_top_1
+        'top1' : accuracy_top_1,
+        'multi-class acc' : accuracy_multi_class_acc
     },
     'moving accuracy' : {
         'top1' : accuracy_top_1,
-    },
-
-    'moving accuracy per class' : {
-        'acc' : accuracy_per_class
+        'multi-class acc' : accuracy_multi_class_acc
     },
     'segmentation' : {
         'miou' : segmentation_miou

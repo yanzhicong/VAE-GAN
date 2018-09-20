@@ -48,22 +48,28 @@ class CVAEGAN(BaseModel):
         raise NotImplementedError
 
         self.input_shape = config['input shape']
-        self.nb_classes = config['nb_classes']
-        self.z_dim = config['z_dim']
+        self.nb_classes = config['nb classes']
+        self.z_dims = config['z dims']
         self.config = config
         self.build_model()
 
     def build_model(self):
 
-        self.config['encoder params']['name'] = 'Encoder'
-        self.config['decoder params']['name'] = 'Decoder'
-        self.config['classifier params']['name'] = 'Classifier'
-        self.config['discriminator params']['name'] = 'Discriminator'
+        self.encoder = self.build_encoder('encoder', params={
+            'name' : 'Encoder'
+        })
 
-        self.encoder = get_encoder(self.config['encoder'], self.config['encoder params'], self.is_training)
-        self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)
-        self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.is_training)
-        self.discriminator = get_discriminator(self.config['discriminator'], self.config['discriminator params'], self.is_training)
+        self.decoder = self.build_decoder('decoder', params={
+            'name' : 'Decoder'
+        })
+
+        self.classifier = self.build_classifier('classifier', params={
+            'name' : 'Classifier'
+        })
+
+        self.discriminator = self.build_discriminator('discriminator', params={
+            'name' : 'Discriminator'
+        })
         
         self.x_real = tf.placeholder(tf.float32, shape=[None, ] + self.input_shape, name='xinput')
         self.y_real = tf.placeholder(tf.float32, shape=[None, self.num_classes,], name='cls')
@@ -89,10 +95,7 @@ class CVAEGAN(BaseModel):
 
         self.d_loss_adv = get_loss('discriminator adversarial', 'wassterstein', { 'dis_real' : dis_real, 'dis_fake' : dis_fake })
 
-
         self.d_loss_fm = get_loss('feature matching', 'l2', {'f1' : dis_fake_feature, 'f2' : dis_possible_feature})
-
-        
 
 
         self.g_loss_kl = get_loss('kl', 'gaussian', {'mean' : z_mean, 'log_var' : z_log_var})
@@ -128,9 +131,6 @@ class CVAEGAN(BaseModel):
         # c_real, feature_clas_real = self.classifier(self.x_real)
         # c_fake, feature_clas_fake = self.classifier(x_fake)
         # c_possible, feature_clas_possible = self.classifier(self.x_possible)
-
-
-
 
     # def get_kl_loss(self, )
 

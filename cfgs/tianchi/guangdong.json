@@ -80,7 +80,7 @@
 
     "trainer" : "supervised_mil",
     "trainer params" : {
-        "summary hyperparams string" : "lr_0_0001_adam5",
+        "summary hyperparams string" : "lr_0_0001_adam6",
 
         "train steps" : 100000,
         "summary steps" : 1000,
@@ -94,7 +94,7 @@
                 "validate steps" : 5000,
                 "validator params" : {
                     "metric" : "accuracy",
-                    "metric type" : "multi-class acc",
+                    "metric type" : "multi-class acc2",
                     "nb samples" : 200,
                     "mil" : true
                 }

@@ -71,6 +71,49 @@ def accuracy_multi_class_acc(labels, probs, threshold=0.5, decay=0.01):
         return _assign_moving_average(var, acc, decay)
 
 
+def accuracy_multi_class_acc2(labels, probs, threshold=0.5, decay=0.01):
+    """
+    """
+
+    # print("accuracy_multi_class_acc2")
+
+    # print("input : ")
+    # print(labels.get_shape())
+    # print(probs.get_shape())
+    # preds = tf.cast(probs > threshold, tf.int32)
+    # labels = tf.cast(labels > threshold, tf.int32)
+
+    probs = tf.reshape(probs, [-1, tf.shape(probs)[-1]])
+    labels = tf.reshape(labels, [-1, tf.shape(labels)[-1]])
+
+    normal_class1 = tf.ones([tf.shape(probs)[0], 1]) * threshold
+    normal_class2 = tf.ones([tf.shape(labels)[0], 1]) * threshold
+
+
+    probs = tf.concat([normal_class1, probs], axis=-1)
+    labels = tf.concat([normal_class2, labels], axis=-1)
+
+
+    # print(labels.get_shape())
+    # print(probs.get_shape())
+
+    pred_class = tf.argmax(probs, axis=-1)
+    label_class = tf.argmax(labels, axis=-1)
+
+    # print("class : ")
+    # print(pred_class.get_shape())
+    # print(label_class.get_shape())
+
+
+    acc = tf.cast(tf.reduce_sum(tf.cast(tf.equal(pred_class, label_class), tf.int32)), tf.float32) / tf.cast(tf.reduce_sum(tf.ones_like(label_class)), tf.float32)
+
+    if decay == 1.0:
+        return acc
+    else:
+        var = tf.Variable(0.0, name='acc_top_1')
+        return _assign_moving_average(var, acc, decay)
+
+
 def segmentation_miou(mask, nb_classes, logits=None, probs=None):
     if probs is not None:
         pred = tf.argmax(probs, axis=-1)
@@ -95,11 +138,13 @@ def segmentation_miou(mask, nb_classes, logits=None, probs=None):
 metric_dict = {
     'accuracy' :  {
         'top1' : accuracy_top_1,
-        'multi-class acc' : accuracy_multi_class_acc
+        'multi-class acc' : accuracy_multi_class_acc,
+        'multi-class acc2' : accuracy_multi_class_acc2,
     },
     'moving accuracy' : {
         'top1' : accuracy_top_1,
-        'multi-class acc' : accuracy_multi_class_acc
+        'multi-class acc' : accuracy_multi_class_acc,
+        'multi-class acc2' : accuracy_multi_class_acc2,
     },
     'segmentation' : {
         'miou' : segmentation_miou

@@ -353,6 +353,10 @@ class BaseNetwork(object):
 	def trainable_vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
+	# @property
+	# def trainable_vars(self):
+		# return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
+
 	@property
 	def store_vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) + tf.get_collection(self.moving_variables_collection, scope=self.name)

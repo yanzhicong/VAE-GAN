@@ -64,6 +64,8 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = "/mnt/data03/tianchi/GuangDongIndustrialBigData"
 		if not os.path.exists(self._dataset_dir):
+			self._dataset_dir = "/mnt/sh_flex_storage/zhicongy/tianchi/GuangDongIndustrialBigData"
+		if not os.path.exists(self._dataset_dir):
 			self._dataset_dir = self.config.get('dataset dir', '')
 		if not os.path.exists(self._dataset_dir):
 			raise Exception("TianChiGuangdongDectect Dataset : the dataset dir is not exists")
@@ -101,7 +103,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
-		print(image_fp)
+		# print(image_fp)
 
 		try:
 			img = io.imread(image_fp)

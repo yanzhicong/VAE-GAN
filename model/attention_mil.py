@@ -169,10 +169,15 @@ class AttentionMIL(BaseModel):
 		self.loss = get_loss('classification', 'binary entropy', 
 						{'logits' : self.logits, 'labels' : self.bag_label})
 
-		if self.mil_pooling == 'attention':
-			self.loss += get_loss('regularization', 'l2', {'var_list' : self.attention_net.trainable_vars}) * 0.0005
+		self.regulation_loss = get_loss('regularization', 'l2', {'var_list' : self.classifier.trainable_vars}) * 0.005
+		self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.feature_ext_net.trainable_vars}) * 0.005
 
-		self.train_acc = get_metric('accuracy', 'multi-class acc', 
+		if self.mil_pooling == 'attention':
+			self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.attention_net.trainable_vars}) * 0.005
+
+		self.loss += self.regulation_loss
+
+		self.train_acc = get_metric('accuracy', 'multi-class acc2', 
 						{'probs': self.probs, 'labels':self.bag_label})
 
 		# build optimizer
@@ -200,6 +205,7 @@ class AttentionMIL(BaseModel):
 
 			sum_list = []
 			sum_list.append(tf.summary.scalar('train loss', self.loss))
+			sum_list.append(tf.summary.scalar('train regulation loss', self.regulation_loss))
 			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
 			self.sum_scalar = tf.summary.merge(sum_list)
 

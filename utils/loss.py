@@ -98,7 +98,19 @@ def classify_binary_entropy_loss(logits, labels, instance_weight=None, prob_clam
 	which means each sample's label need not to be one-hot
 	"""
 
-	nb_classes = tf.cast(tf.shape(logits)[-1], tf.float32)
+
+	# nb_classes = tf.cast(tf.shape(logits)[-1], tf.float32)
+	# logits = tf.reshape(logits, [tf.shape(logits)[0], -1])
+	# labels = tf.reshape(labels, [tf.shape(labels)[0], -1])
+	# probs = tf.sigmoid(logits)
+
+	# probs = tf.maximum(probs, prob_clamp)
+	# probs = tf.minimum(probs, 1.0-prob_clamp)
+	# if instance_weight is None:
+	# 	return - tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) / nb_classes * tf.log(1.0 - probs))
+	# else:
+	# 	return - tf.reduce_mean(tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) / nb_classes * tf.log(1.0 - probs), axis=-1) * instance_weight)
+
 	logits = tf.reshape(logits, [tf.shape(logits)[0], -1])
 	labels = tf.reshape(labels, [tf.shape(labels)[0], -1])
 	probs = tf.sigmoid(logits)
@@ -106,9 +118,9 @@ def classify_binary_entropy_loss(logits, labels, instance_weight=None, prob_clam
 	probs = tf.maximum(probs, prob_clamp)
 	probs = tf.minimum(probs, 1.0-prob_clamp)
 	if instance_weight is None:
-		return - tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) / nb_classes * tf.log(1.0 - probs))
+		return - tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) * tf.log(1.0 - probs))
 	else:
-		return - tf.reduce_mean(tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) / nb_classes * tf.log(1.0 - probs), axis=-1) * instance_weight)
+		return - tf.reduce_mean(tf.reduce_mean(labels * tf.log(probs) + (1.0 - labels) * tf.log(1.0 - probs), axis=-1) * instance_weight)
 
 
 def segmentation_cross_entropy_loss(logits, mask, instance_weight=None):

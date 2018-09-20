@@ -1,6 +1,6 @@
-# CVAEGAN
+# VAE-GAN
 
-This repo implements many recently emerged generative models, such as GAN, VAE, DCGAN, WGAN, WGAN-GP, and some semisupervised model such as AAE, SemiDGM, this code is just for learning the generative models and for fast developing algorithms to support various dataset. 
+This repo implements many recently emerged generative models, such as GAN, VAE, DCGAN, WGAN, WGAN-GP, and some semi-supervised model such as AAE, SemiDGM, this code is just for learning the generative models and for fast developing algorithms. 
 
 There is some problem with my code, for WGAN, I found it very likely to cause model collpase(after 30k iters on Cifar10 dataset) and the generated sample quality goes worse. For semi-supervised model AAE, I achieved 96% accuracy on MNIST dataset with 10 labels per class which is below the paper claimed accuracy 98.1%. I will keep refining this repo to support more generative and semi-supervised algorithms.
 
@@ -47,9 +47,10 @@ the "assets dir" in config file is the folder where the result stores. the tenso
 
 # Result
 
-## AAE Semisupervised
+## AAE Semi-supervised Classification with 100 labels
 
     python3 train.py --config=aae/mnist_ssl 
 
+![aae_mnist_ssl](./cfgs/aae/aae_mnist_ssl_acc.png)
 
 

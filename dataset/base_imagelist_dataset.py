@@ -104,9 +104,6 @@ class BaseImageListDataset(BaseDataset):
 			print('nb test_images : ', len(self.test_images))
 
 
-			for img in self.test_images:
-				print(img)
-
 
 	
 	def read_imagelist(self, filename, has_label=True):
@@ -197,7 +194,6 @@ class BaseImageListDataset(BaseDataset):
 			assert method == 'unsupervised'
 			assert self.test_images != None
 			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
-			print(image_fp)
 
 		if method=='supervised':
 			return image_fp, image_label  

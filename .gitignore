@@ -6,3 +6,4 @@ dataset/extra_files*
 sftp-config.json
 lib/*
 validator/inception_score/imagenet*
+notetest*

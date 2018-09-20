@@ -36,7 +36,6 @@ class BaseMILDataset(BaseDataset):
 	""" The base dataset class for supporting multiple-instance learning.
 
 	"""
-
 	def __init__(self, config):
 		
 		super(BaseMILDataset, self).__init__(config)
@@ -47,7 +46,6 @@ class BaseMILDataset(BaseDataset):
 
 		output_h, output_w = output_shape[0:2]
 		image_h, image_w = img.shape[0:2]
-
 
 		nb_col = int(np.floor(image_w / output_w))
 		nb_row = int(np.floor(image_h / output_h))

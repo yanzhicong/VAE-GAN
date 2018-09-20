@@ -101,7 +101,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
-		# print(image_fp)
+		print(image_fp)
 
 		try:
 			img = io.imread(image_fp)
@@ -112,8 +112,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			return None, None if method == 'supervised' else None
 
 		if img is None:
-			return None, None if method == 'supervised' else None
-
+			return None, None if method == 'supervised' else None 
 
 		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
 		area_img = self.crop_and_reshape_image_area(img, area)
@@ -123,33 +122,10 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		image_bag, image_bbox, row, col = self.crop_image_to_bag(area_img, self.output_shape)
 
-		# # preprocess image and label
-		# if phase in ['train', 'trainval']:
-		# 	if self.is_flexible_scaling:
-		# 		img = self.flexible_scaling(img, min_h=self.output_h, min_w=self.output_w)
-		# 	if self.is_random_scaling:
-		# 		img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
-		# 	if self.is_random_mirroring:
-		# 		img = self.random_mirroring(img)
-
-		# elif phase in ['val']:
-		# 	if self.is_flexible_scaling:
-		# 		img = self.flexible_scaling(img, min_h=self.output_h, min_w=self.output_w)
-		# 	if self.is_random_scaling:
-		# 		scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-		# 		img = self.random_scaling(img, minval=scale, maxval=scale)
-
-		# if not self.multiple_categories:
-		# 	image_label = self.to_categorical(int(image_label), self.nb_classes)
-
-		# if phase in ['train', 'trainval']:
-		# 	img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
-		# elif phase in ['val']:
-		# 	img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=[0.5,0.5])
-
-		# img = self.scale_output(img)
-
-		return image_bag, image_label if method == 'supervised' else image_bag
+		if method == 'supervised':
+			return image_bag, image_label 
+		else:
+			return image_bag
 
 	
 	@classmethod
@@ -176,13 +152,17 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		if lines is not None:
 			result = img.copy()
-			theta_list = [l[1] for l in lines[:, 0]]
+
+			lines = lines[:, 0, :]
+
+			lines = [l for l in lines if l[1] > (30.0 / 180.0 * np.pi) and l[1] < (150.0 / 180.0 * np.pi)]
+
+			theta_list = [l[1] for l in lines]
 			theta_list = [int(t*180/np.pi) for t in theta_list]
 			counter = np.zeros(shape=[180,], dtype=np.int32)
 			for t in theta_list:
 				counter[t] += 1
 			max_count_theta = np.argmax(counter)
-			lines = lines[:, 0, :]
 			lines = [l for i, l in enumerate(lines) if theta_list[i] == max_count_theta]
 			lines.sort(key=lambda x:x[0])
 
@@ -207,7 +187,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 				rho = lines[0][0] / detect_shrink
 				theta = lines[0][1]
-
+	
 				# this line separate the img to two areas, return the largest area
 				
 				pt1 = (0, int(rho/np.sin(theta)))
@@ -348,10 +328,34 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 	def __build_test_csv_files(self, stage):
 		if stage == 'stage1':
 			image_list = os.listdir(os.path.join(self._dataset_dir, 'guangdong_round1_test_a_20180916'))
+			image_list = [fn for fn in image_list if '.jpg' in fn]
+			ind_list = np.array([int(fn.split('.')[0]) for fn in image_list])
+			sort_ind = np.argsort(ind_list)
+			image_list = [image_list[i] for i in sort_ind]
+			
 			image_list = [os.path.join('guangdong_round1_test_a_20180916', fn) for fn in image_list if '.jpg' in fn]
 			
+			# ind_list = []
 
 			with open(self.test_imagelist_fp, 'w', encoding='utf-8') as outfile:
 				outfile.write('images\n')
 				for img in image_list:
 					outfile.write(img + '\n')
+
+
+	def write_submission_file(self, filepath, probs):
+		test_indices = self.get_image_indices('test', 'unsupervised')
+		img_fp_list = ['%d.jpg'%i for i in test_indices]
+		
+		with open(filepath, 'w') as outfile:
+			for img_fp, pred in zip(img_fp_list, probs):
+
+				max_class = np.argmax(pred)
+				max_class_id = max_class + 1
+				# max_class_name = self.class_id2name[max_class_id]
+				max_class_prob = pred[max_class]
+
+				if max_class_prob > 0.5:
+					outfile.write(img_fp + ',defect%d\n'%max_class_id)
+				else:
+					outfile.write(img_fp + ',norm\n')

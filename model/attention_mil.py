@@ -64,6 +64,12 @@ class AttentionNet(BaseNetwork):
 			x = self.fc('fc1', x, 128, winit_fn='xavier', has_bias=False, disp=False)
 			x = tf.tanh(x)
 			x = self.fc('fc2', x, 1, winit_fn='xavier', has_bias=False, disp=False)
+
+			shape = tf.shape(x)
+			x = tf.reshape(x, [1, -1])
+			x = tf.nn.softmax(x)
+			x = tf.reshape(x, shape)
+
 			return x, self.end_points
 
 
@@ -151,11 +157,6 @@ class AttentionMIL(BaseModel):
 
 		elif self.mil_pooling == 'attention':
 			self.instance_weight, self.attention_net_endpoints = self.attention_net.features(self.features)
-			shape = tf.shape(self.instance_weight)
-			self.instance_weight = tf.reshape(self.instance_weight, [1, -1])
-			# self.instance_weight = tf.tanh(self.instance_weight)
-			self.instance_weight = tf.nn.softmax(self.instance_weight)
-			self.instance_weight = tf.reshape(self.instance_weight, shape)
 			self.bag_feature = tf.reduce_sum(self.features * self.instance_weight, axis=0)
 			self.bag_feature = tf.reshape(self.bag_feature, [1, -1])
 
@@ -181,19 +182,23 @@ class AttentionMIL(BaseModel):
 			self.train_classifier, self.learning_rate = self.build_train_function('optimizer', 
 						self.loss, self.feature_ext_net.vars + self.attention_net.vars + self.classifier.vars, 
 						step=self.global_step, step_update=self.global_step_update)
+
+			self.saver = tf.train.Saver(self.classifier.store_vars 
+										+ self.feature_ext_net.store_vars
+										+  self.attention_net.store_vars + [self.global_step,])
 		else:
-			self.train_classifier, self.learning_rate = self.b	uild_train_function('optimizer', 
+			self.train_classifier, self.learning_rate = self.build_train_function('optimizer', 
 						self.loss, self.feature_ext_net.vars + self.classifier.vars, 
 						step=self.global_step, step_update=self.global_step_update)
 
-		# model saver
-		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
+			self.saver = tf.train.Saver(self.classifier.store_vars 
+										+ self.feature_ext_net.store_vars
+										+ [self.global_step,])
 
 	def build_summary(self):
 		if self.has_summary:
 
 			sum_list = []
-			# sum_list.append(tf.summary.scalar('lr', self.learning_rate))
 			sum_list.append(tf.summary.scalar('train loss', self.loss))
 			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
 			self.sum_scalar = tf.summary.merge(sum_list)
@@ -224,6 +229,8 @@ class AttentionMIL(BaseModel):
 			self.sum_scalar2 = None
 			self.sum_hist = None
 
+
+
 	'''
 		train operations
 	'''
@@ -235,7 +242,7 @@ class AttentionMIL(BaseModel):
 		}
 
 		step = int(sess.run([self.global_step])[0])
-		if step % 100 == 0:
+		if step % 1000 == 0:
 			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar2)
 		else:
 			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar)

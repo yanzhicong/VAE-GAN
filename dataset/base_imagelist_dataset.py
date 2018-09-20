@@ -96,8 +96,18 @@ class BaseImageListDataset(BaseDataset):
 		self.train_images, self.train_labels = self.read_imagelist(self.train_imagelist_fp)
 		self.val_images, self.val_labels = self.read_imagelist(self.val_imagelist_fp)
 
+
+		print('nb train images : ', len(self.train_images))
+		print('nb val images : ', len(self.val_images))
 		if self.test_imagelist_fp != None:
-			self.test_images = self.read_imagelist(self.test_imagelist_fp)
+			self.test_images = self.read_imagelist(self.test_imagelist_fp, has_label=False)
+			print('nb test_images : ', len(self.test_images))
+
+
+			for img in self.test_images:
+				print(img)
+
+
 	
 	def read_imagelist(self, filename, has_label=True):
 		image_list = []
@@ -187,8 +197,12 @@ class BaseImageListDataset(BaseDataset):
 			assert method == 'unsupervised'
 			assert self.test_images != None
 			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
+			print(image_fp)
 
-		return image_fp, image_label if method=='supervised' else image_fp
+		if method=='supervised':
+			return image_fp, image_label  
+		else:
+			return image_fp
 
 
 	def _image_correct(self, img, image_fp):

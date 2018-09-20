@@ -64,26 +64,23 @@ class DCGAN(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-		**kwargs
-	):
-
-		assert('discriminator' in config)
-		assert('generator' in config)
-		assert('input shape' in config)
-		assert('z_dim' in config)
-
-		super(DCGAN, self).__init__(config, **kwargs)
-
-		self.input_shape = config['input shape']
-		self.z_dim = config['z_dim']
+	def __init__(self, config):
+		super(DCGAN, self).__init__(config)
 		self.config = config
 
-		self.discriminator_warm_up_steps = int(config.get('discriminator warm up steps', 40))
-		self.discriminator_training_steps = int(config.get('discriminator training steps', 5))
+		assert 'discriminator' in self.config
+		assert 'generator' in self.config
+		assert 'input shape' in self.config
+		assert 'z_dim' in self.config
 
-		self.use_feature_matching_loss = config.get('use feature matching', False)
-		self.feature_matching_end_points = config.get('feature matching end points', None)
+		self.input_shape = self.config['input shape']
+		self.z_dim = self.config['z_dim']
+
+		self.discriminator_warm_up_steps = int(self.config.get('discriminator warm up steps', 40))
+		self.discriminator_training_steps = int(self.config.get('discriminator training steps', 5))
+
+		self.use_feature_matching_loss = self.config.get('use feature matching', False)
+		self.feature_matching_end_points = self.config.get('feature matching end points', None)
 
 		self.build_model()
 		self.build_summary()

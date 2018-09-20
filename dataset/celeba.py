@@ -60,12 +60,12 @@ class CelebA(BaseDataset):
 			raise Exception("CelebA : the dataset dir " + self._dataset_dir + " is not exist")
 
 		if self.unsupervised:
-			self.image_list = self.read_image_list(read_label=False)
+			self.image_list = self.__read_image_list(read_label=False)
 		else:
-			self.image_list, self.label_list = self.read_image_list(read_label=True)
+			self.image_list, self.label_list = self.__read_image_list(read_label=True)
 
 
-	def read_image_list(self, read_label=True):
+	def __read_image_list(self, read_label=True):
 		list_attr_celeba_filepath = os.path.join(self._dataset_dir, 'list_attr_celeba.txt')
 		image_list = []
 		attr_list = []
@@ -106,39 +106,39 @@ class CelebA(BaseDataset):
 						image_list.append(image_filename)
 			return image_list
 
-	def get_image_indices(self, phase='train', method='supervised'):
-		assert(phase in ['train'])
-		assert(method in ['supervised', 'unsupervised'])
-		indices = np.arange(len(self.image_list))
-		if self.shuffle_train:
-			np.random.shuffle(indices)
-		return indices
+	# def get_image_indices(self, phase='train', method='supervised'):
+	# 	assert(phase in ['train'])
+	# 	assert(method in ['supervised', 'unsupervised'])
+	# 	indices = np.arange(len(self.image_list))
+	# 	if self.shuffle_train:
+	# 		np.random.shuffle(indices)
+	# 	return indices
 	
-	def read_image_by_index_supervised(self, ind, phase='train', method='supervised'):
-		assert(phase in ['train'])
-		assert(method in ['supervised', 'unsupervised'])
+	# def read_image_by_index_supervised(self, ind, phase='train', method='supervised'):
+	# 	assert(phase in ['train'])
+	# 	assert(method in ['supervised', 'unsupervised'])
 
-		if method == 'supervised':
-			assert(not self.unsupervised)
-			image_filepath = os.path.join(self._dataset_dir, 'images', self.image_list[ind])
-			image_attr = np.array(self.label_list[ind])
-			img = io.imread(image_filepath)
-			if self.crop_bbox is not None:
-				img = self.crop_and_pad_image(img, self.crop_bbox)
-			img = img.astype('float32') / 255.0
-			img = cv2.resize(img, (self.output_size[1], self.output_size[0]))
-			img = self.scale_output(img)
-			return img, image_attr
+	# 	if method == 'supervised':
+	# 		assert(not self.unsupervised)
+	# 		image_filepath = os.path.join(self._dataset_dir, 'images', self.image_list[ind])
+	# 		image_attr = np.array(self.label_list[ind])
+	# 		img = io.imread(image_filepath)
+	# 		if self.crop_bbox is not None:
+	# 			img = self.crop_and_pad_image(img, self.crop_bbox)
+	# 		img = img.astype('float32') / 255.0
+	# 		img = cv2.resize(img, (self.output_size[1], self.output_size[0]))
+	# 		img = self.scale_output(img)
+	# 		return img, image_attr
 
-		elif method == 'unsupervised':
-			assert(phase in ['train'])
-			image_filepath = os.path.join(self._dataset_dir, 'images', self.image_list[ind])
-			img = io.imread(image_filepath)
-			if self.crop_bbox is not None:
-				img = self.crop_and_pad_image(img, self.crop_bbox)
-			img = img.astype('float32') / 255.0
-			img = cv2.resize(img, (self.output_size[1], self.output_size[0]))
-			img = self.scale_output(img)
-			return img
+	# 	elif method == 'unsupervised':
+	# 		assert(phase in ['train'])
+	# 		image_filepath = os.path.join(self._dataset_dir, 'images', self.image_list[ind])
+	# 		img = io.imread(image_filepath)
+	# 		if self.crop_bbox is not None:
+	# 			img = self.crop_and_pad_image(img, self.crop_bbox)
+	# 		img = img.astype('float32') / 255.0
+	# 		img = cv2.resize(img, (self.output_size[1], self.output_size[0]))
+	# 		img = self.scale_output(img)
+	# 		return img
 
 

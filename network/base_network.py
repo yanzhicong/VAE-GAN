@@ -58,6 +58,10 @@ class BaseNetwork(object):
 
 		act_fn = self.config.get('activation', 'relu')
 		norm_fn = self.config.get('normalization', 'batch_norm')
+		has_bias = self.config.get('has bias', True)
+		conv_has_bias = self.config.get('conv has bias', has_bias)
+		fc_has_bias = self.config.get('fc has bias', has_bias)
+		out_has_bias = self.config.get('out has bias', has_bias)
 		norm_params = self.norm_params.copy()
 		norm_params.update(self.config.get('normalization params', {}))
 		winit_fn = self.config.get('weightsinit', 'xavier')
@@ -72,6 +76,7 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias':conv_has_bias,
 		}
 
 		self.fc_args = {
@@ -80,6 +85,7 @@ class BaseNetwork(object):
 			'act_fn':act_fn,
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
+			'has_bias':fc_has_bias,
 		}
 
 		self.deconv_args = {
@@ -89,6 +95,7 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias' : conv_has_bias,
 		}
 
 		self.out_conv_args = {
@@ -96,24 +103,36 @@ class BaseNetwork(object):
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
 			'padding':padding,
+			'has_bias' : out_has_bias,
 		}
 
 		self.out_fc_args = {
 			'act_fn':output_act_fn,
 			'winit_fn':winit_fn,
 			'binit_fn':binit_fn,
+			'has_bias': out_has_bias,
 		}
 
 	def uniform_initializer(self, stdev):
 		return tf.random_uniform_initializer(-stdev*np.sqrt(3), stdev*np.sqrt(3))
 
-	def conv2d(self, name, x, nb_filters, ksize, stride=1, 
-				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
+	def conv2d(self, name, x, nb_filters, ksize, stride=1, *,
+				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', padding='SAME', has_bias=True,
+				disp=True, collect_end_points=True):
 
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
@@ -146,7 +165,7 @@ class BaseNetwork(object):
 		else:
 			x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
 						padding=_padding, 
-						use_bias=True,
+						use_bias=has_bias,
 						kernel_initializer=l_winit_fn,
 						bias_initializer=l_binit_fn,
 						trainable=True,	
@@ -165,13 +184,24 @@ class BaseNetwork(object):
 			self.end_points[name] = x
 		return x
 
-	def deconv2d(self, name, x, nb_filters, ksize, stride, 
-				norm_fn='none', norm_params=None, act_fn='relu', winit_fn='xavier', binit_fn='zeros', padding='SAME', disp=True, collect_end_points=True):
+	def deconv2d(self, name, x, nb_filters, ksize, stride, *,
+				norm_fn='none', norm_params=None, act_fn='relu', winit_fn='xavier', binit_fn='zeros', padding='SAME', has_bias=True,
+				disp=True, collect_end_points=True):
 
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
+
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
 			split = _winit_fn.split()
@@ -201,7 +231,10 @@ class BaseNetwork(object):
 												scope=name)
 		else:
 			x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
-							padding=_padding, use_bias=True, kernel_initializer=l_winit_fn, bias_initializer=l_binit_fn,
+							padding=_padding, 
+							use_bias=has_bias, 
+							kernel_initializer=l_winit_fn, 
+							bias_initializer=l_binit_fn,
 							trainable=True, name=name)
 			with tf.variable_scope(name):
 				if l_norm_fn is not None:
@@ -217,12 +250,24 @@ class BaseNetwork(object):
 		return x
 
 
-	def fc(self, name, x, nb_nodes, norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', disp=True, collect_end_points=True):
-		_act_fn = self.config.get(name + ' activation', act_fn)
-		l_act_fn = get_activation(_act_fn)
+	def fc(self, name, x, nb_nodes, *,
+				norm_fn='none', norm_params=None, act_fn='none', winit_fn='xavier', binit_fn='zeros', has_bias=True,
+				disp=True, collect_end_points=True):
+		
+		if callable(act_fn):
+			_act_fn = 'func'
+			l_act_fn = act_fn
+		else:
+			_act_fn = self.config.get(name + ' activation', act_fn)
+			l_act_fn = get_activation(_act_fn)
+		
+		if callable(norm_fn):
+			_norm_fn = 'func'
+			l_norm_fn = norm_fn
+		else:
+			_norm_fn = self.config.get(name + ' normalization', norm_fn)
+			l_norm_fn = get_normalization(_norm_fn)
 
-		_norm_fn = self.config.get(name + ' normalization', norm_fn)
-		l_norm_fn = get_normalization(_norm_fn)
 
 		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
 		if 'special' in _winit_fn:
@@ -245,7 +290,7 @@ class BaseNetwork(object):
 					activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
 					weights_initializer=l_winit_fn, scope=name)
 		else:
-			x = tl.dense(x, nb_nodes, use_bias=True, kernel_initializer=l_winit_fn,
+			x = tl.dense(x, nb_nodes, use_bias=has_bias, kernel_initializer=l_winit_fn,
 													bias_initializer=l_binit_fn,
 						trainable=True, name=name)
 
@@ -285,6 +330,21 @@ class BaseNetwork(object):
 		# tf.resize_images
 		pass
 
+	def activation(self, x, act_fn='relu'):
+		if not callable(act_fn):
+			act_fn = get_activation(act_fn)
+		return act_fn(x)
+
+	def zero_padding2d(self, x, padding):
+		if isinstance(padding, int):
+			padding = ((padding, padding), (padding, padding))
+		elif isinstance(padding, list) or isinstance(padding, tuple) and isinstance(padding[0], int) and isinstance(padding[1], int):
+			padding = ((padding[0], padding[0]), (padding[1], padding[1]))
+		
+		else:
+			raise ValueError('BaseNetwork : padding error')
+		return tf.spatial_2d_padding(x, padding=padding, data_format='channels_last')
+
 	@property
 	def vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
@@ -305,4 +365,6 @@ class BaseNetwork(object):
 	def all_vars(self):
 		return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
 
-
+	@property
+	def histogram_summary_list(self):
+		return [tf.summary.histogram(var.name, var) for var in self.store_vars]

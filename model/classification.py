@@ -45,10 +45,8 @@ from .base_model import BaseModel
 
 class Classification(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
-		super(Classification, self).__init__(config, **kwargs)
+	def __init__(self, config):
+		super(Classification, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.nb_classes = config['nb classes']
@@ -68,16 +66,15 @@ class Classification(BaseModel):
 
 		self.logits, self.end_points = self.classifier.features(self.x)
 
-		# print(self.logits.get_shape())
 		self.loss = get_loss('classification', self.config['classification loss'], 
 						{'logits' : self.logits, 'labels' : self.label})
 		self.train_acc = get_metric('accuracy', 'top1', 
 						{'logits': self.logits, 'labels':self.label})
 
 		# for testing
-		self.test_x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='test_x_input')
-		self.test_logits = self.classifier(self.test_x)
-		self.test_y = tf.nn.softmax(self.test_logits)
+		# self.test_x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='test_x_input')
+		# self.test_logits = self.classifier(self.test_x)
+		self.probs = tf.nn.softmax(self.logits)
 		
 		# print('vars')
 		# for var in self.classifier.vars:
@@ -141,10 +138,10 @@ class Classification(BaseModel):
 	'''
 	def predict(self, sess, x_batch):
 		feed_dict = {
-			self.test_x : x_batch,
+			self.x : x_batch,
 			self.is_training : False
 		}
-		y = sess.run([self.test_y], feed_dict = feed_dict)[0]
+		y = sess.run([self.probs], feed_dict = feed_dict)[0]
 		return y
 
 	def reduce_features(self, sess, x_batch, feature_name):

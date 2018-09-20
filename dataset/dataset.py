@@ -57,6 +57,10 @@ def get_dataset(name, config):
 		from .violence import Violence
 		return Violence(config)
 
+	elif name == 'tianchi guangdong defect':
+		from .tianchi_guangdong_defect import TianChiGuangdongDefect
+		return TianChiGuangdongDefect(config)
+
 	else:
 		raise Exception('None dataset named ' + name)
 

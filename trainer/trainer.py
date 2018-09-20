@@ -23,20 +23,26 @@
 # ==============================================================================
 
 
-from .unsupervised import UnsupervisedTrainer
-from .supervised import SupervisedTrainer
-from .semisupervised import SemiSupervisedTrainer
-
-trainer_dict = {
-    'unsupervised' : UnsupervisedTrainer,
-    'supervised' : SupervisedTrainer,
-    'semi-supervised' : SemiSupervisedTrainer,
-    'semisupervised' : SemiSupervisedTrainer,
-}
+# 
 
 def get_trainer(name, config, model, sess):
-    if name in trainer_dict:
-        return trainer_dict[name](config, model, sess)
+
+    if name == 'superivsed':
+        from .supervised import SupervisedTrainer
+        return SupervisedTrainer(config, model, sess)
+
+    elif name == 'unsupervised' : 
+        from .unsupervised import UnsupervisedTrainer
+        return UnsupervisedTrainer(config, model, sess)
+
+    elif name == 'semisupervised' or name == 'semi-supervised':
+        from .semisupervised import SemiSupervisedTrainer
+        return SemiSupervisedTrainer(config, model, sess)
+    
+    elif name == 'supervised mil' or name == 'supervised_mil':
+        from .supervised_mil import SupervisedMILTrainer
+        return SupervisedMILTrainer(config, model, sess)
+
     else:
         raise Exception('None trainer named ' + name)
 

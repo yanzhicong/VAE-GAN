@@ -62,11 +62,9 @@ class AAE(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-				 **kwargs
-				 ):
+	def __init__(self, config):
 
-		super(AAE, self).__init__(config, **kwargs)
+		super(AAE, self).__init__(config)
 		self.config = config
 
 		self.input_shape = self.config['input shape']
@@ -249,12 +247,3 @@ class AAE(BaseModel):
 		sample_z = sess.run([self.z_sample], feed_dict=feed_dict)[0]
 		return sample_z
 
-	#
-	#	summary operations
-	#
-	def summary(self, sess):
-		if self.has_summary:
-			summ = sess.run(self.sum_hist)
-			return summ
-		else:
-			return None

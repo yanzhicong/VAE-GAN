@@ -56,9 +56,9 @@ class VAE(BaseModel):
 
 	'''
 
-	def __init__(self, config, **kwargs):
+	def __init__(self, config):
 
-		super(VAE, self).__init__(config, **kwargs)
+		super(VAE, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']

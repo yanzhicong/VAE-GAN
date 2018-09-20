@@ -38,6 +38,7 @@ from .base_dataset import BaseDataset
 
 class BaseSimpleDataset(BaseDataset):
 	"""	The base for simple and small dataset like mnist, cifar10, svhn
+	
 	the data will be load into memory at start.
 
 
@@ -55,6 +56,7 @@ class BaseSimpleDataset(BaseDataset):
 		self.batch_size = int(config.get('batch_size', 128))
 
 		# please fill in the following field in the drived dataset class
+		self.output_shape = None
 		self.x_train = None
 		self.y_train = None
 		self.x_test = None
@@ -127,7 +129,7 @@ class BaseSimpleDataset(BaseDataset):
 				batch_x = self.x_train_l[index[i*self.batch_size:(i+1)*self.batch_size], :]
 				batch_y = self.y_train_l[index[i*self.batch_size:(i+1)*self.batch_size]]
 				if 'output shape' in self.config:
-					batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
+					batch_x = batch_x.reshape([self.batch_size,] + self.output_shape)
 				batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 				yield i, batch_x, batch_y
 		elif method == 'unsupervised':
@@ -138,7 +140,7 @@ class BaseSimpleDataset(BaseDataset):
 			for i in range(int(self.x_train_u.shape[0] / self.batch_size)):
 				batch_x = self.x_train_u[index[i*self.batch_size:(i+1)*self.batch_size], :]
 				if 'output shape' in self.config:
-					batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
+					batch_x = batch_x.reshape([self.batch_size,] + self.output_shape)
 				yield i, batch_x
 
 	def iter_val_images(self):
@@ -151,7 +153,7 @@ class BaseSimpleDataset(BaseDataset):
 			batch_y = self.y_test[index[i*self.batch_size:(i+1)*self.batch_size]]
 
 			if 'output shape' in self.config:
-				batch_x = batch_x.reshape([self.batch_size,] + self.config['output shape'])
+				batch_x = batch_x.reshape([self.batch_size,] + self.output_shape)
 			
 			batch_y = self.to_categorical(batch_y, num_classes=self.nb_classes)
 			yield i, batch_x, batch_y

@@ -68,11 +68,9 @@ class SemiDeepGenerativeModel(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(SemiDeepGenerativeModel, self).__init__(config, **kwargs)
+		super(SemiDeepGenerativeModel, self).__init__(config)
 
 		# parameters must be configured
 		self.input_shape = config['input shape']
@@ -345,7 +343,6 @@ class SemiDeepGenerativeModel(BaseModel):
 	@property
 	def vars(self):
 		return self.x_encoder.vars + self.hx_decoder.vars + self.hx_y_encoder.vars + self.hx_classifier.vars + self.hz_y_decoder.vars
-
 
 	'''
 		train operations

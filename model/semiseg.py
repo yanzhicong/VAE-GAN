@@ -47,11 +47,9 @@ from .base_model import BaseModel
 
 class SemiSupervisedSegmentationModel(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(SemiSupervisedSegmentationModel, self).__init__(config, **kwargs)
+		super(SemiSupervisedSegmentationModel, self).__init__(config)
 
 		raise NotImplementedError
 
@@ -202,13 +200,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 	'''
 		network variables property
 	'''
-	# @property
-	# def m1_vars(self):
-	# 	return self.x_encoder.vars + self.hx_decoder.vars
-
-	# @property
-	# def m2_vars(self):
-	# 	return self.hx_y_encoder.vars + self.hx_classifier.vars + self.hz_y_decoder.vars
 
 	@property
 	def vars(self):
@@ -247,27 +238,6 @@ class SemiSupervisedSegmentationModel(BaseModel):
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
 		raise NotImplementedError
-		# step = sess.run([self.m1_global_step])[0]
-		# feed_dict = {
-		# 	self.xu : x_batch,
-		# 	self.is_training : True
-		# }
-
-		# if step < self.m1_train_steps:
-		# 	m1_step, lr, loss, summ = self.train(sess, feed_dict, update_op=self.m1_train_op,
-		# 														step=self.m1_global_step,
-		# 														learning_rate=self.m1_learning_rate,
-		# 														loss=self.m1_loss, summary=self.m1_summary)
-		# 	return m1_step, lr, loss, summ
-		# else:
-		# 	m2_step, lr, loss, summ = self.train(sess, feed_dict, 
-		# 														update_op = self.m2_unsupervised_train_op,
-		# 														step=self.m2_global_step,
-		# 														learning_rate=self.m2_unsupervised_learning_rate,
-		# 														loss = self.m2_unsu_loss, summary=self.m2_unsupervised_summary)
-
-		# 	return m2_step + step, lr, loss, [(m2_step,summ)]
-
 
 	'''
 		test operations

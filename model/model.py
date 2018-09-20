@@ -23,58 +23,62 @@
 # ==============================================================================
 
 
-def get_model(model_name, model_params):
+def get_model(model_name, model_config):
     if model_name == 'cvaegan':
         from .cvaegan import CVAEGAN
-        return CVAEGAN(model_params)
+        return CVAEGAN(model_config)
     
     elif model_name == 'vae':
         from .vae import VAE
-        return VAE(model_params)
+        return VAE(model_config)
     
     elif model_name == 'cvae':
         from .cvae import CVAE
-        return CVAE(model_params)
+        return CVAE(model_config)
     
     elif model_name == 'aae':
         from .aae import AAE
-        return AAE(model_params)
+        return AAE(model_config)
     
     elif model_name == 'aae_ssl' or model_name == 'aae_semi':
         from .aae_ssl import AAESemiSupervised
-        return AAESemiSupervised(model_params)
+        return AAESemiSupervised(model_config)
 
     elif model_name == 'classification':
         from .classification import Classification
-        return Classification(model_params)
+        return Classification(model_config)
     
     elif model_name == 'segmentation':
         from .segmentation import Segmentation
-        return Segmentation(model_params)
+        return Segmentation(model_config)
     
     elif model_name == 'stargan':
         from .stargan import StarGAN
-        return StarGAN(model_params)
+        return StarGAN(model_config)
     
     elif model_name == 'semidgm':
         from .semi_dgm import SemiDeepGenerativeModel
-        return SemiDeepGenerativeModel(model_params)
+        return SemiDeepGenerativeModel(model_config)
     
     elif model_name == 'semidgm2':
         from .semi_dgm2 import SemiDeepGenerativeModel2
-        return SemiDeepGenerativeModel2(model_params)
+        return SemiDeepGenerativeModel2(model_config)
     
     elif model_name == 'dcgan':
         from .dcgan import DCGAN
-        return DCGAN(model_params)
+        return DCGAN(model_config)
     
     elif model_name == 'wgan_gp' or model_name == 'wgan':
         from .wgan_gp import WGAN_GP
-        return WGAN_GP(model_params)
+        return WGAN_GP(model_config)
     
     elif model_name == 'improved_gan':
         from .improved_gan import ImprovedGAN
-        return ImprovedGAN(model_params)
+        return ImprovedGAN(model_config)
+
+    elif model_name == 'attention_mil':
+        from .attention_mil import AttentionMIL
+        return AttentionMIL(model_config)
 
     else:
         raise Exception("None model named " + model_name)

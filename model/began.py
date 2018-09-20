@@ -42,8 +42,7 @@ from .base_model import BaseModel
 
 class BEGAN(BaseModel):
 
-	"""
-		Implementation of "BEGAN: Boundary Equilibrium Generative Adversarial Networks"
+	""" Implementation of "BEGAN: Boundary Equilibrium Generative Adversarial Networks"
 		David Berthelot, Thomas Schumm, Luke Metz
 		
         @article{DBLP:journals/corr/BerthelotSM17,
@@ -63,11 +62,9 @@ class BEGAN(BaseModel):
         }
 	"""
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(BEGAN, self).__init__(config, **kwargs)
+		super(BEGAN, self).__init__(config)
 
 		raise NotImplementedError
 

@@ -49,11 +49,9 @@ from .base_model import BaseModel
 
 class CVAE2(BaseModel):
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(CVAE2, self).__init__(config, **kwargs)
+		super(CVAE2, self).__init__(config)
 
 		self.input_shape = config['input shape']
 		self.z_dim = config['z_dim']

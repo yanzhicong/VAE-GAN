@@ -1,0 +1,105 @@
+{
+    "config name" : "guangdong_defect_classification",
+
+    "dataset" : "tianchi guangdong defect",
+    "dataset params" : {
+        "output shape" : [64, 64, 3],
+        "show warning" : false
+    },
+
+    "assets dir" : "assets/tianchi_guangdong/result2",
+
+    "model" : "attention_mil",
+    "model params" : {
+        "name" : "mnist",
+
+        "input shape" : [64, 64, 3],
+        "z dims" : 500,
+        "nb classes" : 11,
+
+        "optimizer" : "adam",
+        "optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 45000,
+                "decay_rate" : 0.1
+            }
+        },
+
+        "summary" : true,
+
+        "feature_ext" : "classifier",
+        "feature_ext params" : {
+            "normalization" : "fused_batch_norm",
+
+            "including_conv" : true,
+            "conv_nb_blocks" : 4,
+            "conv_nb_layers" : [2, 2, 3, 3],
+            "conv_nb_filters" : [64, 128, 256, 512],
+            "conv_nb_ksize" : [3, 3, 3, 3],
+            "no_maxpooling" : true,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [1024, 1024],
+
+            "debug" : true
+        },
+
+        "attention_net" : "classifier",
+        "attention_net params" : {
+            "activation" : "none",
+            "normalization" : "none",
+            "weightsinit" : "xavier",
+
+            "including_conv" : false,
+            "including_top" : true,
+
+            "fc_nb_nodes" : [600],
+
+            "has bias": false,
+
+            "debug" : true
+        },
+
+        "classifier" : "classifier",
+        "classifier params" : {
+            "normalization" : "none",
+            "activation" : "none",
+
+            "including_conv" : false,
+
+            "including_top" : true,
+            "fc_nb_nodes" : [600],
+
+            "has bias": false,
+
+            "debug" : true
+        }
+    },
+
+    "trainer" : "supervised_mil",
+    "trainer params" : {
+        "summary hyperparams string" : "lr_0_0001_adam5",
+
+        "train steps" : 100000,
+        "summary steps" : 1000,
+        "log steps" : 500,
+        "save checkpoint steps" : 10000,
+
+        
+        "validators" : [
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 5000,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "multi-class acc",
+                    "nb samples" : 200,
+                    "mil" : true
+                }
+            }
+        ]
+    }
+}
+

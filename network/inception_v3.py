@@ -69,7 +69,6 @@ class InceptionV3(object):
 		self.config = config
 		self.model_config = model_config
 
-
 	def __call__(self, i, reuse=False):
 
 		act_fn = get_activation(
@@ -156,7 +155,6 @@ class InceptionV3(object):
 			x, end_points = inception_v3_figure5_downsample('inception1c', x, end_points, 
 									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
 
-
 			# x : 17 * 17 * 768
 			x, end_points = inception_v3_figure6('inception2a', x, end_points, n=7,
 									act_fn=act_fn, norm_fn=norm_fn, norm_params=norm_params, winit_fn=winit_fn)
@@ -183,9 +181,7 @@ class InceptionV3(object):
 										  scope="avgpool_1a_8x8")  
 					x = tcl.dropout(x,keep_prob=0.5,scope="dropout_1b")  
 					end_points["global_avg_pooling"] = x  
-
 					x = tcl.flatten(x)
-
 
 					if output_dims != 0:
 						x = tcl.fully_connected(x, output_dims, activation_fn=output_act_fn, normalizer_fn=None,

@@ -74,11 +74,9 @@ class SemiDeepGenerativeModel2(BaseModel):
 		}
 	"""
 
-	def __init__(self, config,
-		**kwargs
-	):
+	def __init__(self, config):
 
-		super(SemiDeepGenerativeModel2, self).__init__(config, **kwargs)
+		super(SemiDeepGenerativeModel2, self).__init__(config)
 
 		# parameters must be configured
 		self.input_shape = config['input shape']

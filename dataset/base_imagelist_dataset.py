@@ -25,13 +25,8 @@
 
 import os
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import pickle
 from skimage import io
 import cv2
-
 
 from .base_dataset import BaseDataset
 
@@ -53,15 +48,14 @@ class BaseImageListDataset(BaseDataset):
 		
 		super(BaseImageListDataset, self).__init__(config)
 		self.config = config
-		self.batch_size = int(config.get('batch_size', 128))
 
 		assert('output shape' in config)
 
-		self.is_flexible_scaling = config.get('flexible scaling', True)
-		self.is_random_scaling = config.get('random scaling', True)
-		self.is_random_mirroring = config.get('random mirroring', True)
-		self.is_random_cropping = config.get('random cropping', True)
-		self.scaling_range = config.get('scaling range', [1.0, 1.5])
+		self.is_flexible_scaling = self.config.get('flexible scaling', True)
+		self.is_random_scaling = self.config.get('random scaling', True)
+		self.is_random_mirroring = self.config.get('random mirroring', True)
+		self.is_random_cropping = self.config.get('random cropping', True)
+		self.scaling_range = self.config.get('scaling range', [1.0, 1.5])
 		self.crop_range = self.config.get('crop range', [0.4, 0.6])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
 		self.crop_range_ver = self.config.get('vertical crop range', self.crop_range)
@@ -102,8 +96,18 @@ class BaseImageListDataset(BaseDataset):
 		self.train_images, self.train_labels = self.read_imagelist(self.train_imagelist_fp)
 		self.val_images, self.val_labels = self.read_imagelist(self.val_imagelist_fp)
 
+
+		print('nb train images : ', len(self.train_images))
+		print('nb val images : ', len(self.val_images))
 		if self.test_imagelist_fp != None:
-			self.test_images = self.read_imagelist(self.test_imagelist_fp)
+			self.test_images = self.read_imagelist(self.test_imagelist_fp, has_label=False)
+			print('nb test_images : ', len(self.test_images))
+
+
+			for img in self.test_images:
+				print(img)
+
+
 	
 	def read_imagelist(self, filename, has_label=True):
 		image_list = []
@@ -169,10 +173,8 @@ class BaseImageListDataset(BaseDataset):
 				np.random.shuffle(indices)
 			return indices
 
-	def read_image_by_index(self, ind, phase='train', method='supervised'):
-		assert(phase in ['train', 'test', 'val', 'trainval'])
-		assert(method in ['supervised', 'unsupervised'])
 
+	def _get_image_path_and_label(self, ind, phase='train', method='supervised'):
 		# get image path and label
 		if phase == 'train':
 			image_fp = os.path.join(self._dataset_dir, self.train_images[ind])
@@ -195,19 +197,26 @@ class BaseImageListDataset(BaseDataset):
 			assert method == 'unsupervised'
 			assert self.test_images != None
 			image_fp = os.path.join(self._dataset_dir, self.test_images[ind])
-		
-		# read and adjust image
-		try:
-			img = io.imread(image_fp)
-		except Exception as e:
-			if self.show_warning:
-				print('Warning : read image error : ' + str(e))
-			return None, None if method == 'supervised' else None
+			print(image_fp)
 
+		if method=='supervised':
+			return image_fp, image_label  
+		else:
+			return image_fp
+
+
+	def _image_correct(self, img, image_fp):
+		"""	correct the image shape to fixed shape [height, width, channel]
+		
+		1. the argument image_fp is just for debugging.
+		2. for some image file has multiple images and with shape of [num, height, width, channel],
+		this function will return the first image and discard others.
+
+		"""
 		if img is None:
 			if self.show_warning:
 				print('Warning : read image ' + image_fp + ' failed!')
-			return None, None if method == 'supervised' else None
+			return None
 
 		if img.ndim == 4:
 			img = img[0]
@@ -215,7 +224,7 @@ class BaseImageListDataset(BaseDataset):
 		if img.ndim != 2 and img.ndim != 3:
 			if self.show_warning:
 				print('Warning : wrong image shape ' + image_fp + ' : ' + str(img.shape))
-			return None, None if method == 'supervised' else None
+			return None
 
 		if self.output_c == 3:
 			if img.ndim == 2:   						# in case of single channel image
@@ -228,9 +237,31 @@ class BaseImageListDataset(BaseDataset):
 		if img.ndim != 3 or img.shape[2] != 3:
 			if self.show_warning:
 				print('Warning : wrong image shape ' + image_fp + ' : ' + str(img.shape))
+			return None
+
+		return img
+
+
+	def read_image_by_index(self, ind, phase='train', method='supervised'):
+		assert(phase in ['train', 'test', 'val', 'trainval'])
+		assert(method in ['supervised', 'unsupervised'])
+
+		if method == 'supervised':
+			image_fp, image_label = self._get_image_path_and_label(ind, phase, method)
+		else:
+			image_fp = self._get_image_path_and_label(ind, phase, method)
+		
+		try:
+			img = io.imread(image_fp)
+			img = self._image_correct(img, image_fp)
+		except Exception as e:
+			if self.show_warning:
+				print('Warning : read image error : ' + str(e))
 			return None, None if method == 'supervised' else None
 
-		
+		if img is None:
+			return None, None if method == 'supervised' else None
+
 		# preeprocess image and label
 		if phase in ['train', 'trainval']:
 			if self.is_flexible_scaling:
@@ -255,5 +286,6 @@ class BaseImageListDataset(BaseDataset):
 		elif phase in ['val']:
 			img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=[0.5,0.5])
 
-		# return 
+		img = self.scale_output(img)
+
 		return img, image_label if method == 'supervised' else img

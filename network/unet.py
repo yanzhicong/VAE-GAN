@@ -49,15 +49,15 @@ class UNet(BaseNetwork):
 
 	def __call__(self, x):
 
-		conv_nb_blocks = self.config.get('conv_nb_blocks', 4)
-		conv_nb_layers = self.config.get('conv_nb_layers', [2, 2, 2, 2, 2])
-		conv_nb_filters = self.config.get('conv_nb_filters', [64, 128, 256, 512, 1024])
-		conv_ksize = self.config.get('conv_ksize', [3 for i in range(conv_nb_blocks+1)])
-		no_maxpooling = self.config.get('no_maxpooling', False)
+		conv_nb_blocks = self.config.get("conv nb blocks", 4)
+		conv_nb_layers = self.config.get("conv nb layers", [2, 2, 2, 2, 2])
+		conv_nb_filters = self.config.get("conv nb filters", [64, 128, 256, 512, 1024])
+		conv_ksize = self.config.get("conv ksize", [3 for i in range(conv_nb_blocks+1)])
+		no_maxpooling = self.config.get("no maxpooling", False)
 		no_upsampling = self.config.get('no_upsampling', False)
 
 
-		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_dims = self.config.get("output dims", 0)  # zero for no output layer
 		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
 
 		debug = self.config.get('debug', False)

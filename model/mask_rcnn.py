@@ -116,7 +116,7 @@ class Mask_RCNN(BaseModel):
 		self.fpn = PyramidRpnNetwork(self.config['fpn params'])
 		self.rcnn = self.build_classifier('rcnn classifier', params={
 			'name' : 'RCNN',
-			# 'output_dims' :
+			# "output dims" :
 		})
 		self.mask_cnn = self.build_classifier('mask cnn classifier', params={
 			'name' : 'MaskCNN'

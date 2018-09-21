@@ -52,7 +52,7 @@ class EncoderSimple(BaseNetwork):
 
 		network_config = config.copy()
 		network_config['name'] = self.name
-		network_config['output_dims'] = 0
+		network_config["output dims"] = 0
 
 		self.network = VGG(network_config, is_training)
 		self.output_distribution = self.config.get('output_distribution', 'gaussian')
@@ -60,7 +60,7 @@ class EncoderSimple(BaseNetwork):
 		
 	def __call__(self, i, condition=None):
 
-		output_dims = self.config.get('output_dims', 3)
+		output_dims = self.config.get("output dims", 3)
 		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
 
 

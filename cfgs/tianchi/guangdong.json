@@ -3,17 +3,19 @@
 
     "dataset" : "tianchi guangdong defect",
     "dataset params" : {
-        "output shape" : [64, 64, 3],
+        "output shape" : [128, 128, 3],
+        "area height" : 384,
+        "one hot" : false,
         "show warning" : false
     },
 
-    "assets dir" : "assets/tianchi_guangdong/result2",
+    "assets dir" : "assets/tianchi_guangdong/result1",
 
     "model" : "attention_mil",
     "model params" : {
         "name" : "mnist",
 
-        "input shape" : [64, 64, 3],
+        "input shape" : [128, 128, 3],
         "z dims" : 500,
         "nb classes" : 11,
 
@@ -33,15 +35,15 @@
         "feature_ext params" : {
             "normalization" : "fused_batch_norm",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [2, 2, 3, 3],
-            "conv_nb_filters" : [64, 128, 256, 512],
-            "conv_nb_ksize" : [3, 3, 3, 3],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 5,
+            "conv nb layers" : [2, 2, 3, 3, 3],
+            "conv nb filters" : [64, 128, 256, 512, 512],
+            "conv ksize" : [3, 3, 3, 3, 3],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [1024, 1024],
+            "including top" : true,
+            "fc nb nodes" : [1024, 1024],
 
             "debug" : true
         },
@@ -52,10 +54,10 @@
             "normalization" : "none",
             "weightsinit" : "xavier",
 
-            "including_conv" : false,
-            "including_top" : true,
+            "including conv" : false,
+            "including top" : true,
 
-            "fc_nb_nodes" : [600],
+            "fc nb nodes" : [600],
 
             "has bias": false,
 
@@ -67,10 +69,10 @@
             "normalization" : "none",
             "activation" : "none",
 
-            "including_conv" : false,
+            "including conv" : false,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [600],
+            "including top" : true,
+            "fc nb nodes" : [600],
 
             "has bias": false,
 
@@ -80,18 +82,17 @@
 
     "trainer" : "supervised_mil",
     "trainer params" : {
-        "summary hyperparams string" : "lr_0_0001_adam6",
+        "summary hyperparams string" : "lr_0_0001_adam",
 
         "train steps" : 100000,
         "summary steps" : 1000,
         "log steps" : 500,
         "save checkpoint steps" : 10000,
 
-        
         "validators" : [
             {
                 "validator" : "dataset_validator",
-                "validate steps" : 5000,
+                "validate steps" : 2000,
                 "validator params" : {
                     "metric" : "accuracy",
                     "metric type" : "multi-class acc2",

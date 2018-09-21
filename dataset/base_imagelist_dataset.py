@@ -117,7 +117,7 @@ class BaseImageListDataset(BaseDataset):
 					if ind == 0:
 						head_split = line[:-1].split(',')
 						class_head_list = head_split[1:],
-						self.nb_classes = len(class_head_list)
+						# self.nb_classes = len(class_head_list)
 					else:
 						split = line[:-1].split(',')
 						image_fp = split[0]
@@ -139,7 +139,7 @@ class BaseImageListDataset(BaseDataset):
 						if has_label:
 							label = np.array([int(i) for i in split[1:]])
 							label_list.append(label)
-				self.nb_classes = int(np.max(label_list) + 1)
+				# self.nb_classes = int(np.max(label_list) + 1)
 
 		if has_label:
 			return image_list, np.array(label_list)
@@ -170,7 +170,7 @@ class BaseImageListDataset(BaseDataset):
 				np.random.shuffle(indices)
 			return indices
 
-
+	
 	def _get_image_path_and_label(self, ind, phase='train', method='supervised'):
 		# get image path and label
 		if phase == 'train':

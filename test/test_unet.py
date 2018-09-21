@@ -10,7 +10,7 @@ from network.unet import UNet
 
 if __name__ == '__main__':
 	config = {
-		'output_classes' : 10,
+		"output dims" : 10,
 		'name' : 'UNet'
 	}
 

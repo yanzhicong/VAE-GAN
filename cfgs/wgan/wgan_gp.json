@@ -43,16 +43,16 @@
             "normalization" : "fused_batch_norm", //
 
             "including_bottom" : true,
-            "fc_nb_nodes" : [],
+            "fc nb nodes" : [],
             "fc_output_reshape" : [4, 4, 512],   
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 4,
-            "deconv_nb_layers" : [1, 1, 1, 1],
-            "deconv_nb_filters" : [256, 128, 64, 64],
+            "deconv nb blocks" : 4,
+            "deconv nb layers" : [1, 1, 1, 1],
+            "deconv nb filters" : [256, 128, 64, 64],
             "deconv_ksize" : [5, 5, 5, 5],
             
-            "output_dims" : 3,
+            "output dims" : 3,
             "output_activation" : "tanh",
             "debug" : true
         },
@@ -62,17 +62,17 @@
             "activation" : "lrelu 0.2",
             "normalization" : "none",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [1, 1, 1, 0],
-            "conv_nb_filters" : [128, 256, 512],
-            "conv_ksize" : [5, 5, 5, 5],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 4,
+            "conv nb layers" : [1, 1, 1, 0],
+            "conv nb filters" : [128, 256, 512],
+            "conv ksize" : [5, 5, 5, 5],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [],
+            "including top" : true,
+            "fc nb nodes" : [],
 
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "none",
             "debug" : true
         }

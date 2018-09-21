@@ -85,7 +85,7 @@ class ImprovedGAN(BaseModel):
 	def build_model(self):
 		# network config
 		self.config['discriminator params']['name'] = 'Discriminator'
-		self.config['discriminator params']['output_dims'] = self.nb_classes + 1
+		self.config['discriminator params']["output dims"] = self.nb_classes + 1
 		self.config['generator params']['name'] = 'Generator'
 		self.discriminator = self.build_discriminator('discriminator')
 		self.generator = self.build_generator('generator')

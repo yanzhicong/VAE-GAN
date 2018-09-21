@@ -49,15 +49,15 @@ class DEVGG(BaseNetwork):
 		no fc layers.
 		the fc layers params(in @params:config):
 			'including_bottom':
-			'fc_nb_nodes':
+			"fc nb nodes":
 
 		the deconvolution layers are divied into blocks, in the end of each blocks the deconv layer stride is 2 and other deconv layer stride is 1.
 		the convolution layers params(in @params:config):
 
 			'including_deconv':
-			'deconv_nb_blocks':
-			'deconv_nb_filters':
-			'deconv_nb_layers':
+			'deconv nb blocks':
+			'deconv nb filters':
+			'deconv nb layers':
 			'deconv_ksize':
 
 
@@ -67,11 +67,11 @@ class DEVGG(BaseNetwork):
 			'batch_norm_params':
 			'weightsinit':
 
-		the output nodes is defined by 'output_dims', if there is fc layers, the output tensor shape is [batchsize, output_dims]
-		else if there is no fc layers, the output tensor shape is [batchsize, h, w, output_dims], and if 'output_dims' == 0, then 
+		the output nodes is defined by "output dims", if there is fc layers, the output tensor shape is [batchsize, output_dims]
+		else if there is no fc layers, the output tensor shape is [batchsize, h, w, output_dims], and if "output dims" == 0, then 
 		there is no extra layers append to the network
 		output params:
-			'output_dims':
+			"output dims":
 			'output_activation':
 			'output_stride':
 			'output_ksize':
@@ -87,18 +87,18 @@ class DEVGG(BaseNetwork):
 	def __call__(self, x):
 		# fully connected parameters
 		including_bottom = self.config.get('including_bottom', True)
-		fc_nb_nodes = self.config.get('fc_nb_nodes', [1024, 1024])
+		fc_nb_nodes = self.config.get("fc nb nodes", [1024, 1024])
 		fc_output_reshape = self.config.get('fc_output_reshape', None)
 
 		# convolution structure parameters
 		including_deconv = self.config.get('including_deconv', False)
-		deconv_nb_blocks = int(self.config.get('deconv_nb_blocks', 5))
-		deconv_nb_filters = self.config.get('deconv_nb_filters', [512, 512, 256, 128, 64])
-		deconv_nb_layers = self.config.get('deconv_nb_layers', [2, 2, 3, 3, 3])
+		deconv_nb_blocks = int(self.config.get('deconv nb blocks', 5))
+		deconv_nb_filters = self.config.get('deconv nb filters', [512, 512, 256, 128, 64])
+		deconv_nb_layers = self.config.get('deconv nb layers', [2, 2, 3, 3, 3])
 		deconv_ksize = self.config.get('deconv_ksize', [3, 3, 3, 3, 3])
 
 		# output stage parameters
-		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_dims = self.config.get("output dims", 0)  # zero for no output layer
 		output_shape = self.config.get('output_shape', None)
 		output_stride = self.config.get('output_stride', 1)
 		output_ksize = self.config.get('output_ksize', 1)

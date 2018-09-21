@@ -38,10 +38,10 @@
             "activation" : "relu",
             "normalization" : "fused_batch_norm",
 
-            "including_top" : true,
-            "fc_nb_nodes" : [2048, 2048],
+            "including top" : true,
+            "fc nb nodes" : [2048, 2048],
 
-            "output_dims" : 2,
+            "output dims" : 2,
             "output_activation" : "none",
 
             "debug" : true

@@ -58,7 +58,7 @@ class Segmentation(BaseModel):
 	def build_model(self):
 
 		self.config['classifier params']['name'] = 'classifier'
-		self.config['classifier params']['output_dims'] = self.nb_classes
+		self.config['classifier params']["output dims"] = self.nb_classes
 
 		self.classifier = get_classifier(self.config['classifier'], self.config['classifier params'], self.is_training)
 

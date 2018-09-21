@@ -22,15 +22,12 @@
 # SOFTWARE.
 # ==============================================================================
 
-
 import os
 import numpy as np
 from skimage import io
 import cv2
 
-
 from .base_dataset import BaseDataset
-
 
 class BaseMILDataset(BaseDataset):
 	""" The base dataset class for supporting multiple-instance learning.
@@ -72,8 +69,4 @@ class BaseMILDataset(BaseDataset):
 				img_bbox.append([x1,y1,x2,y2])
 				img_bag.append(crop_image)
 	
-		img_bag = np.array(img_bag)
-		img_bbox = np.array(img_bbox)
-
-
 		return img_bag, img_bbox, nb_col, nb_row

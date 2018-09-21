@@ -347,7 +347,7 @@ class DiscriminatorCifar10(BaseNetwork):
 		# binit_fn = get_weightsinit('zeros')
 
 
-		# output_dims = self.config.get('output_dims', 100)
+		# output_dims = self.config.get("output dims", 100)
 
 		with tf.variable_scope(self.name):
 			if self.reuse:

@@ -13,7 +13,7 @@ if __name__ == '__main__':
 		'output_classes' : 10,
 		'name' : 'Resnet50',
 		'normalization' : 'fused_batch_norm',
-		'output_dims' : 100,
+		"output dims" : 100,
 		'debug' : True,
 	}
 

@@ -31,7 +31,7 @@
  
         "classifier" : "GoogleNet",
         "classifier params" : {
-            "output_dims" : 1000
+            "output dims" : 1000
         }
 
     },

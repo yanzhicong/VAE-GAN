@@ -34,17 +34,17 @@
         "classifier params" : {
             "normalization" : "batch_norm",
 
-            "including_conv" : true,
+            "including conv" : true,
             "nb_conv_blocks" : 4,
             "nb_conv_layers" : [2, 2, 3, 3],
             "nb_conv_filters" : [32, 64, 128, 256],
             "nb_conv_ksize" : [3, 3, 3, 3],
-            "no_maxpooling" : false,
+            "no maxpooling" : false,
 
-            "including_top" : true,
+            "including top" : true,
             "nb_fc_nodes" : [1024, 1024],
 
-            "output_dims" : 10,
+            "output dims" : 10,
             "output_activation" : "none",
 
 

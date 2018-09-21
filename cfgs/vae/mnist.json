@@ -38,9 +38,9 @@
         "encoder params" : {
             "normalization" : "none",
 
-            "including_conv" : false,
+            "including conv" : false,
 
-            "including_top" : true,
+            "including top" : true,
             "nb_fc_nodes" : [256]
         },
 
@@ -49,7 +49,7 @@
             "normalization" : "none",
 
             "including_bottom" : true,
-            "fc_nb_nodes" : [256],
+            "fc nb nodes" : [256],
 
             "including_deconv" : false
         }

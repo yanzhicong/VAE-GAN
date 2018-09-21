@@ -57,8 +57,8 @@ class EncoderCifar10(object):
 
 		network_config = config.copy()
 		network_config['name'] = self.name
-		network_config['including_top'] = False
-		network_config['output_dims'] = 0
+		network_config["including top"] = False
+		network_config["output dims"] = 0
 
 
 		self.network = VGG(network_config, is_training)
@@ -77,7 +77,7 @@ class EncoderCifar10(object):
 
 		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 1024])
 
-		output_dims = self.config.get('output_dims', 3)
+		output_dims = self.config.get("output dims", 3)
 		output_act_fn = get_activation(self.config.get('output_activation', 'none'))
 
 

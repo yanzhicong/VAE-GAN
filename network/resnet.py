@@ -120,11 +120,11 @@ class Resnet(BaseNetwork):
 	def __call__(self, x):
 
 		# fully connected parameters
-		including_top = self.config.get('including_top', True)
-		fc_nb_nodes = self.config.get('fc_nb_nodes', [1024, 1024])
+		including_top = self.config.get("including top", True)
+		fc_nb_nodes = self.config.get("fc nb nodes", [1024, 1024])
 
 		# output stage parameters
-		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_dims = self.config.get("output dims", 0)  # zero for no output layer
 		output_act_fn = self.config.get('output_activation', 'none')
 
 		self.end_points = {}
@@ -174,7 +174,7 @@ class Resnet(BaseNetwork):
 
 
 			if self.debug:
-				print('\tincluding_top :            ', self.config.get('including_top', ''))
+				print('\tincluding_top :            ', self.config.get("including top", ''))
 				print('\tfc network :')
 
 			# construct top fully connected layer
@@ -184,7 +184,7 @@ class Resnet(BaseNetwork):
 					x = self.fc('fc%d'%(ind+1), x, nb_nodes, **self.fc_args, disp=self.debug)
 
 			if self.debug:
-				print('\toutput_dims :              ', self.config.get('output_dims', ''))
+				print('\toutput_dims :              ', self.config.get("output dims", ''))
 				print('\toutput network : ')
 
 			if output_dims != 0:

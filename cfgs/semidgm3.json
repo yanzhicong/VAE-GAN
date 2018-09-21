@@ -60,7 +60,7 @@
             "batch_norm" : "none",
             "nb_fc_nodes" : [600, 600],
             "output_distribution": "none",
-            "output_dims" : 50
+            "output dims" : 50
         },
 
         "hx y encoder" : "EncoderSimple",
@@ -69,7 +69,7 @@
             "batch_norm" : "none",
             "nb_fc_nodes" : [40, 20],
             "output_distribution": "gaussian",
-            "output_dims" : 10
+            "output dims" : 10
         },
 
         "hz y decoder" : "DecoderSimple",
@@ -77,7 +77,7 @@
             "nb_deconv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [60, 200],
-            "output_dims" : 784,
+            "output dims" : 784,
             "including_deconv" : false,
             "fc_output_reshape" : [28, 28, 1],
             "output_activation" : "sigmoid"
@@ -88,7 +88,7 @@
             "nb_conv_blocks" : 0,
             "batch_norm" : "none",
             "nb_fc_nodes" : [256, 80],
-            "output_dims" : 10,
+            "output dims" : 10,
             "output_activation" : "none"
         }
     },

@@ -10,8 +10,9 @@ from network.vgg import VGG
 
 if __name__ == '__main__':
 	config = {
-		'output_classes' : 10,
-		'name' : 'VGG16'
+		"output dims" : 10,
+		'name' : 'VGG16',
+		'load pretrained weight' : 'vgg16'
 	}
 
 	model = VGG(config, True)
@@ -24,4 +25,8 @@ if __name__ == '__main__':
 
 	for var in model.vars:
 		print(var.name, ' --> ', var.get_shape())
+
+
+	model.load_pretrained_weights()
+
 

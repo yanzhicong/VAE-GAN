@@ -150,7 +150,7 @@ class AAESemiSupervised(BaseModel):
 		})
 		self.encoder = self.build_encoder('encoder', params={
 			'name' : 'Encoder',
-			'output_dims' : self.z_dim + self.nb_classes
+			"output dims" : self.z_dim + self.nb_classes
 		})
 		self.decoder = self.build_decoder('decoder', params={
 			'name' : 'Decoder'

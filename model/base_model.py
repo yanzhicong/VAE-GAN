@@ -57,20 +57,24 @@ class BaseModel(object):
 	def train_on_batch_supervised(self, x_batch, y_batch):
 		""" Given a batch of input data and desired output data, training the model by a step
 		
-		Return: step, learning_rate, loss, summary
+		Return: 
+			step, learning_rate, loss, summary
 		1. if there are multiple learning rates and losses, the returned learning_rate and loss can be a string.
-		2. the summary is recorded per step, and given the input data, which is used differently from summary method.
-		if there is no summary needed, please return None
+		2. the summary is recorded per step by giving the input data and is for recording the model output and performance, 
+			it is different from summary method, which just logs the model varable destribution.
+			if there is no summary needed, please return None
 		"""
 		raise NotImplementedError
 
 	def train_on_batch_unsupervised(self, x_batch):
 		""" Given a batch of input data, training the model by a step
 		
-		Return: step, learning_rate, loss, summary
+		Return: 
+			step, learning_rate, loss, summary
 		1. if there are multiple learning rates and losses, the returned learning_rate and loss can be a string.
-		2. the summary is recorded per step, and given the input data, which is used differently from summary method.
-		if there is no summary needed, please return None
+		2. the summary is recorded per step by giving the input data and is for recording the model output and performance, 
+			it is different from summary method, which just logs the model varable destribution.
+			if there is no summary needed, please return None
 		"""
 		raise NotImplementedError
 
@@ -92,6 +96,12 @@ class BaseModel(object):
 		""" Given a batch of input data, return the corresponding hidden variable
 		"""
 		raise NotImplementedError
+
+	def attention(self, sess, x_batch):
+		""" Given a batch of input data, return the corresponding attention weight
+		"""
+		raise NotImplementedError
+
 
 
 	#
@@ -150,7 +160,7 @@ class BaseModel(object):
 		return step, step_update
 
 	def build_loss(self, type, name, args):
-		pass
+		raise NotImplementedError
 	
 	def build_optimizer(self, name, loss, vars, step=None, step_update=None):
 		if step == None and hasattr(self, 'global_step'):
@@ -173,7 +183,10 @@ class BaseModel(object):
 
 		return train_op, learning_rate_var, step_var
 	
-	def build_train_function(self, name, loss, vars, step=None, step_update=None, summary=None, build_summary=False, sum_list=None):
+	def build_train_function(self, name, loss, vars, *,
+			step=None, step_update=None, summary=None, 
+			build_summary=False, sum_list=None, 
+			build_endpoints_summary=False, endpoints_sum_list=None):
 		"""
 		"""
 		train_op, learning_rate_var, step_var = self.build_optimizer(name, loss, vars, step, step_update)
@@ -184,7 +197,16 @@ class BaseModel(object):
 			sum_list.append(tf.summary.scalar(name + '/loss', loss))
 			sum_list.append(tf.summary.scalar(name + '/lr', learning_rate_var))
 			summary = tf.summary.merge(sum_list)
-		return partial(self.train, update_op=train_op, step=step_var, learning_rate=learning_rate_var, loss=loss, summary=summary), learning_rate_var
+
+		if build_endpoints_summary:
+			sum_list.append(endpoints_sum_list)
+			summary2 = tf.summary.merge(sum_list)
+		
+		if build_endpoints_summary:
+			return partial(self.train, update_op=train_op, step=step_var, learning_rate=learning_rate_var, loss=loss, summary=summary),   \
+					partial(self.train, update_op=train_op, step=step_var, learning_rate=learning_rate_var, loss=loss, summary=summary2), learning_rate_var
+		else:
+			return partial(self.train, update_op=train_op, step=step_var, learning_rate=learning_rate_var, loss=loss, summary=summary), learning_rate_var
 
 	def draw_sample( self, mean, log_var):
 		epsilon = tf.random_normal( ( tf.shape( mean ) ), 0, 1 )

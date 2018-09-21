@@ -120,8 +120,12 @@ def batch_norm(inputs,
 										variance=moving_variance, offset=beta, scale=gamma, variance_epsilon=epsilon)
 			return outputs
 
-		outputs = tf.cond(
-				pred=is_training, true_fn=batch_norm_training, false_fn=batch_norm_inference)
+		if isinstance(is_training, bool):
+			outputs = batch_norm_training() if is_training else batch_norm_inference()
+		else:
+			outputs = tf.cond(pred=is_training,
+									true_fn=batch_norm_training,
+									false_fn=batch_norm_inference)
 
 		outputs.set_shape(inputs_shape)
 		if original_shape.ndims == 2:
@@ -171,7 +175,7 @@ def fused_batch_norm(inputs,
 			return outputs
 
 		if isinstance(is_training, bool):
-			return fused_batch_norm_training() if is_training else fused_batch_norm_inference()
+			outputs = fused_batch_norm_training() if is_training else fused_batch_norm_inference()
 		else:
 			outputs = tf.cond(pred=is_training,
 									true_fn=fused_batch_norm_training,
@@ -239,7 +243,12 @@ def fused_batch_norm2(inputs,
 			update_moving_variance = tf.assign_add(moving_variance, (1.0-decay)*(batch_var-moving_variance))
 			with tf.control_dependencies([update_moving_mean, update_moving_variance]):
 				return tf.identity(outputs)
-		outputs = tf.cond(pred=is_training, true_fn=force_updates, false_fn=no_updates)
+
+		if isinstance(is_training, bool):
+			outputs = force_updates() if is_training else no_updates()
+		else:
+			outputs = tf.cond(pred=is_training, true_fn=force_updates,
+												false_fn=no_updates)
 
 		return outputs
 
@@ -297,8 +306,14 @@ def fused_batch_norm3(inputs,
 			update_moving_variance = tf.assign_add(moving_variance, (1.0-decay)*(batch_var-moving_variance))
 			with tf.control_dependencies([update_moving_mean, update_moving_variance]):
 				return tf.identity(outputs)
-		outputs = tf.cond(pred=is_training, true_fn=force_updates, false_fn=no_updates)
+				
+		if isinstance(is_training, bool):
+			outputs = force_updates() if is_training else no_updates()
+		else:
+			outputs = tf.cond(pred=is_training, true_fn=force_updates,
+												false_fn=no_updates)
 		return outputs
+
 
 	elif inputs_rank == 2:
 		with tf.variable_scope('BatchNorm') as sc:

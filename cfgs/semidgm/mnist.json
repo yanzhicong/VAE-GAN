@@ -63,14 +63,14 @@
             "normalization" : "none",
             "weightsinit" : "he_uniform",
 
-            "including_conv" : false,
-            // "conv_nb_blocks" : 0,
+            "including conv" : false,
+            // "conv nb blocks" : 0,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [600, 600],
+            "including top" : true,
+            "fc nb nodes" : [600, 600],
 
             "output_distribution": "none",
-            "output_dims" : 50
+            "output dims" : 50
         },
 
         "hx y encoder" : "encoder",
@@ -78,14 +78,14 @@
             "normalization" : "none",
             "weightsinit" : "he_uniform",
 
-            "including_conv" : false,
-            "conv_nb_blocks" : 0,
+            "including conv" : false,
+            "conv nb blocks" : 0,
 
-            "including_top" : true,
+            "including top" : true,
             "nb_fc_nodes" : [40, 20],
 
             "output_distribution": "gaussian",
-            "output_dims" : 10
+            "output dims" : 10
         },
 
         "hz y decoder" : "decoder",
@@ -97,7 +97,7 @@
 
             "nb_deconv_blocks" : 0,
             "nb_fc_nodes" : [600, 600],
-            "output_dims" : 784,
+            "output dims" : 784,
             "including_deconv" : false,
             "fc_output_reshape" : [28, 28, 1],
             "output_activation" : "sigmoid"
@@ -110,7 +110,7 @@
 
             "nb_conv_blocks" : 0,
             "nb_fc_nodes" : [600, 600, 600],
-            "output_dims" : 10,
+            "output dims" : 10,
             "output_activation" : "none"
         }
     },

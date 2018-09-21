@@ -38,15 +38,15 @@
             "activation" : "relu",
             "padding" : "SAME",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 1,
-            "conv_nb_layers" : [7],
-            "conv_nb_filters" : [128],
-            "conv_ksize" : [7],
+            "including conv" : true,
+            "conv nb blocks" : 1,
+            "conv nb layers" : [7],
+            "conv nb filters" : [128],
+            "conv ksize" : [7],
 
-            "including_top" : false,
+            "including top" : false,
 
-            "output_dims" : 21,
+            "output dims" : 21,
 
             "debug" : true
         }

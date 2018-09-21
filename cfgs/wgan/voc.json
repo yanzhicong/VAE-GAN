@@ -47,16 +47,16 @@
             "weightsinit" : "normal 0.00 0.02",
 
             "including_bottom" : true,
-            "fc_nb_nodes" : [],
+            "fc nb nodes" : [],
             "fc_output_reshape" : [4, 4, 1024],   
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 5,
-            "deconv_nb_layers" : [1, 1, 1, 1, 0],     // output size = 4 * 2^(5-1)
-            "deconv_nb_filters" : [512, 256, 128, 64],
+            "deconv nb blocks" : 5,
+            "deconv nb layers" : [1, 1, 1, 1, 0],     // output size = 4 * 2^(5-1)
+            "deconv nb filters" : [512, 256, 128, 64],
             "deconv_ksize" : [5, 5, 5, 5],
             
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "sigmoid",
             "debug" : true
         },
@@ -67,17 +67,17 @@
             "normalization" : "none",
             "weightsinit" : "normal 0.00 0.02",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 5,
-            "conv_nb_layers" : [1, 1, 1, 1, 0],
-            "conv_nb_filters" : [64, 128, 256, 512],
-            "conv_ksize" : [5, 5, 5, 5],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 5,
+            "conv nb layers" : [1, 1, 1, 1, 0],
+            "conv nb filters" : [64, 128, 256, 512],
+            "conv ksize" : [5, 5, 5, 5],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [],
+            "including top" : true,
+            "fc nb nodes" : [],
 
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "none",
             "debug" : true
         }

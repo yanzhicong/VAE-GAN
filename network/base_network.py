@@ -57,17 +57,21 @@ class BaseNetwork(object):
 		self.end_points = {}
 
 		act_fn = self.config.get('activation', 'relu')
-		norm_fn = self.config.get('normalization', 'batch_norm')
+		output_act_fn = self.config.get('output_activation', 'none')
+
 		has_bias = self.config.get('has bias', True)
 		conv_has_bias = self.config.get('conv has bias', has_bias)
 		fc_has_bias = self.config.get('fc has bias', has_bias)
 		out_has_bias = self.config.get('out has bias', has_bias)
+
+		norm_fn = self.config.get('normalization', 'batch_norm')
 		norm_params = self.norm_params.copy()
 		norm_params.update(self.config.get('normalization params', {}))
+
 		winit_fn = self.config.get('weightsinit', 'xavier')
 		binit_fn = self.config.get('biasesinit', 'zeros')
+
 		padding = self.config.get('padding', 'SAME')
-		output_act_fn = self.config.get('output_activation', 'none')
 
 		self.conv_args = {
 			'norm_fn':norm_fn,
@@ -121,65 +125,65 @@ class BaseNetwork(object):
 				disp=True, collect_end_points=True):
 
 		if callable(act_fn):
-			_act_fn = 'func'
-			l_act_fn = act_fn
+			act_fn_str = 'func'
+			act_fn = act_fn
 		else:
-			_act_fn = self.config.get(name + ' activation', act_fn)
-			l_act_fn = get_activation(_act_fn)
+			act_fn_str = self.config.get(name + ' activation', act_fn)
+			act_fn = get_activation(act_fn_str)
 		
 		if callable(norm_fn):
-			_norm_fn = 'func'
-			l_norm_fn = norm_fn
+			norm_fn_str = 'func'
+			norm_fn = norm_fn
 		else:
-			_norm_fn = self.config.get(name + ' normalization', norm_fn)
-			l_norm_fn = get_normalization(_norm_fn)
+			norm_fn_str = self.config.get(name + ' normalization', norm_fn)
+			norm_fn = get_normalization(norm_fn_str)
 
-		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		if 'special' in _winit_fn:
-			split = _winit_fn.split()
+		winit_fn_str = self.config.get(name + ' weightsinit', winit_fn)
+		if 'special' in winit_fn_str:
+			split = winit_fn_str.split()
 			winit_name = split[0]
 			if winit_name == 'he_uniform':
 				input_nb_filters = int(x.get_shape()[-1])
 				fan_in = input_nb_filters * (ksize**2)
 				fan_out = nb_filters * (ksize**2) / (stride**2)
 				filters_stdev = np.sqrt(4.0/(fan_in + fan_out))
-				l_winit_fn = self.uniform_initializer(filters_stdev)
+				winit_fn = self.uniform_initializer(filters_stdev)
 			else:
-				raise Exception('Error weights initializer function name : ' + _winit_fn)
+				raise Exception('Error weights initializer function name : ' + winit_fn_str)
 		else:
-			l_winit_fn = get_weightsinit(_winit_fn)
+			winit_fn = get_weightsinit(winit_fn_str)
 
-		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
-		l_binit_fn = get_weightsinit(_binit_fn)
+		binit_fn_str = self.config.get(name + ' biasesinit', binit_fn)
+		binit_fn = get_weightsinit(binit_fn_str)
 		_padding = self.config.get(name + ' padding', padding)
 
 
 		if self.using_tcl_library:
 			x = tcl.conv2d(x, nb_filters, ksize, stride=stride,  
-												activation_fn=l_act_fn,
-												normalizer_fn=l_norm_fn,
+												activation_fn=act_fn,
+												normalizer_fn=norm_fn,
 												normalizer_params=norm_params,
-												weights_initializer=l_winit_fn,
+												weights_initializer=winit_fn,
 												padding=_padding,
 												scope=name)
 		else:
 			x = tl.conv2d(x, nb_filters, ksize, strides=stride, 
 						padding=_padding, 
 						use_bias=has_bias,
-						kernel_initializer=l_winit_fn,
-						bias_initializer=l_binit_fn,
+						kernel_initializer=winit_fn,
+						bias_initializer=binit_fn,
 						trainable=True,	
 						name=name)
 
 			with tf.variable_scope(name):
-				if l_norm_fn is not None:
+				if norm_fn is not None:
 					norm_params = norm_params or {}
-					x = l_norm_fn(x, **norm_params)
-				if l_act_fn is not None:
-					x = l_act_fn(x)
+					x = norm_fn(x, **norm_params)
+				if act_fn is not None:
+					x = act_fn(x)
 
 		if disp:
-			print('\t\tConv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
+			print('\t\tConv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (act_fn_str, norm_fn_str, winit_fn_str, _padding))
 		if collect_end_points:
 			self.end_points[name] = x
 		return x
@@ -189,62 +193,62 @@ class BaseNetwork(object):
 				disp=True, collect_end_points=True):
 
 		if callable(act_fn):
-			_act_fn = 'func'
-			l_act_fn = act_fn
+			act_fn_str = 'func'
+			act_fn = act_fn
 		else:
-			_act_fn = self.config.get(name + ' activation', act_fn)
-			l_act_fn = get_activation(_act_fn)
+			act_fn_str = self.config.get(name + ' activation', act_fn)
+			act_fn = get_activation(act_fn_str)
 		
 		if callable(norm_fn):
-			_norm_fn = 'func'
-			l_norm_fn = norm_fn
+			norm_fn_str = 'func'
+			norm_fn = norm_fn
 		else:
-			_norm_fn = self.config.get(name + ' normalization', norm_fn)
-			l_norm_fn = get_normalization(_norm_fn)
+			norm_fn_str = self.config.get(name + ' normalization', norm_fn)
+			norm_fn = get_normalization(norm_fn_str)
 
-		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		if 'special' in _winit_fn:
-			split = _winit_fn.split()
+		winit_fn_str = self.config.get(name + ' weightsinit', winit_fn)
+		if 'special' in winit_fn_str:
+			split = winit_fn_str.split()
 			winit_name = split[0]
 			if winit_name == 'he_uniform':
 				input_nb_filters = int(x.get_shape()[-1])
 				fan_in = input_nb_filters * (ksize**2) / (stride**2)
 				fan_out = nb_filters * (ksize**2)
 				filters_stdev = np.sqrt(4.0/(fan_in + fan_out))
-				l_winit_fn = self.uniform_initializer(filters_stdev)
+				winit_fn = self.uniform_initializer(filters_stdev)
 			else:
-				raise Exception('Error weights initializer function name : ' + _winit_fn)
+				raise Exception('Error weights initializer function name : ' + winit_fn_str)
 		else:
-			l_winit_fn = get_weightsinit(_winit_fn)
-		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
-		l_binit_fn = get_weightsinit(_binit_fn)
+			winit_fn = get_weightsinit(winit_fn_str)
+		binit_fn_str = self.config.get(name + ' biasesinit', binit_fn)
+		binit_fn = get_weightsinit(binit_fn_str)
 		_padding = self.config.get(name + ' padding', padding)
 
 		if self.using_tcl_library:
 			x = tcl.conv2d_transpose(x, nb_filters, ksize, stride=stride,  
 												use_bias=True,
-												activation_fn=l_act_fn,
-												normalizer_fn=l_norm_fn,
+												activation_fn=act_fn,
+												normalizer_fn=norm_fn,
 												normalizer_params=norm_params,
-												weights_initializer=l_winit_fn,
+												weights_initializer=winit_fn,
 												padding=_padding,
 												scope=name)
 		else:
 			x = tl.conv2d_transpose(x, nb_filters, ksize, strides=stride, 
 							padding=_padding, 
 							use_bias=has_bias, 
-							kernel_initializer=l_winit_fn, 
-							bias_initializer=l_binit_fn,
+							kernel_initializer=winit_fn, 
+							bias_initializer=binit_fn,
 							trainable=True, name=name)
 			with tf.variable_scope(name):
-				if l_norm_fn is not None:
+				if norm_fn is not None:
 					norm_params = norm_params or {}
-					x = l_norm_fn(x, **norm_params)
-				if l_act_fn is not None:
-					x = l_act_fn(x)
+					x = norm_fn(x, **norm_params)
+				if act_fn is not None:
+					x = act_fn(x)
 
 		if disp:
-			print('\t\tDeonv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn, _padding))
+			print('\t\tDeonv2D(' + str(name) + ') --> ', x.get_shape(), '  ', (act_fn_str, norm_fn_str, winit_fn_str, _padding))
 		if collect_end_points:
 			self.end_points[name] = x
 		return x
@@ -255,55 +259,55 @@ class BaseNetwork(object):
 				disp=True, collect_end_points=True):
 		
 		if callable(act_fn):
-			_act_fn = 'func'
-			l_act_fn = act_fn
+			act_fn_str = 'func'
+			act_fn = act_fn
 		else:
-			_act_fn = self.config.get(name + ' activation', act_fn)
-			l_act_fn = get_activation(_act_fn)
+			act_fn_str = self.config.get(name + ' activation', act_fn)
+			act_fn = get_activation(act_fn_str)
 		
 		if callable(norm_fn):
-			_norm_fn = 'func'
-			l_norm_fn = norm_fn
+			norm_fn_str = 'func'
+			norm_fn = norm_fn
 		else:
-			_norm_fn = self.config.get(name + ' normalization', norm_fn)
-			l_norm_fn = get_normalization(_norm_fn)
+			norm_fn_str = self.config.get(name + ' normalization', norm_fn)
+			norm_fn = get_normalization(norm_fn_str)
 
 
-		_winit_fn = self.config.get(name + ' weightsinit', winit_fn)
-		if 'special' in _winit_fn:
-			split = _winit_fn.split()
+		winit_fn_str = self.config.get(name + ' weightsinit', winit_fn)
+		if 'special' in winit_fn_str:
+			split = winit_fn_str.split()
 			winit_name = split[0]
 			if winit_name == 'glorot_uniform':
 				input_nb_nodes = int(x.get_shape()[-1])
 				filters_stdev = np.sqrt(2.0/(input_nb_nodes + nb_nodes))
-				l_winit_fn = self.uniform_initializer(filters_stdev)
+				winit_fn = self.uniform_initializer(filters_stdev)
 			else:
-				raise Exception('Error weights initializer function name : ' + _winit_fn)
+				raise Exception('Error weights initializer function name : ' + winit_fn_str)
 		else:
-			l_winit_fn = get_weightsinit(_winit_fn)
+			winit_fn = get_weightsinit(winit_fn_str)
 
-		_binit_fn = self.config.get(name + ' biasesinit', binit_fn)
-		l_binit_fn = get_weightsinit(_binit_fn)
+		binit_fn_str = self.config.get(name + ' biasesinit', binit_fn)
+		binit_fn = get_weightsinit(binit_fn_str)
 
 		if self.using_tcl_library:
 			x = tcl.fully_connected(x, nb_nodes, 
-					activation_fn=l_act_fn, normalizer_fn=l_norm_fn, normalizer_params=norm_params,
-					weights_initializer=l_winit_fn, scope=name)
+					activation_fn=act_fn, normalizer_fn=norm_fn, normalizer_params=norm_params,
+					weights_initializer=winit_fn, scope=name)
 		else:
-			x = tl.dense(x, nb_nodes, use_bias=has_bias, kernel_initializer=l_winit_fn,
-													bias_initializer=l_binit_fn,
+			x = tl.dense(x, nb_nodes, use_bias=has_bias, kernel_initializer=winit_fn,
+													bias_initializer=binit_fn,
 						trainable=True, name=name)
 
 			with tf.variable_scope(name):
-				if l_norm_fn is not None:
+				if norm_fn is not None:
 					norm_params = norm_params or {}
-					x = l_norm_fn(x, **norm_params)
-				if l_act_fn is not None:
-					x = l_act_fn(x)
+					x = norm_fn(x, **norm_params)
+				if act_fn is not None:
+					x = act_fn(x)
 
 
 		if disp:
-			print('\t\tFC(' + str(name) + ') --> ', x.get_shape(), '  ', (_act_fn, _norm_fn, _winit_fn))
+			print('\t\tFC(' + str(name) + ') --> ', x.get_shape(), '  ', (act_fn_str, norm_fn_str, winit_fn_str))
 		if collect_end_points:
 			self.end_points[name] = x
 		return x
@@ -372,3 +376,29 @@ class BaseNetwork(object):
 	@property
 	def histogram_summary_list(self):
 		return [tf.summary.histogram(var.name, var) for var in self.store_vars]
+
+
+	def find_pretrained_weights_path(self, weights_filename, throw_not_found_error=False):
+		model_path = os.path.join('C:\\Models', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('E:\\Models', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('F:\\Models', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('/mnt/data01/models/', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('/mnt/data02/models/', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('/mnt/data03/models/', weights_filename)
+		if not os.path.exists(model_path):
+			model_path = os.path.join('/mnt/data04/models/', weights_filename)
+		if not os.path.exists(model_path):
+			if throw_not_found_error:
+				raise ValueError('Base Network : the pretrained weights file ' + weights_filename + ' is not found')
+			else:
+				model_path = None
+		return model_path
+
+
+	def load_pretrained_weights(self):
+		pass

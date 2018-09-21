@@ -106,20 +106,20 @@ class SemiDeepGenerativeModel2(BaseModel):
 		# 
 		# x_encoder : x -> hx
 		self.config['x encoder params']['name'] = 'EncoderHX_X'
-		self.config['x encoder params']['output_dims'] = self.hx_dim
+		self.config['x encoder params']["output dims"] = self.hx_dim
 		self.x_encoder = get_encoder(self.config['x encoder'], self.config['x encoder params'], self.is_training)
 		# hx_y_encoder : [hx, y] -> hz
 		self.config['hx y encoder params']['name'] = 'EncoderHZ_HXY'
-		self.config['hx y encoder params']['output_dims'] = self.hz_dim
+		self.config['hx y encoder params']["output dims"] = self.hz_dim
 		self.hx_y_encoder = get_encoder(self.config['hx y encoder'], 
 									self.config['hx y encoder params'], self.is_training)
 		# hz_y_decoder : [hz, y] -> x_decode
 		self.config['hz y decoder params']['name'] = 'DecoderX_HZY'
-		self.config['hz y decoder params']['output_dims'] = int(np.product(self.input_shape))
+		self.config['hz y decoder params']["output dims"] = int(np.product(self.input_shape))
 		self.hz_y_decoder = get_decoder(self.config['hz y decoder'], self.config['hz y decoder params'], self.is_training)
 		# x_classifier : hx -> ylogits
 		self.config['x classifier params']['name'] = 'ClassifierX'
-		self.config['x classifier params']['output_dims'] = self.nb_classes
+		self.config['x classifier params']["output dims"] = self.nb_classes
 		self.x_classifier = get_classifier(self.config['x classifier'], self.config['x classifier params'], self.is_training)
 
 

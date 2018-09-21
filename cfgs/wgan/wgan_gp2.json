@@ -43,7 +43,7 @@
             "nb_deconv_layers" : [2, 2, 1],
             "nb_deconv_filters" : [32, 16, 8],
             
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "sigmoid",
             "debug" : true
         },
@@ -53,14 +53,14 @@
 
             "activation" : "lrelu 0.2",
             "batch_norm" : "none",
-            "no_maxpooling" : true,
+            "no maxpooling" : true,
 
             "nb_conv_blocks" : 3,
             "nb_conv_layers" : [2, 2, 1],
             "nb_conv_filters" : [8, 16, 32],
             "nb_fc_nodes" : [256],
 
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "none",
             "debug" : true
         }

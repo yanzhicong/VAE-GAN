@@ -71,11 +71,11 @@ class CVAE2(BaseModel):
 		# self.encoder_input_shape = int(np.product(self.input_shape))
 		
 		self.config['encoder parmas']['name'] = 'EncoderX'
-		self.config['encoder params']['output_dims'] = self.z_dim
+		self.config['encoder params']["output dims"] = self.z_dim
 		self.encoder = get_encoder(self.config['x encoder'], self.config['encoder params'], self.is_training)
 
 		self.config['decoder params']['name'] = 'Decoder'
-		self.config['decoder params']['output_dims'] = self.encoder_input_shape
+		self.config['decoder params']["output dims"] = self.encoder_input_shape
 
 		# self.y_encoder = get_encoder(self.config['y encoder'], self.config['y encoder params'], self.is_training)
 		self.decoder = get_decoder(self.config['decoder'], self.config['decoder params'], self.is_training)

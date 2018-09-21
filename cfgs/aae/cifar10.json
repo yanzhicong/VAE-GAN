@@ -61,17 +61,17 @@
         "encoder params" : {
             "normalization" : "fused_batch_norm",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [2, 2, 2, 2],
-            "conv_nb_filters" : [64, 128, 256, 512],
-            "conv_ksize" : [3, 3, 3, 3],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 4,
+            "conv nb layers" : [2, 2, 2, 2],
+            "conv nb filters" : [64, 128, 256, 512],
+            "conv ksize" : [3, 3, 3, 3],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [1000, 1000],
+            "including top" : true,
+            "fc nb nodes" : [1000, 1000],
 
-            "output_dims" : 2,
+            "output dims" : 2,
             "output_activation" : "none",
             "output_distribution" : "none",
 
@@ -83,16 +83,16 @@
             "normalization" : "fused_batch_norm",
             
             "including_bottom" : true,
-            "fc_nb_nodes" : [1000, 1000],
+            "fc nb nodes" : [1000, 1000],
             "fc_output_reshape" : [4, 4, 256],
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 4,
-            "deconv_nb_layers" : [2, 2, 2, 2],
-            "deconv_nb_filters" : [512, 256, 128, 64],
+            "deconv nb blocks" : 4,
+            "deconv nb layers" : [2, 2, 2, 2],
+            "deconv nb filters" : [512, 256, 128, 64],
             "deconv_ksize" : [3, 3, 3, 3],
 
-            "output_dims" : 3,
+            "output dims" : 3,
             "output_shape" : [32, 32, 3],
             "output_activation" : "tanh",
 
@@ -104,11 +104,11 @@
             "normalization" : "none",
             "activation" : "lrelu 0.1",
 
-            "including_conv" : false,
-            "including_top" : true,
-            "fc_nb_nodes" : [600, 600],
+            "including conv" : false,
+            "including top" : true,
+            "fc nb nodes" : [600, 600],
 
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "none",
 
             "debug" : true

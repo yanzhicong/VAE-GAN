@@ -37,17 +37,17 @@
             "normalization" : "batch_norm",
 
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 4,
-            "conv_nb_layers" : [2, 2, 3, 3],
-            "conv_nb_filters" : [32, 64, 128, 256],
-            "conv_ksize" : [3, 3, 3, 3],
-            "no_maxpooling" : false,
+            "including conv" : true,
+            "conv nb blocks" : 4,
+            "conv nb layers" : [2, 2, 3, 3],
+            "conv nb filters" : [32, 64, 128, 256],
+            "conv ksize" : [3, 3, 3, 3],
+            "no maxpooling" : false,
 
-            "including_top" : true,
+            "including top" : true,
             "nb_fc_nodes" : [1024, 1024],
 
-            "output_dims" : 10,
+            "output dims" : 10,
             "output_activation" : "none",
 
 

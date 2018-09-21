@@ -107,6 +107,7 @@ class AttentionMIL(BaseModel):
 		self.z_dims = int(self.config['z dims'])
 		self.nb_classes = int(self.config['nb classes'])
 		self.mil_pooling = self.config.get('MIL pooling', 'attention')
+		self.finetune_steps = int(self.config.get('finetune steps', 0))
 
 		assert self.mil_pooling in ['maxpooling', 'avgpooling', 'attention']
 		
@@ -117,13 +118,13 @@ class AttentionMIL(BaseModel):
 
 		self.feature_ext_net = self.build_classifier('feature_ext', params={
 			'name' : 'feature_ext',
-			'output_dims' : self.z_dims
+			"output dims" : self.z_dims
 		})
 
 		if self.mil_pooling == 'attention':
 			# self.attention_net = self.build_classifier('attention_net', params={
 			# 	'name' : 'attention_net',
-			# 	'output_dims' : 1
+			# 	"output dims" : 1
 			# })
 			self.attention_net_params = self.config.get('attention_net params')
 			self.attention_net_params['name'] = 'attention_net'
@@ -131,7 +132,7 @@ class AttentionMIL(BaseModel):
 
 		self.classifier = self.build_classifier('classifier', params={
 			'name' : 'classifier',
-			'output_dims' : self.nb_classes
+			"output dims" : self.nb_classes
 		})
 
 		#
@@ -162,11 +163,12 @@ class AttentionMIL(BaseModel):
 
 		# 4. classify
 		self.logits, self.classifier_endpoints = self.classifier.features(self.bag_feature)
-		self.probs = tf.sigmoid(self.logits)
+		# self.probs = tf.nn.softmax(self.logits)
+		self.probs = tf.nn.sigmoid(self.logits)
 		self.bag_label = tf.reshape(self.label, [1, -1])
 
 		# 5. loss and metric
-		self.loss = get_loss('classification', 'binary entropy', 
+		self.entropy_loss = get_loss('classification', 'binary entropy', 
 						{'logits' : self.logits, 'labels' : self.bag_label})
 
 		self.regulation_loss = get_loss('regularization', 'l2', {'var_list' : self.classifier.trainable_vars}) * 0.005
@@ -175,66 +177,65 @@ class AttentionMIL(BaseModel):
 		if self.mil_pooling == 'attention':
 			self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.attention_net.trainable_vars}) * 0.005
 
-		self.loss += self.regulation_loss
+		self.loss = self.entropy_loss + self.regulation_loss
 
-		self.train_acc = get_metric('accuracy', 'multi-class acc2', 
-						{'probs': self.probs, 'labels':self.bag_label})
+		self.train_acc = get_metric('accuracy', 'multi-class acc2', {'probs': self.probs, 'labels':self.bag_label})
 
 		# build optimizer
 		self.global_step, self.global_step_update = self.build_step_var('global_step')
 
-		if self.mil_pooling == 'attention':
-			self.train_classifier, self.learning_rate = self.build_train_function('optimizer', 
-						self.loss, self.feature_ext_net.vars + self.attention_net.vars + self.classifier.vars, 
-						step=self.global_step, step_update=self.global_step_update)
+		if self.has_summary:
+			sum_list = []
+			sum_list.append(tf.summary.scalar('train entropy loss', self.entropy_loss))
+			sum_list.append(tf.summary.scalar('train regulation loss', self.regulation_loss))
+			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
 
-			self.saver = tf.train.Saver(self.classifier.store_vars 
-										+ self.feature_ext_net.store_vars
-										+  self.attention_net.store_vars + [self.global_step,])
+			endpoints_sum_list = []
+			if self.mil_pooling == 'attention':
+				for key, var in self.attention_net_endpoints.items():
+					endpoints_sum_list.append(tf.summary.histogram('netout_attention/' + key, var))
+				endpoints_sum_list.append(tf.summary.histogram('netout_attention/instance_weight', self.instance_weight))
+			for key, var in self.fea_ext_net_endpoints.items():
+				endpoints_sum_list.append(tf.summary.histogram('netout_feature_ext/' + key, var))
+			for key, var in self.classifier_endpoints.items():
+				endpoints_sum_list.append(tf.summary.histogram('netout_classifier/' + key, var))
+			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/bag_feature', self.bag_feature))
+			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/logits', self.logits))
+			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/probs', self.probs))
+			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/labels', self.label))
 		else:
-			self.train_classifier, self.learning_rate = self.build_train_function('optimizer', 
-						self.loss, self.feature_ext_net.vars + self.classifier.vars, 
-						step=self.global_step, step_update=self.global_step_update)
+			sum_list = []
+			endpoints_sum_list = []
 
-			self.saver = tf.train.Saver(self.classifier.store_vars 
-										+ self.feature_ext_net.store_vars
-										+ [self.global_step,])
+
+		train_function_args = {
+			'step' : self.global_step, 
+			'step_update' : self.global_step_update,
+			'build_summary' : True, 
+			'sum_list' : sum_list,
+			'build_endpoints_summary' : True, 
+			'endpoints_sum_list' : endpoints_sum_list
+		}
+
+		if self.finetune_steps > 0:
+			self.finetune_classifier,
+			self.finetune_and_inspect_classifier, _, self.build_train_function('finetune', self.loss, self.finetune_vars, **train_function_args)
+
+		self.train_classifier, \
+		self.train_and_inspect_classifier, _, = self.build_train_function('optimizer', self.loss, self.vars, **train_function_args)
+
+		self.saver = tf.train.Saver(self.store_vars + [self.global_step,])
+
 
 	def build_summary(self):
 		if self.has_summary:
-
-			sum_list = []
-			sum_list.append(tf.summary.scalar('train loss', self.loss))
-			sum_list.append(tf.summary.scalar('train regulation loss', self.regulation_loss))
-			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
-			self.sum_scalar = tf.summary.merge(sum_list)
-
-			if self.mil_pooling == 'attention':
-				for key, var in self.attention_net_endpoints.items():
-					sum_list.append(tf.summary.histogram('netout_attention/' + key, var))
-				sum_list.append(tf.summary.histogram('netout_attention/instance_weight', self.instance_weight))
-
-			for key, var in self.fea_ext_net_endpoints.items():
-				sum_list.append(tf.summary.histogram('netout_feature_ext/' + key, var))
-			for key, var in self.classifier_endpoints.items():
-				sum_list.append(tf.summary.histogram('netout_classifier/' + key, var))
-			sum_list.append(tf.summary.histogram('netout_classifier/bag_feature', self.bag_feature))
-			sum_list.append(tf.summary.histogram('netout_classifier/logits', self.logits))
-			sum_list.append(tf.summary.histogram('netout_classifier/probs', self.probs))
-			sum_list.append(tf.summary.histogram('netout_classifier/labels', self.label))
-			self.sum_scalar2 = tf.summary.merge(sum_list)
-
-			# summary hists are logged by calling self.summary()
 			sum_list = self.feature_ext_net.histogram_summary_list
 			if self.mil_pooling == 'attention':
 				sum_list += self.attention_net.histogram_summary_list
 			sum_list += self.classifier.histogram_summary_list
 			self.sum_hist = tf.summary.merge(sum_list)
 		else:
-			self.sum_scalar = None
-			self.sum_scalar2 = None
 			self.sum_hist = None
-
 
 
 	'''
@@ -249,12 +250,10 @@ class AttentionMIL(BaseModel):
 
 		step = int(sess.run([self.global_step])[0])
 		if step % 1000 == 0:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar2)
+			return self.train_and_inspect_classifier(sess, feed_dict)
 		else:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar)
+			return self.train_classifier(sess, feed_dict)
 
-	def train_on_batch_unsupervised(self, sess, x_batch):
-		raise NotImplementedError
 
 	'''
 		test operations
@@ -268,6 +267,7 @@ class AttentionMIL(BaseModel):
 		y = sess.run([self.probs], feed_dict=feed_dict)[0][0, :]
 		return y
 
+
 	def attention(self, sess, x_batch):
 		assert self.mil_pooling == 'attention'
 		feed_dict = {
@@ -276,3 +276,26 @@ class AttentionMIL(BaseModel):
 		}
 		instance_weight = sess.run([self.instance_weight], feed_dict=feed_dict)[0]
 		return instance_weight
+
+
+	@property
+	def vars(self):
+		if self.mil_pooling == 'attention':
+			return self.feature_ext_net.vars + self.attention_net.vars + self.classifier.vars
+		else:
+			return self.feature_ext_net.vars + self.classifier.vars
+	
+	@property
+	def finetune_vars(self):
+		if self.mil_pooling == 'attention':
+			return self.feature_ext_net.top_vars + self.attention_net.vars + self.classifier.vars
+		else:
+			return self.feature_ext_net.top_vars + self.classifier.vars
+
+	@property
+	def store_vars(self):
+		if self.mil_pooling == 'attention':
+			return self.feature_ext_net.store_vars + self.attention_net.store_vars + self.classifier.store_vars
+		else:
+			return self.feature_ext_net.store_vars + self.classifier.store_vars
+

@@ -41,11 +41,11 @@
             "weightsinit" : "he_normal",
 
             "including_bottom" : true,
-            "fc_nb_nodes" : [512, 512, 512],
+            "fc nb nodes" : [512, 512, 512],
 
             "including_deconv" : false,
             
-            "output_dims" : 2,
+            "output dims" : 2,
             "output_activation" : "none",
             "debug" : true
         },
@@ -56,12 +56,12 @@
             "normalization" : "none",
             "weightsinit" : "he_normal",
 
-            "including_conv" : false,
+            "including conv" : false,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [512, 512, 512],
+            "including top" : true,
+            "fc nb nodes" : [512, 512, 512],
 
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_activation" : "none",
             "debug" : true
         }

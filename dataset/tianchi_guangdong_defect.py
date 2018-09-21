@@ -56,8 +56,6 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			11: "其他",
 		}
 
-		self.nb_classes = 11
-
 		assert('output shape' in config)
 
 		self._dataset_dir = "F:\\Data\\GuangDongIndustrialBigData"
@@ -71,7 +69,15 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			raise Exception("TianChiGuangdongDectect Dataset : the dataset dir is not exists")
 
 		self.stage = self.config.get('stage', 'stage1')
+		self.one_hot = self.config.get('one hot', False)
+		self.area_height = self.config.get('area height', 256)
+		self.random_dropout_images_in_train = self.config.get('random dropout images in train', True)
 		assert self.stage in ['stage1']
+
+		if self.one_hot:
+			self.nb_classes = 12
+		else:
+			self.nb_classes = 11
 
 		self.multiple_categories = True
 
@@ -117,12 +123,32 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			return None, None if method == 'supervised' else None 
 
 		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
-		area_img = self.crop_and_reshape_image_area(img, area)
+		area_img = self.crop_and_reshape_image_area(img, area, fixed_height=self.area_height)
+
+		# area_img = self.flexible_scaling(img, min_w=384, min_h=384)
 
 		area_img = area_img.astype(np.float32) / 255.0
 		self.scale_output(area_img)
 
 		image_bag, image_bbox, row, col = self.crop_image_to_bag(area_img, self.output_shape)
+
+		if self.random_dropout_images_in_train and phase in ['train', 'trainval']:
+			indices = np.arange(len(image_bag))
+			nb_samples = np.maximum(int(len(image_bag) * 0.5), 1)
+			indices = np.random.choice(indices, size=nb_samples, replace=False)
+			image_bag = [image_bag[i] for i in indices]
+
+
+		image_bag = np.array(image_bag)
+
+		if method == 'supervised':
+			if self.one_hot:
+				normal = int(1 - np.max(image_label))
+				image_label = [normal, ] + [int(i) for i in image_label]
+				image_label = np.array(image_label)
+			else:
+				image_label = np.array(image_label)
+
 
 		if method == 'supervised':
 			return image_bag, image_label 
@@ -191,7 +217,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 				theta = lines[0][1]
 	
 				# this line separate the img to two areas, return the largest area
-				
+
 				pt1 = (0, int(rho/np.sin(theta)))
 				pt2 = (w, int((rho-w*np.cos(theta))/np.sin(theta)))
 				cpt = ((pt1[0]+pt2[0])/2.0, (pt1[1]+pt2[1])/2.0)
@@ -346,18 +372,32 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 
 	def write_submission_file(self, filepath, probs):
+
+		probs = np.array(probs)
+
 		test_indices = self.get_image_indices('test', 'unsupervised')
-		img_fp_list = ['%d.jpg'%i for i in test_indices]
+		img_fn_list = [self._get_image_path_and_label(i, 'test', 'unsupervised').split('/')[-1].split('\\')[-1] for i in test_indices]
+
+		assert probs.ndim == 2
+		assert probs.shape[0] == len(test_indices)
+		assert probs.shape[1] == self.nb_classes
 		
 		with open(filepath, 'w') as outfile:
-			for img_fp, pred in zip(img_fp_list, probs):
+			if self.one_hot:
+				for img_fp, pred in zip(img_fn_list, probs):
+					max_class_id = np.argmax(pred)
+					if max_class_id != 0:
+						outfile.write(img_fp + ',defect%d\n'%max_class_id)
+					else:
+						outfile.write(img_fp + ',norm\n')
+			else:
+				for img_fp, pred in zip(img_fn_list, probs):
 
-				max_class = np.argmax(pred)
-				max_class_id = max_class + 1
-				# max_class_name = self.class_id2name[max_class_id]
-				max_class_prob = pred[max_class]
+					max_class = np.argmax(pred)
+					max_class_id = max_class + 1
+					max_class_prob = pred[max_class]
 
-				if max_class_prob > 0.5:
-					outfile.write(img_fp + ',defect%d\n'%max_class_id)
-				else:
-					outfile.write(img_fp + ',norm\n')
+					if max_class_prob > 0.5:
+						outfile.write(img_fp + ',defect%d\n'%max_class_id)
+					else:
+						outfile.write(img_fp + ',norm\n')

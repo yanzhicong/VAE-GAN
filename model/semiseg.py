@@ -80,13 +80,13 @@ class SemiSupervisedSegmentationModel(BaseModel):
 		# network define
 		# 
 		self.config['classifier params']['name'] = 'Segmentation'
-		self.config['classifier params']['output_dims'] = self.hx_dim
+		self.config['classifier params']["output dims"] = self.hx_dim
 		self.seg_classifier = get_classifier(self.config['classifier'], 
 									self.config['classifier params'], self.is_training)
 
 
 		self.config['discriminator params']['name'] = 'Segmentation'
-		self.config['discriminator params']['output_dims'] = 1
+		self.config['discriminator params']["output dims"] = 1
 		self.config['discriminator params']['output_activation'] = 'none'
 		self.discriminator = get_discriminator(self.config['discriminator'], 
 									self.config['discriminator params'], self.is_training)

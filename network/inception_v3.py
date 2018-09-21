@@ -86,11 +86,11 @@ class InceptionV3(object):
 		filters = self.config.get('nb_filters', 32)
 
 		# fully connected parameters
-		including_top = self.config.get('including_top', True)
+		including_top = self.config.get("including top", True)
 		nb_fc_nodes = self.config.get('nb_fc_nodes', [1024, 1024])
 
 		# output stage parameters
-		output_dims = self.config.get('output_dims', 0)  # zero for no output layer
+		output_dims = self.config.get("output dims", 0)  # zero for no output layer
 		output_act_fn = get_activation(
 					self.config.get('output_activation', 'none'),
 					self.config.get('output_activation_params', ''))

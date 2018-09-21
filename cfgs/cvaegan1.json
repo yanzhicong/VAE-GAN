@@ -17,23 +17,23 @@
  
         "encoder" : "EncoderPixel",
         "encoder params" : {
-            "output_classes" : 32
+            "output dims" : 32
         },
 
         "decoder" : "DecoderPixel",
         "decoder params" : {
-            "output_classes" : 3
+            "output dims" : 3
         },
 
         "classifier" : "ClassifierPixel",
         "classifier params" : {
-            "output_classes" : 2
+            "output dims" : 2
         },
 
         "discriminator" : "DiscriminatorVGG16",
         "discriminator params" : {
-            "output_classes" : 1,
-            "including_top" : true,
+            "output dims" : 1,
+            "including top" : true,
             "including_top_params" : [512, 256],
             "out_activation" : null,
             "out_activation_params" : ""

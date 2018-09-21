@@ -34,17 +34,17 @@
             "activation" : "relu",
             "normalization" : "fused_batch_norm",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 5,
-            "conv_nb_layers" : [2, 2, 3, 3, 3],
-            "conv_nb_filters" : [64, 128, 256, 512, 512],
-            "conv_nb_ksize" : [3, 3, 3, 3, 3],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 5,
+            "conv nb layers" : [2, 2, 3, 3, 3],
+            "conv nb filters" : [64, 128, 256, 512, 512],
+            "conv ksize" : [3, 3, 3, 3, 3],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [2048, 2048],
+            "including top" : true,
+            "fc nb nodes" : [2048, 2048],
 
-            "output_dims" : 2,
+            "output dims" : 2,
             "output_activation" : "none",
 
             "debug" : true

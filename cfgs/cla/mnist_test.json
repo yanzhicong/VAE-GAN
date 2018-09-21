@@ -37,17 +37,17 @@
         "classifier params" : {
             "batch_norm" : "fused_batch_norm",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 3,
-            "conv_nb_layers" : [2, 2, 2],
-            "conv_nb_filters" : [32, 64, 128],
-            "conv_nb_ksize" : [3, 3, 3],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 3,
+            "conv nb layers" : [2, 2, 2],
+            "conv nb filters" : [32, 64, 128],
+            "conv ksize" : [3, 3, 3],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [600, 600],
+            "including top" : true,
+            "fc nb nodes" : [600, 600],
 
-            "output_dims" : 10,
+            "output dims" : 10,
             "output_activation" : "none",
 
             "debug" : true

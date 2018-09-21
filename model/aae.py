@@ -93,11 +93,11 @@ class AAE(BaseModel):
 		# network config
 		self.discriminator = self.build_discriminator('discriminator', params={
 			'name':'Discriminator',
-			'output_dims':1,
+			"output dims":1,
 			'output_activation':'none'})
 		self.encoder = self.build_encoder('encoder', params={
 			'name':'Encoder',
-			'output_dims':self.z_dim})
+			"output dims":self.z_dim})
 		self.decoder = self.build_decoder('decoder', params={'name':'Decoder'})
 
 		# build model

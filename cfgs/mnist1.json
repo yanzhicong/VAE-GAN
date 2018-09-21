@@ -32,15 +32,15 @@
  
         "classifier" : "VGG",
         "classifier params" : {
-            "no_maxpooling" : true,
+            "no maxpooling" : true,
             "nb_conv_blocks" : 3,
             "nb_conv_layers" : [2, 2, 2],
             "nb_conv_filters" : [16, 32, 64],
 
-            "including_top" : true,
+            "including top" : true,
             "nb_fc_nodes" : [256, 128],
 
-            "output_dims" : 10
+            "output dims" : 10
         }
 
     },

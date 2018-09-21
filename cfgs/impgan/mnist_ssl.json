@@ -52,16 +52,16 @@
             "weightsinit" : "he_uniform special",
 
             "including_bottom" : true,
-            "fc_nb_nodes" : [],
+            "fc nb nodes" : [],
             "fc_output_reshape" : [7, 7, 64],
 
             "including_deconv" : true,
-            "deconv_nb_blocks" : 2,
-            "deconv_nb_layers" : [1, 0],
-            "deconv_nb_filters" : [32, 16],
+            "deconv nb blocks" : 2,
+            "deconv nb layers" : [1, 0],
+            "deconv nb filters" : [32, 16],
             "deconv_ksize" : [5, 5],
             
-            "output_dims" : 1,
+            "output dims" : 1,
             "output_stride" : 2,
             "output_ksize" : 5,
             "output_activation" : "tanh",
@@ -79,31 +79,31 @@
             "normalization" : "fused_batch_norm", //
             // "weightsinit" : "he_uniform special",
 
-            "including_conv" : true,
-            "conv_nb_blocks" : 3,
-            "conv_nb_layers" : [2, 2, 2],
-            "conv_nb_filters" : [32, 64, 128],
-            "conv_nb_ksize" : [3, 3, 3],
-            "no_maxpooling" : true,
+            "including conv" : true,
+            "conv nb blocks" : 3,
+            "conv nb layers" : [2, 2, 2],
+            "conv nb filters" : [32, 64, 128],
+            "conv ksize" : [3, 3, 3],
+            "no maxpooling" : true,
 
-            "including_top" : true,
-            "fc_nb_nodes" : [600, 600],
+            "including top" : true,
+            "fc nb nodes" : [600, 600],
 
-            // "output_dims" : 10,
+            // "output dims" : 10,
             // "output_activation" : "none",
 
 
-            // "including_conv" : true,
-            // "conv_nb_blocks" : 3,
-            // "conv_nb_layers" : [1, 1, 0],
-            // "conv_nb_filters" : [32, 64, 128],
-            // "conv_ksize" : [5, 5, 5],
-            // "no_maxpooling" : true,
+            // "including conv" : true,
+            // "conv nb blocks" : 3,
+            // "conv nb layers" : [1, 1, 0],
+            // "conv nb filters" : [32, 64, 128],
+            // "conv ksize" : [5, 5, 5],
+            // "no maxpooling" : true,
 
-            // "including_top" : true,
-            // "fc_nb_nodes" : [],
+            // "including top" : true,
+            // "fc nb nodes" : [],
 
-            "output_dims" : 11,
+            "output dims" : 11,
             "output_activation" : "none",
             
             // "fc0 weightsinit" : "glorot_uniform special",

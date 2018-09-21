@@ -99,7 +99,7 @@
             "nb_deconv_layers" : [3, 3, 3, 3],
             "nb_deconv_filters" : [256, 128, 64, 32],
             "output_activation" : "sigmoid",
-            "output_dims" : 3
+            "output dims" : 3
         },
 
         "hx y encoder" : "EncoderSimple",

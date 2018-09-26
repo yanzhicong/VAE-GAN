@@ -106,7 +106,18 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		assert(method in ['supervised', 'unsupervised'])
 
 		if not self.mil:
-			return super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
+			if method == 'supervised':
+				image, image_label = super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
+				if self.one_hot:
+					normal = int(1 - np.max(image_label))
+					image_label = [normal, ] + [int(i) for i in image_label]
+					image_label = np.array(image_label)
+				else:
+					image_label = np.array(image_label)
+				return image, image_label
+			else:
+				return super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
+
 
 		if method == 'supervised':
 			image_fp, image_label = self._get_image_path_and_label(ind, phase, method)

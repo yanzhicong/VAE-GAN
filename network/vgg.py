@@ -154,8 +154,6 @@ class VGG(BaseNetwork):
 			return x, self.end_points
 
 
-
-
 	def __load_pretrained_h5py_weights(self, sess, weights_h5_fp):
 		var_list = self.vars
 		var_dict = {var.name.split(':')[0] : var for var in var_list}
@@ -211,7 +209,6 @@ class VGG(BaseNetwork):
 				return True
 			else:
 				return False
-
 		elif pretrained_weights == 'vgg19':
 			weights_h5_fp = self.find_pretrained_weights_path('vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5')
 			if weights_h5_fp is not None:
@@ -219,5 +216,5 @@ class VGG(BaseNetwork):
 				return True
 			else:
 				return False
-
-		return False
+		else:
+			return False

@@ -162,11 +162,11 @@ class DCGAN(BaseModel):
 			sum_list = []
 			sum_list += [tf.summary.histogram('discriminator/'+var.name, var) for var in self.discriminator.vars]
 			sum_list += [tf.summary.histogram('generator/'+var.name, var) for var in self.generator.vars]
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.histogram_summary = tf.summary.merge(sum_list)
 		else:
 			self.d_sum_scalar = None
 			self.g_sum_scalar = None
-			self.sum_hist = None
+			self.histogram_summary = None
 
 	@property
 	def vars(self):
@@ -231,7 +231,7 @@ class DCGAN(BaseModel):
 	'''
 	def summary(self, sess):
 		if self.has_summary:
-			summ = sess.run(self.sum_hist)
+			summ = sess.run(self.histogram_summary)
 			return summ
 		else:
 			return None

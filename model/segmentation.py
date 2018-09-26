@@ -104,12 +104,12 @@ class Segmentation(BaseModel):
 
 			# summary hists are logged by calling self.summary()
 			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.histogram_summary = tf.summary.merge(sum_list)
 
 		else:
 			self.sum_scalar = None
 			self.sum_scalar2 = None
-			self.sum_hist = None
+			self.histogram_summary = None
 
 	'''
 		train operations
@@ -157,7 +157,7 @@ class Segmentation(BaseModel):
 	'''
 	def summary(self, sess):
 		if self.has_summary:
-			summ = sess.run(self.sum_hist)
+			summ = sess.run(self.histogram_summary)
 			return summ
 		else:
 			return None

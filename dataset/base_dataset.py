@@ -42,7 +42,7 @@ class BaseDataset(object):
 		2. mask to colormap and colormap to mask:
 			mask_colormap_decode, mask_colormap_encode
 		3. image resize:
-			flexible_scaling, random_scaling,
+			flexible_scale, random_scale,
 		4. image crop:
 			crop_and_pad_image, random_crop_and_pad_image,
 		5. output scalar rescale:
@@ -55,7 +55,7 @@ class BaseDataset(object):
 		self.shuffle_train = self.config.get('shuffle train', True)
 		self.shuffle_val = self.config.get('shuffle val', False)
 		self.shuffle_test = self.config.get('shuffle test', False)
-		self.scalar_range = self.config.get('scalar range', [0.0, 1.0])
+		self.scalar_range = self.config.get("output scalar range", [0.0, 1.0])
 
 
 	#
@@ -181,7 +181,7 @@ class BaseDataset(object):
 		colored_mask = colored_mask.reshape(list(mask_shape) + [3, ])
 		return colored_mask
 
-	def flexible_scaling(self, img, min_h, min_w, mask=None):
+	def flexible_scale(self, img, min_h, min_w, mask=None):
 		img_h = img.shape[0]
 		img_w = img.shape[1]
 
@@ -202,7 +202,7 @@ class BaseDataset(object):
 			return img
 
 
-	def random_scaling(self, img, minval=0.5, maxval=1.5, mask=None):
+	def random_scale(self, img, minval=0.5, maxval=1.5, mask=None):
 		scale = np.random.uniform(minval, maxval)
 		h = int(img.shape[0])
 		w = int(img.shape[1])
@@ -236,6 +236,30 @@ class BaseDataset(object):
 		else:
 			return img
 
+	def random_rotate(self, img, mask=None):
+
+		eps = np.random.uniform(0.0, 1.0)
+
+		if eps < 0.25:
+			pass
+		elif eps < 0.5:
+			img = np.rot90(img, 1, axes=(0, 1))
+			if mask is not None:
+				mask = np.rot90(mask, 1, axes=(0, 1))
+		elif eps < 0.75:
+			img = np.rot90(img, 2, axes=(0, 1))
+			if mask is not None:
+				mask = np.rot90(mask, 2, axes=(0, 1))
+		else:
+			img = np.rot90(img, 3, axes=(0, 1))
+			if mask is not None:
+				mask = np.rot90(mask, 3, axes=(0, 1))
+
+		if mask is not None:
+			return img, mask
+		else:
+			return img
+
 
 	def crop_and_pad_image(self, img, bbox):
 		""" crop and pad image
@@ -260,7 +284,7 @@ class BaseDataset(object):
 		return imcrop(img, bbox)
 
 
-	def random_crop_and_pad_image(self, img, size, mask=None, center_range=[0.2, 0.8]):
+	def random_crop_and_pad_image(self, img, size, mask=None, in_boundary=False, center_range=[0.2, 0.8]):
 		""" randomly crop and pad image to the given size
 			Arguments : 
 				img : array of shape(h, w, c)
@@ -269,8 +293,6 @@ class BaseDataset(object):
 		"""
 		h, w, c = img.shape
 		crop_w, crop_h = size[0:2]
-
-
 
 		if mask is not None and (mask.shape[0] != h or mask.shape[1] != w):
 			raise ValueError('mask shape error : ', mask.shape)
@@ -290,8 +312,15 @@ class BaseDataset(object):
 
 		x1 = int(center_w - crop_w / 2.0)
 		y1 = int(center_h - crop_h / 2.0)
-		x2 = int(x1 + crop_w)
-		y2 = int(y1 + crop_h)
+
+		if crop_w <= w and crop_h <= h and in_boundary:
+			x1 = np.maximum(0, x1)
+			x1 = np.minimum(w-crop_w, x1)
+			y1 = np.maximum(0, y1)
+			y1 = np.minimum(h-crop_h, y1)
+
+		x2 = int(x1) + crop_w
+		y2 = int(y1) + crop_h
 		bbox = (x1, y1, x2, y2)
 
 		combined_crop = self.crop_and_pad_image(combined, bbox)
@@ -303,16 +332,17 @@ class BaseDataset(object):
 			return img_crop, mask_crop
 		else:
 			return img_crop
-
+sssss
 
 	def scale_output(self, data):
 		""" input data is in range of [0.0, 1.0]
-			this function rescale the data to the range of config parameters "scalar range"
+			this function rescale the data to the range of config parameter "output scalar range"
 		"""
 		if self.scalar_range[0] == 0.0 and self.scalar_range[1] == 1.0:
 			return data
 		else:
 			return data * (self.scalar_range[1] - self.scalar_range[0]) + self.scalar_range[0]
+
 
 	def unscale_output(self, data):
 		""" the reverse function of scale_output
@@ -321,5 +351,3 @@ class BaseDataset(object):
 			return data
 		else:
 			return (data - self.scalar_range[0]) / (self.scalar_range[1] - self.scalar_range[0]) 
-
-

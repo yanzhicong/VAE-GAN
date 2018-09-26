@@ -4,7 +4,7 @@
     "dataset" : "cifar10",
     "dataset params" : {
         "output_shape" : [32, 32, 3],
-        "scalar range" : [-1.0, 1.0]
+        "output scalar range" : [-1.0, 1.0]
     },
 
     "assets dir" : "assets/wgan_gp/wgan_gp5",
@@ -103,7 +103,7 @@
                     "log dir" : "generated_lr_0_0001",
                     "z shape" : [100],
                     "x shape" : [32, 32, 3],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
                 }

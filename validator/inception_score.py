@@ -109,7 +109,7 @@ class InceptionScore(BaseValidator):
 		self.nb_samples = config.get('num_samples', 100)
 		self.z_shape = config['z shape']
 		self.rounds = config.get('rounds', 10)
-		self.scalar_range = config.get('scalar range', [0.0, 1.0])		# the output range of generative model,
+		self.scalar_range = config.get("output scalar range", [0.0, 1.0])		# the output range of generative model,
 																		# for sigmoid activation model is [0.0, 1.0],
 																		# and for tanh activation model is [-1.0, 1.0]
 		self.softmax = _init_inception()

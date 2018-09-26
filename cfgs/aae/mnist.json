@@ -4,7 +4,7 @@
     "dataset" : "mnist",
     "dataset params" : {
         "output shape" : [28, 28, 1],
-        "scalar range" : [-1, 1]
+        "output scalar range" : [-1, 1]
     },
 
     "assets dir" : "assets/aae/mnist6",

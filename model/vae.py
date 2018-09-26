@@ -122,10 +122,10 @@ class VAE(BaseModel):
 			sum_list = []
 			sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
 			sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.histogram_summary = tf.summary.merge(sum_list)
 		else:
 			self.sum_scalar = None
-			self.sum_hist = None
+			self.histogram_summary = None
 
 	@property
 	def vars(self):
@@ -173,7 +173,7 @@ class VAE(BaseModel):
 
 	def summary(self, sess):
 		if self.has_summary:
-			sum = sess.run(self.sum_hist)
+			sum = sess.run(self.histogram_summary)
 			return sum
 		else:
 			return None

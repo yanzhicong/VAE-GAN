@@ -1,0 +1,78 @@
+{
+    "config name" : "guangdong_defect_classification",
+
+    "dataset" : "tianchi guangdong defect",
+    "dataset params" : {
+        "output shape" : [256, 256, 3],
+        "one hot" : true,
+        "mil" : false,
+        "show warning" : false
+    },
+
+    "assets dir" : "assets/tianchi_guangdong/result4",
+
+    "model" : "classification",
+    "model params" : {
+        "name" : "tianchi",
+
+        "input shape" : [256, 256, 3],
+        "nb classes" : 12,
+
+        "optimizer" : "adam",
+        "optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 70000,
+                "decay_rate" : 0.1
+            }
+        },
+
+        "summary" : true,
+
+        "classifier" : "classifier",
+        "classifier params" : {
+            "normalization" : "fused_batch_norm",
+
+            "including conv" : true,
+            "conv nb blocks" : 6,
+            "conv nb layers" : [2, 2, 3, 3, 3, 0],
+            "conv nb filters" : [64, 128, 256, 512, 512],
+            "conv ksize" : [3, 3, 3, 3, 3],
+
+            "including top" : true,
+            "fc nb nodes" : [1024, 1024],
+
+            "load pretrained weights" : "vgg16",
+
+            "debug" : true
+        }
+    },
+
+    "trainer" : "supervised",
+    "trainer params" : {
+        "summary hyperparams string" : "lr_0_0001_adam",
+
+        "batch_size" : 8,
+
+        "train steps" : 150000,
+        "summary steps" : 1000,
+        "log steps" : 500,
+        "save checkpoint steps" : 10000,
+
+        "validators" : [
+            {
+                "validator" : "dataset_validator",
+                "validate steps" : 2000,
+                "validator params" : {
+                    "metric" : "accuracy",
+                    "metric type" : "top1",
+                    "nb samples" : 200,
+                    "batch_size" : 8,
+                    "mil" : false
+                }
+            }
+        ]
+    }
+}
+

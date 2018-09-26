@@ -154,9 +154,9 @@ class AAE(BaseModel):
 			sum_list += [tf.summary.histogram('discriminator/'+var.name, var) for var in self.discriminator.vars]
 			sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.encoder.vars]
 			sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.histogram_summary = tf.summary.merge(sum_list)
 		else:
-			self.sum_hist = None
+			self.histogram_summary = None
 
 	#
 	#	train operations

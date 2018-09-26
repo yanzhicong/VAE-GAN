@@ -4,7 +4,7 @@
     "dataset" : "cifar10",
     "dataset params" : {
         "output shape" : [32, 32, 3],
-        "scalar range" : [-1, 1]
+        "output scalar range" : [-1, 1]
     },
 
     "assets dir" : "assets/aae/cifar10",
@@ -149,7 +149,7 @@
                     "x shape" : [32, 32, 3],
                     "dim x" : 0,
                     "dim y" : 1,
-                    "scalar range" : [-1, 1]
+                    "output scalar range" : [-1, 1]
                 }
             }
         ]

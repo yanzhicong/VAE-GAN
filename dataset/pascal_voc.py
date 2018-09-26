@@ -127,9 +127,9 @@ class PASCAL_VOC(BaseDataset):
 
 		self.batch_size = int(config.get('batch_size', 128))
 
-		self.is_random_scaling = config.get('random scaling', True)
-		self.is_random_mirroring = config.get('random mirroring', True)
-		self.is_random_cropping = config.get('random cropping', True)
+		self.is_random_scaling = config.get("random scale", True)
+		self.is_random_mirroring = config.get("random mirror", True)
+		self.is_random_cropping = config.get("random crop", True)
 		self.scaling_range = config.get('scaling range', [0.5, 1.5])
 		self.crop_range = self.config.get('crop range', [0.1, 0.9])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
@@ -325,7 +325,7 @@ class PASCAL_VOC(BaseDataset):
 
 				if phase == 'train':
 					if self.is_random_scaling:
-						img, mask = self.random_scaling(img, mask=mask, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+						img, mask = self.random_scale(img, mask=mask, minval=self.scaling_range[0], maxval=self.scaling_range[1])
 					if self.is_random_mirroring:
 						img, mask = self.random_mirroring(img, mask=mask)
 					if self.is_random_cropping:
@@ -333,7 +333,7 @@ class PASCAL_VOC(BaseDataset):
 				elif phase == 'val':
 					if self.is_random_scaling:
 						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-						img, mask = self.random_scaling(img, mask=mask, minval=scale, maxval=scale)
+						img, mask = self.random_scale(img, mask=mask, minval=scale, maxval=scale)
 
 				img = img.astype(np.float32) / 255.0
 				mask_onehot = self.to_categorical(mask, self.nb_classes)
@@ -352,7 +352,7 @@ class PASCAL_VOC(BaseDataset):
 
 				if phase == 'train':
 					if self.is_random_scaling:
-						img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+						img = self.random_scale(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
 					if self.is_random_mirroring:
 						img = self.random_mirroring(img)
 					if self.is_random_cropping:
@@ -360,7 +360,7 @@ class PASCAL_VOC(BaseDataset):
 				elif phase == 'val' or phase == 'test':
 					if self.is_random_scaling:
 						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-						img = self.random_scaling(img, minval=scale, maxval=scale)
+						img = self.random_scale(img, minval=scale, maxval=scale)
 				img = img.astype(np.float32) / 255.0
 				return img, label
 			else:	
@@ -394,7 +394,7 @@ class PASCAL_VOC(BaseDataset):
 				img = io.imread(image_filepath)
 				if phase == 'train':
 					if self.is_random_scaling:
-						img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+						img = self.random_scale(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
 					if self.is_random_mirroring:
 						img = self.random_mirroring(img)
 					if self.is_random_cropping:
@@ -402,7 +402,7 @@ class PASCAL_VOC(BaseDataset):
 				elif phase == 'val' or phase == 'test':
 					if self.is_random_scaling:
 						scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-						img = self.random_scaling(img, minval=scale, maxval=scale)
+						img = self.random_scale(img, minval=scale, maxval=scale)
 				img = img.astype(np.float32) / 255.0
 				return img
 			else:

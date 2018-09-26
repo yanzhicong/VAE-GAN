@@ -130,7 +130,7 @@ class CVAE2(BaseModel):
 		sum_list = []
 		sum_list += [tf.summary.histogram('encoder/'+var.name, var) for var in self.x_encoder.vars + self.y_encoder.vars]
 		sum_list += [tf.summary.histogram('decoder/'+var.name, var) for var in self.decoder.vars]
-		self.sum_hist = tf.summary.merge(sum_list)
+		self.histogram_summary = tf.summary.merge(sum_list)
 
 	'''
 		train operations
@@ -179,7 +179,7 @@ class CVAE2(BaseModel):
 	'''
 	def summary(self, sess):
 		if self.has_summary:
-			sum = sess.run(self.sum_hist)
+			sum = sess.run(self.histogram_summary)
 			return sum
 		else:
 			return None

@@ -4,7 +4,7 @@
     "dataset" : "mnist",
     "dataset params" : {
         "output_shape" : [28, 28, 1],
-        "scalar range" : [-1.0, 1.0]
+        "output scalar range" : [-1.0, 1.0]
     },
 
     "assets dir" : "assets/dcgan/mnist",
@@ -109,7 +109,7 @@
                     "log dir" : "generated_adam_z_50",
                     "z shape" : [50],
                     "x shape" : [28, 28, 1],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
                 }
@@ -121,7 +121,7 @@
                     "log dir" : "generated_adam_fixed_z_50",
                     "z shape" : [50],
                     "x shape" : [28, 28, 1],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8,
                     "fix z" : true

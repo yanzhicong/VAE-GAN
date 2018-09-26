@@ -7,7 +7,7 @@
         "nb_labelled_images_per_class" : 2,
         "output shape" : [28, 28, 1],
         "batch_size" : 128,
-        "scalar range" : [-1, 1]
+        "output scalar range" : [-1, 1]
     },
 
     "assets dir" : "assets/aae_ssl/mnist4",
@@ -170,7 +170,7 @@
                     "dim x" : 0,
                     "dim y" : 1,
                     "nb classes" : 10,
-                    "scalar range" : [-1, 1]
+                    "output scalar range" : [-1, 1]
                 }
             },
             {

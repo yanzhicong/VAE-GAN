@@ -227,10 +227,10 @@ class AttentionMIL(BaseModel):
 			if self.mil_pooling == 'attention':
 				sum_list += self.attention_net.histogram_summary_list
 			sum_list += self.classifier.histogram_summary_list
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.histogram_summary = tf.summary.merge(sum_list)
 		else:
 			self.endpoints_sum = None
-			self.sum_hist = None
+			self.histogram_summary = None
 
 
 	def load_pretrained_weights(self, sess):

@@ -38,7 +38,7 @@ from .base_validator import BaseValidator
 class HiddenVariable(BaseValidator):
 	"""
 	"""
-	
+
 	def __init__(self, config):
 		"""plot the function x = f(z) to a grid
 		"""
@@ -49,7 +49,7 @@ class HiddenVariable(BaseValidator):
 		self.assets_dir = config['assets dir']
 		self.dim_x = config.get('dim x', 0)  # the x axis of plot grid is z[0]
 		self.dim_y = config.get('dim y', 1)	 # the y axis of plot grid is z[1]
-		self.scalar_range = config.get('scalar range', [0, 1])
+		self.scalar_range = config.get("output scalar range", [0, 1])
 
 		# if nb_classes == 0, then we plot the function x=f(z)
 		# else if nb_classes != 0, then we plot the function x=f(z,y), where nb_classes is the dim of y

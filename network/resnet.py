@@ -196,5 +196,4 @@ class Resnet(BaseNetwork):
 				else:
 					x = self.conv2d('conv_out', x, output_dims, 1, stride=1, **self.out_fc_args, disp=self.debug)
 
-
 			return x, self.end_points

@@ -31,12 +31,6 @@ import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 import numpy as np
 
-
-from classifier.classifier import get_classifier
-
-
-from utils.optimizer import get_optimizer
-from utils.optimizer import get_optimizer_by_config
 from utils.loss import get_loss
 from utils.metric import get_metric
 
@@ -48,9 +42,13 @@ class Classification(BaseModel):
 	def __init__(self, config):
 		super(Classification, self).__init__(config)
 
-		self.input_shape = config['input shape']
-		self.nb_classes = config['nb classes']
 		self.config = config
+		self.input_shape = self.config['input shape']
+		self.nb_classes = self.config['nb classes']
+
+		self.finetune_steps = int(self.config.get('finetune steps', 0))
+		self.has_endpoint_summary = self.config.get("has endpoint summary", True)
+		self.endpoint_summary_steps = self.config.get("endpoint summary steps", 1000)
 		
 		self.build_model()
 		self.build_summary()
@@ -68,12 +66,10 @@ class Classification(BaseModel):
 
 		self.loss = get_loss('classification', self.config['classification loss'], 
 						{'logits' : self.logits, 'labels' : self.label})
-		self.train_acc = get_metric('accuracy', 'top1', 
-						{'logits': self.logits, 'labels':self.label})
+		self.train_acc = tf.summary.scalar('train acc', get_metric('accuracy', 'top1', 
+						{'logits': self.logits, 'labels':self.label}))
 
 		# for testing
-		# self.test_x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='test_x_input')
-		# self.test_logits = self.classifier(self.test_x)
 		self.probs = tf.nn.softmax(self.logits)
 		
 		# print('vars')
@@ -86,31 +82,32 @@ class Classification(BaseModel):
 
 		self.global_step, self.global_step_update = self._build_step_var('global_step')
 	
-		self.train_classifier, self.learning_rate = self._build_train_function('optimizer', self.loss, self.classifier.vars, 
-						step=self.global_step, step_update=self.global_step_update)
+		if self.finetune_steps > 0:
+			self.finetune_classifier, _ = self._build_train_function('finetune', self.loss, self.classifier.top_vars, 
+						step=self.global_step, step_update=self.global_step_update, 
+						build_summary=self.has_summary, sum_list=[self.train_acc,])
+	
+		self.train_classifier, _ = self._build_train_function('optimizer', self.loss, self.classifier.vars, 
+						step=self.global_step, step_update=self.global_step_update, 
+						build_summary=self.has_summary, sum_list=[self.train_acc,])
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])
 
+
 	def build_summary(self):
 		if self.has_summary:
-			# summary scalars are logged per step
-			sum_list = []
-			sum_list.append(tf.summary.scalar('lr', self.learning_rate))
-			sum_list.append(tf.summary.scalar('train loss', self.loss))
-			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
-			self.sum_scalar = tf.summary.merge(sum_list)
+			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
+			self.histogram_summary = tf.summary.merge(sum_list)
+		else:
+			self.histogram_summary = None
 
+		if self.has_endpoint_summary:
+			sum_list = []
 			for key, var in self.end_points.items():
 				sum_list.append(tf.summary.histogram('netout/' + key, var))
-			self.sum_scalar2 = tf.summary.merge(sum_list)
-
-			# summary hists are logged by calling self.summary()
-			sum_list = [tf.summary.histogram(var.name, var) for var in self.classifier.store_vars]
-			self.sum_hist = tf.summary.merge(sum_list)
+			self.endpoint_summary = tf.summary.merge(sum_list)
 		else:
-			self.sum_scalar = None
-			self.sum_scalar2 = None
-			self.sum_hist = None
+			self.endpoint_summary = None
 
 	'''
 		train operations
@@ -124,10 +121,16 @@ class Classification(BaseModel):
 
 		step = sess.run([self.global_step])[0]
 
-		if step % 100 == 0:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar2)
+		if step < self.finetune_steps:
+			if self.has_endpoint_summary and step % self.endpoint_summary_steps == 0:
+				return self.finetune_classifier(sess, feed_dict, summary=self.endpoint_summary)
+			else:
+				return self.finetune_classifier(sess, feed_dict)
 		else:
-			return self.train_classifier(sess, feed_dict, summary=self.sum_scalar)
+			if self.has_endpoint_summary and step % self.endpoint_summary_steps == 0:
+				return self.train_classifier(sess, feed_dict, summary=self.endpoint_summary)
+			else:
+				return self.train_classifier(sess, feed_dict)
 
 
 	def train_on_batch_unsupervised(self, sess, x_batch):
@@ -160,14 +163,3 @@ class Classification(BaseModel):
 		if isinstance(feature_name, str):
 			features = features[0]
 		return features
-
-	'''
-		summary operations
-
-	'''
-	def summary(self, sess):
-		if self.has_summary:
-			sum = sess.run(self.sum_hist)
-			return sum
-		else:
-			return None

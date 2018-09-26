@@ -31,7 +31,7 @@ class BaseModel(object):
 
 		self.global_step = None
 		self.learning_rate = None
-		self.sum_hist = None
+		self.histogram_summary = None
 		self.saver = None
 
 
@@ -123,8 +123,8 @@ class BaseModel(object):
 		If there is	no summary needed or you want to skip logging summary for speed, please return 
 		None in the derived	function.
 		"""
-		if self.sum_hist is not None:
-			summ = sess.run(self.sum_hist)
+		if self.histogram_summary is not None:
+			summ = sess.run(self.histogram_summary)
 			return summ
 		else:
 			return None

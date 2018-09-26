@@ -4,7 +4,7 @@
     "dataset" : "celeba",
     "dataset params" : {
         "output shape" : [64, 64, 3],
-        "scalar range" : [-1.0, 1.0],
+        "output scalar range" : [-1.0, 1.0],
         "unsupervised" : true
     },
 
@@ -112,7 +112,7 @@
                     "log dir" : "generated_lr_0_0001",
                     "z shape" : [100],
                     "x shape" : [64, 64, 3],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8
                 }
@@ -124,7 +124,7 @@
                     "log dir" : "generated_lr_0_0001_fixed",
                     "z shape" : [100],
                     "x shape" : [64, 64, 3],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb row" : 8,
                     "nb col" : 8,
                     "fix z" : true

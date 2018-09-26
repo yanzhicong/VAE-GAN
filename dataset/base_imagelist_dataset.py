@@ -38,10 +38,10 @@ class BaseImageListDataset(BaseDataset):
 
 	Optional params in @params.config:
 		'flexible scaling' : if set to True, the image will be resize to just fit the output shape, while keeping w/h ratio the same
-		'random scaling' : if set to True, the image will be randomly resized after flexible scaling
-		'random mirroring' : 
-		'random cropping' : 
-		''
+		"random scale" : if set to True, the image will be randomly resized after flexible scaling
+		"random mirror" : 
+		"random crop" : 
+		"random rotate" : 
 	"""
 
 	def __init__(self, config):
@@ -52,9 +52,10 @@ class BaseImageListDataset(BaseDataset):
 		assert('output shape' in config)
 
 		self.is_flexible_scaling = self.config.get('flexible scaling', True)
-		self.is_random_scaling = self.config.get('random scaling', True)
-		self.is_random_mirroring = self.config.get('random mirroring', True)
-		self.is_random_cropping = self.config.get('random cropping', True)
+		self.is_random_scaling = self.config.get("random scale", True)
+		self.is_random_mirroring = self.config.get("random mirror", True)
+		self.is_random_cropping = self.config.get("random crop", True)
+		self.is_random_rotate = self.config.get("random rotate", True)
 		self.scaling_range = self.config.get('scaling range', [1.0, 1.5])
 		self.crop_range = self.config.get('crop range', [0.4, 0.6])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)
@@ -71,7 +72,7 @@ class BaseImageListDataset(BaseDataset):
 		self.show_warning = self.config.get('show warning', False)
 		assert(self.output_c in [1, 3])
 
-		# please fill in the following field in the drived dataset class
+		# please fill the following field in the drived dataset class
 		self._dataset_dir = None
 		self.train_imagelist_fp = None      # the txt file which contains the list of images and labels
 		self.val_imagelist_fp = None        # for example:(if self.multiple_categories)
@@ -86,6 +87,7 @@ class BaseImageListDataset(BaseDataset):
 											# line 2 : image1.jpg,1
 											# line 3 : image2.jpg,3  ->  the class_index
 											# line 4 : image3.jpg,0  ->  the class_index
+		self.nb_classes = None
 		self.multiple_categories = False
 
 
@@ -96,7 +98,6 @@ class BaseImageListDataset(BaseDataset):
 		self.train_images, self.train_labels = self.read_imagelist(self.train_imagelist_fp)
 		self.val_images, self.val_labels = self.read_imagelist(self.val_imagelist_fp)
 
-
 		print('nb train images : ', len(self.train_images))
 		print('nb val images : ', len(self.val_images))
 		if self.test_imagelist_fp != None:
@@ -104,8 +105,6 @@ class BaseImageListDataset(BaseDataset):
 			print('nb test_images : ', len(self.test_images))
 
 
-
-	
 	def read_imagelist(self, filename, has_label=True):
 		image_list = []
 		label_list = []
@@ -116,8 +115,7 @@ class BaseImageListDataset(BaseDataset):
 				for ind, line in enumerate(infile):
 					if ind == 0:
 						head_split = line[:-1].split(',')
-						class_head_list = head_split[1:],
-						# self.nb_classes = len(class_head_list)
+						class_head_list = head_split[1:]
 					else:
 						split = line[:-1].split(',')
 						image_fp = split[0]
@@ -139,12 +137,11 @@ class BaseImageListDataset(BaseDataset):
 						if has_label:
 							label = np.array([int(i) for i in split[1:]])
 							label_list.append(label)
-				# self.nb_classes = int(np.max(label_list) + 1)
-
 		if has_label:
 			return image_list, np.array(label_list)
 		else:
 			return image_list
+
 
 	def get_image_indices(self, phase='train', method='supervised'):
 		assert(phase in ['train', 'test', 'val', 'trainval'])
@@ -170,7 +167,6 @@ class BaseImageListDataset(BaseDataset):
 				np.random.shuffle(indices)
 			return indices
 
-	
 	def _get_image_path_and_label(self, ind, phase='train', method='supervised'):
 		# get image path and label
 		if phase == 'train':
@@ -207,7 +203,6 @@ class BaseImageListDataset(BaseDataset):
 		1. the argument image_fp is just for debugging.
 		2. for some image file has multiple images and with shape of [num, height, width, channel],
 		this function will return the first image and discard others.
-
 		"""
 		if img is None:
 			if self.show_warning:
@@ -215,7 +210,7 @@ class BaseImageListDataset(BaseDataset):
 			return None
 
 		if img.ndim == 4:
-			img = img[0]
+			img = img[0]		# take the first image and discard others
 
 		if img.ndim != 2 and img.ndim != 3:
 			if self.show_warning:
@@ -223,8 +218,8 @@ class BaseImageListDataset(BaseDataset):
 			return None
 
 		if self.output_c == 3:
-			if img.ndim == 2:   						# in case of single channel image
-				img = cv2.merge([img, img, img])
+			if img.ndim == 2:   						
+				img = cv2.merge([img, img, img])	# in case of single channel image
 			elif img.ndim == 3 and img.shape[2] == 1:
 				img = cv2.merge([img[:,:,0], img[:,:,0], img[:,:,0]])
 			elif img.ndim == 3 and img.shape[2] == 4:
@@ -247,6 +242,7 @@ class BaseImageListDataset(BaseDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
+		# read image
 		try:
 			img = io.imread(image_fp)
 			img = self._image_correct(img, image_fp)
@@ -261,26 +257,28 @@ class BaseImageListDataset(BaseDataset):
 		# preeprocess image and label
 		if phase in ['train', 'trainval']:
 			if self.is_flexible_scaling:
-				img = self.flexible_scaling(img, min_h=self.output_h, min_w=self.output_w)
+				img = self.flexible_scale(img, min_h=self.output_h, min_w=self.output_w)
 			if self.is_random_scaling:
-				img = self.random_scaling(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
+				img = self.random_scale(img, minval=self.scaling_range[0], maxval=self.scaling_range[1])
 			if self.is_random_mirroring:
 				img = self.random_mirroring(img)
+			if self.is_random_rotate:
+				img = self.random_rotate(img)
 
-		elif phase in ['val']:
+		elif phase in ['val', 'test']:
 			if self.is_flexible_scaling:
-				img = self.flexible_scaling(img, min_h=self.output_h, min_w=self.output_w)
+				img = self.flexible_scale(img, min_h=self.output_h, min_w=self.output_w)
 			if self.is_random_scaling:
 				scale = (self.scaling_range[0] + self.scaling_range[1]) / 2
-				img = self.random_scaling(img, minval=scale, maxval=scale)
+				img = self.random_scale(img, minval=scale, maxval=scale)
 
 		if not self.multiple_categories:
 			image_label = self.to_categorical(int(image_label), self.nb_classes)
 
 		if phase in ['train', 'trainval']:
-			img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=self.crop_range)
-		elif phase in ['val']:
-			img = self.random_crop_and_pad_image(img, size=self.output_shape, center_range=[0.5,0.5])
+			img = self.random_crop_and_pad_image(img, size=self.output_shape, in_boundary=True, center_range=self.crop_range)
+		elif phase in ['val', 'test']:
+			img = self.random_crop_and_pad_image(img, size=self.output_shape, in_boundary=True, center_range=[0.5,0.5])
 
 		img = self.scale_output(img)
 

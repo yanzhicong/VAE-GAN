@@ -6,7 +6,7 @@
         "semi-supervised" : true,
         "nb_labelled_images_per_class" : 100,
         "output shape" : [32, 32, 3],
-        "scalar range" : [-1, 1]
+        "output scalar range" : [-1, 1]
     },
 
     "assets dir" : "assets/aae_ssl/cifar10_5",
@@ -182,7 +182,7 @@
                     "dim x" : 0,
                     "dim y" : 1,
                     "nb classes" : 10,
-                    "scalar range" : [-1, 1]
+                    "output scalar range" : [-1, 1]
                 }
             },
             {
@@ -192,7 +192,7 @@
                     "log dir" : "generated",
                     "z shape" : [50],
                     "x shape" : [32, 32, 3],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb classes" : 10
                 }
             },
@@ -203,7 +203,7 @@
                     "log dir" : "generated_fix",
                     "z shape" : [50],
                     "x shape" : [32, 32, 3],
-                    "scalar range" : [-1.0, 1.0],
+                    "output scalar range" : [-1.0, 1.0],
                     "nb classes" : 10,
                     "fixed" : true
                 }

@@ -40,7 +40,7 @@ class RandomGenerate(BaseValidator):
 	Optional parameters in @params.config:
 		'z shape', 'x shape' : 
 		'nb col', 'nb row' : 
-		'scalar range' : 
+		"output scalar range" : 
 		'fix z' : 
 		'nb classes' : 
 	"""
@@ -58,7 +58,7 @@ class RandomGenerate(BaseValidator):
 		self.nb_col_images = int(config.get('nb col', 8))
 		self.nb_row_images = int(config.get('nb row', 8))
 
-		self.scalar_range = config.get('scalar range', [0.0, 1.0])
+		self.scalar_range = config.get("output scalar range", [0.0, 1.0])
 
 		self.fix_z = config.get('fix z', False)
 

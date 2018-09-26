@@ -69,13 +69,14 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			raise Exception("TianChiGuangdongDectect Dataset : the dataset dir is not exists")
 
 		self.stage = self.config.get('stage', 'stage1')
+		self.mil = self.config.get('mil', True)
 		self.one_hot = self.config.get('one hot', False)
 		self.area_height = self.config.get('area height', 256)
 		self.random_dropout_images_in_train = self.config.get('random dropout images in train', True)
 		assert self.stage in ['stage1']
 
 		if self.one_hot:
-			self.nb_classes = 12
+			self.nb_classes = 12		# class 0 is normal class, and other classes is defect class
 		else:
 			self.nb_classes = 11
 
@@ -104,6 +105,9 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		assert(phase in ['train', 'test', 'val', 'trainval'])
 		assert(method in ['supervised', 'unsupervised'])
 
+		if not self.mil:
+			return super(TianChiGuangdongDefect, self).read_image_by_index(ind, phase, method)
+
 		if method == 'supervised':
 			image_fp, image_label = self._get_image_path_and_label(ind, phase, method)
 		else:
@@ -118,7 +122,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			return None, None if method == 'supervised' else None
 
 		if img is None:
-			return None, None if method == 'supervised' else None 
+			return None, None if method == 'supervised' else None
 
 		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
 		area_img = self.crop_and_reshape_image_area(img, area, fixed_height=self.area_height)
@@ -133,7 +137,6 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			nb_samples = np.maximum(int(len(image_bag) * 0.5), 1)
 			indices = np.random.choice(indices, size=nb_samples, replace=False)
 			image_bag = [image_bag[i] for i in indices]
-
 
 		image_bag = np.array(image_bag)
 

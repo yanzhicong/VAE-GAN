@@ -16,7 +16,7 @@ if __name__ == '__main__':
 
 	config = {
 		"output shape" : [256, 256, 3],
-        "scalar range" : [0, 1]
+        "output scalar range" : [0, 1]
 	}
 
 

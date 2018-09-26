@@ -51,7 +51,7 @@ class ChipProduction(BaseDataset):
 		self.subapp_list = [u'SI-XGA-B-BLand2-WX163L2CxxV02', u'SI-RT-DUMMY', u'SI-LT-DUMMY']
 		self.output_subapp_list = ['composed']
 
-		self.scalar_range = config.get('scalar range', [0.0, 1.0])
+		self.scalar_range = config.get("output scalar range", [0.0, 1.0])
 
 		self.crop_range = self.config.get('crop range', [0.1, 0.9])
 		self.crop_range_hor = self.config.get('horizontal crop range', self.crop_range)

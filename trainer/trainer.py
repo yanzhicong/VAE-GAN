@@ -27,7 +27,7 @@
 
 def get_trainer(name, config, model, sess):
 
-    if name == 'superivsed':
+    if name == 'supervised':
         from .supervised import SupervisedTrainer
         return SupervisedTrainer(config, model, sess)
 

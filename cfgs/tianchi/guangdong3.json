@@ -55,6 +55,9 @@
     "trainer params" : {
         "summary hyperparams string" : "lr_0_0001_adam",
 
+        "multi thread" : true,
+        "buffer depth" : 50,
+        "nb threads" : 8,
         "batch_size" : 8,
 
         "train steps" : 150000,

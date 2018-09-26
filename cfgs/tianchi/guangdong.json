@@ -98,6 +98,8 @@
     "trainer params" : {
         "summary hyperparams string" : "lr_0_0001_adam",
 
+    
+
         "train steps" : 150000,
         "summary steps" : 1000,
         "log steps" : 500,

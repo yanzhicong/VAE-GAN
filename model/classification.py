@@ -55,8 +55,10 @@ class Classification(BaseModel):
 
 	def build_model(self):
 
-		self.config['classifier params']['name'] = 'classifier'
-		self.classifier = self._build_classifier('classifier')
+		self.classifier = self._build_classifier('classifier', params={
+			'name' : 'classifier',
+			'output dims' : self.nb_classes
+		})
 
 		# for training
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')

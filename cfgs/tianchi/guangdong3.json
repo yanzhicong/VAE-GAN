@@ -28,6 +28,8 @@
             }
         },
 
+        "classification loss" : "cross entropy",
+
         "summary" : true,
 
         "classifier" : "classifier",

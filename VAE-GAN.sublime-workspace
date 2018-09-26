@@ -255,7 +255,6 @@
 			"settings":
 			{
 				"buffer_size": 2551,
-				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
 		},
@@ -649,7 +648,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 97.0,
+						"translation.y": 292.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,

@@ -24,10 +24,11 @@
 
 import os
 import sys
-
 sys.path.append('./')
 sys.path.append('../')
+from time import *
 
+import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.layers as tcl
 
@@ -109,7 +110,7 @@ class VGG(BaseNetwork):
 				for block_ind in range(conv_nb_blocks):
 					for layer_ind in range(conv_nb_layers[block_ind]):
 
-						conv_layer_name = 'conv%d_%d'%(block_ind+1, layer_ind)
+						conv_layer_name = 'conv%d_%d'%(block_ind+1, layer_ind+1)
 						maxpool_layer_name = 'maxpool%d'%(block_ind+1)
 
 						# construct a downsample layer in the end of each blocks except the last block
@@ -153,14 +154,70 @@ class VGG(BaseNetwork):
 			return x, self.end_points
 
 
-	def load_pretrained_weights(self):
-		print("load pretrained weights")
 
-		pretrained_weights = self.config.get('load pretrained weights', 'vgg16')
 
+	def __load_pretrained_h5py_weights(self, sess, weights_h5_fp):
+		var_list = self.vars
+		var_dict = {var.name.split(':')[0] : var for var in var_list}
+		import h5py
+		f = h5py.File(weights_h5_fp, mode='r')
+		if 'layer_names' not in f.attrs and 'model_weights' in f:
+			f = f['model_weights']
+		assign_list = []
+
+		for key, value in f.items():
+			if 'block' in key and 'conv' in key:
+				block_ind = 0
+				conv_ind = 0
+				for split in key.split('_'):
+					if split.startswith('block'):
+						block_ind = int(split[len('block'):])
+					elif split.startswith('conv'):
+						conv_ind = int(split[len('conv'):])
+				for key2, value2 in value.items():
+					if '_W_' in key2:
+						var_name = self.name + '/conv%d_%d/kernel'%(block_ind, conv_ind)
+						assign_value = np.array(value2)
+						assign_shape = assign_value.shape
+						var_shape = var_dict[var_name].get_shape()
+						assert(int(var_shape[2]) <= assign_shape[2])
+						assert(int(var_shape[3]) <= assign_shape[3])
+						if int(var_shape[2]) < assign_shape[2]:
+							assign_value = assign_value[:, :, 0:int(var_shape[2]), :]
+						if int(var_shape[3]) < assign_shape[3]:
+							assign_value = assign_value[:, :, :, 0:int(var_shape[3])]
+					elif '_b_' in key2:
+						var_name = self.name + '/conv%d_%d/bias'%(block_ind, conv_ind)
+						assign_value = np.array(value2)
+						assign_shape = assign_value.shape
+						var_shape = var_dict[var_name].get_shape()
+						assert(int(var_shape[0]) <= assign_shape[0])
+						if int(var_shape[0]) < assign_shape[0]:
+							assign_value = assign_value[0:int(var_shape[0])]
+					else:
+						continue
+
+					assign_list.append(tf.assign(var_dict[var_name], assign_value))
+
+		assign_op = tf.group(assign_list)
+		sess.run(assign_op)
+
+	def load_pretrained_weights(self, sess):
+		pretrained_weights = self.config.get('load pretrained weights', '')
 		if pretrained_weights == 'vgg16':
-			weights_h5_fp = self.find_pretrained_weights_path('vgg16_weights_tf_dim_ordering_tf_kernels.h5')
+			weights_h5_fp = self.find_pretrained_weights_path('vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5')
+			if weights_h5_fp is not None:
+				self.__load_pretrained_h5py_weights(sess, weights_h5_fp)
+				return True
+			else:
+				return False
 
-			print(weights_h5_fp)
+		elif pretrained_weights == 'vgg19':
+			weights_h5_fp = self.find_pretrained_weights_path('vgg19_weights_tf_dim_ordering_tf_kernels_notop.h5')
+			if weights_h5_fp is not None:
+				self.__load_pretrained_h5py_weights(sess, weights_h5_fp)
+				return True
+			else:
+				return False
 
-
+		return False

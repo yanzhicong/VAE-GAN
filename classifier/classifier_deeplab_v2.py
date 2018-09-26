@@ -52,10 +52,10 @@ class Deeplab_v2(BaseNetwork):
 		self.build_network()
 
 	def build_network(self):
-		self.encoding = self.build_encoder()
-		self.outputs = self.build_decoder(self.encoding)
+		self.encoding = self._build_encoder()
+		self.outputs = self._build_decoder(self.encoding)
 
-	def build_encoder(self):
+	def _build_encoder(self):
 		print("-----------build encoder: deeplab pre-trained-----------")
 		outputs = self._start_block()
 		print("after start block:", outputs.shape)
@@ -77,7 +77,7 @@ class Deeplab_v2(BaseNetwork):
 		print("after block4:", outputs.shape)
 		return outputs
 
-	def build_decoder(self, encoding):
+	def _build_decoder(self, encoding):
 		print("-----------build decoder-----------")
 		outputs = self._ASPP(encoding, self.num_classes, [6, 12, 18, 24])
 		print("after aspp block:", outputs.shape)

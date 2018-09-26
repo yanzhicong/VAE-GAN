@@ -56,3 +56,6 @@ class ClassifierSimple(BaseNetwork):
 	def features(self, i):
 		x, end_points = self.network(i)
 		return x, end_points
+
+	def load_pretrained_weights(self, sess):
+		return self.network.load_pretrained_weights(sess)

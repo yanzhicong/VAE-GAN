@@ -124,17 +124,20 @@ class BaseTrainer(object):
 		self.sess = sess
 		sess.run(tf.global_variables_initializer())
 		sess.run(tf.local_variables_initializer())
-		if self.config.get('continue train', False):
-			if model.checkpoint_load(sess, self.load_checkpoint_dir):
-				print("Continue Train...")
+		if self.config.get('continue train', False) and model.load_checkpoint(sess, self.load_checkpoint_dir):
+			print("Load Checkpoint Success, Continue Train...")
+		else:
+			print("Load Pre-trained Weight... ")
+			if model.load_pretrained_weights(sess):
+				print("Success")
 			else:
-				print("Load Checkpoint Failed")
+				print("Failed")
 
 
 
 	def train_inner_step(self, epoch, model, validate_dataset, batch_x, batch_y=None, log_disp=True):
 		"""
-			the inner function for train a batch of images,
+		the inner function for train a batch of images,
 			input :
 				epoch, batch_x, batch_y : train batch,
 				model : 
@@ -180,7 +183,7 @@ class BaseTrainer(object):
 				self.summary_writer.add_summary(summary, step)
 
 		if self.save_checkpoint_steps != 0 and step % self.save_checkpoint_steps == 0:
-			model.checkpoint_save(self.sess, self.checkpoint_dir, step)
+			model.save_checkpoint(self.sess, self.checkpoint_dir, step)
 
 		for validator_steps, validator in self.validator_list:
 			if validator_steps != 0 and step % validator_steps == 0:

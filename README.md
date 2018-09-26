@@ -37,6 +37,8 @@ before training, you must specify the dataset location. the currently supported 
 2. Cifar10
 3. Imagenet
 4. PASCAL_VOC
+5. 
+
 open the py file under dataset folder, for each dataset I write some if control flow to find the dataset location. please add the dataset location to the control flow.
 
 the config files is under the cfgs folder, I write config file in json format, the dataset, model and train method are all specified in this file. you can train it with train.py. If you want to run the models, just run the following command:

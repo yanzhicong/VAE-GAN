@@ -110,15 +110,15 @@ class Mask_RCNN(BaseModel):
 
 	def build_model(self):
 
-		self.backbone = self.build_classifier('backbone classifier', params={
+		self.backbone = self._build_classifier('backbone classifier', params={
 			'name': 'BackBone'
 		})
 		self.fpn = PyramidRpnNetwork(self.config['fpn params'])
-		self.rcnn = self.build_classifier('rcnn classifier', params={
+		self.rcnn = self._build_classifier('rcnn classifier', params={
 			'name' : 'RCNN',
 			# "output dims" :
 		})
-		self.mask_cnn = self.build_classifier('mask cnn classifier', params={
+		self.mask_cnn = self._build_classifier('mask cnn classifier', params={
 			'name' : 'MaskCNN'
 		})
 				

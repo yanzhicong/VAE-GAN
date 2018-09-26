@@ -357,9 +357,13 @@ class BaseNetwork(object):
 	def trainable_vars(self):
 		return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
 
-	# @property
-	# def trainable_vars(self):
-		# return tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name)
+	@property
+	def conv_vars(self):
+		return [var for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) if self.name+'/conv' in var.name]
+
+	@property
+	def top_vars(self):
+		return [var for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=self.name) if self.name+'/fc' in var.name]
 
 	@property
 	def store_vars(self):
@@ -400,5 +404,10 @@ class BaseNetwork(object):
 		return model_path
 
 
-	def load_pretrained_weights(self):
-		pass
+	def load_pretrained_weights(self, sess):
+
+		print('base network load pretrained weights')
+		return False
+
+
+	

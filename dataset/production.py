@@ -24,12 +24,7 @@
 
 
 import os
-# import struct
-# import gzip
 import numpy as np
-# import matplotlib.pyplot as plt
-# import pickle
-# import gzip
 import json
 import cv2
 from .base_dataset import BaseDataset

@@ -55,19 +55,19 @@ class CVAEGAN(BaseModel):
 
     def build_model(self):
 
-        self.encoder = self.build_encoder('encoder', params={
+        self.encoder = self._build_encoder('encoder', params={
             'name' : 'Encoder'
         })
 
-        self.decoder = self.build_decoder('decoder', params={
+        self.decoder = self._build_decoder('decoder', params={
             'name' : 'Decoder'
         })
 
-        self.classifier = self.build_classifier('classifier', params={
+        self.classifier = self._build_classifier('classifier', params={
             'name' : 'Classifier'
         })
 
-        self.discriminator = self.build_discriminator('discriminator', params={
+        self.discriminator = self._build_discriminator('discriminator', params={
             'name' : 'Discriminator'
         })
         

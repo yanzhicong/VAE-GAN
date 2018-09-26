@@ -142,17 +142,17 @@ class AAESemiSupervised(BaseModel):
 
 	def build_model(self):
 		# network config
-		self.z_discriminator = self.build_discriminator('z discriminator', params={
+		self.z_discriminator = self._build_discriminator('z discriminator', params={
 			'name' : 'Z_Discriminator'
 		})
-		self.y_discriminator = self.build_discriminator('y discriminator', params={
+		self.y_discriminator = self._build_discriminator('y discriminator', params={
 			'name' : 'Y_Discriminator'
 		})
-		self.encoder = self.build_encoder('encoder', params={
+		self.encoder = self._build_encoder('encoder', params={
 			'name' : 'Encoder',
 			"output dims" : self.z_dim + self.nb_classes
 		})
-		self.decoder = self.build_decoder('decoder', params={
+		self.decoder = self._build_decoder('decoder', params={
 			'name' : 'Decoder'
 		})
 
@@ -252,29 +252,29 @@ class AAESemiSupervised(BaseModel):
 		# reconstruction phase
 		(self.ae_train_op,
 		 self.ae_learning_rate,
-		 self.ae_step) = self.build_optimizer('auto-encoder', self.loss_recon, self.encoder.vars + self.decoder.vars)
+		 self.ae_step) = self._build_optimizer('auto-encoder', self.loss_recon, self.encoder.vars + self.decoder.vars)
 
 		# regulation phase
 		(self.dz_train_op,
 		 self.dz_learning_rate,
-		 self.dz_step) = self.build_optimizer('discriminator', self.dz_loss, self.z_discriminator.vars)
+		 self.dz_step) = self._build_optimizer('discriminator', self.dz_loss, self.z_discriminator.vars)
 
 		(self.dy_train_op,
 		 self.dy_learning_rate,
-		 self.dy_step) = self.build_optimizer('discriminator', self.dy_loss, self.y_discriminator.vars)
+		 self.dy_step) = self._build_optimizer('discriminator', self.dy_loss, self.y_discriminator.vars)
 
 		(self.ez_train_op,
 		 self.ez_learning_rate,
-		 self.ez_step) = self.build_optimizer('encoder', self.ez_loss, self.encoder.vars)
+		 self.ez_step) = self._build_optimizer('encoder', self.ez_loss, self.encoder.vars)
 
 		(self.ey_train_op,
 		 self.ey_learning_rate,
-		 self.ey_step) = self.build_optimizer('encoder', self.ey_loss, self.encoder.vars)
+		 self.ey_step) = self._build_optimizer('encoder', self.ey_loss, self.encoder.vars)
 
 		# classification phase
 		(self.e_train_op,
 		 self.e_learning_rate,
-		 self.e_step) = self.build_optimizer('classifier', self.e_loss, self.encoder.vars)
+		 self.e_step) = self._build_optimizer('classifier', self.e_loss, self.encoder.vars)
 
 		# model saver
 		self.saver = tf.train.Saver(self.z_discriminator.store_vars

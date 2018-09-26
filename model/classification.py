@@ -58,7 +58,7 @@ class Classification(BaseModel):
 	def build_model(self):
 
 		self.config['classifier params']['name'] = 'classifier'
-		self.classifier = self.build_classifier('classifier')
+		self.classifier = self._build_classifier('classifier')
 
 		# for training
 		self.x = tf.placeholder(tf.float32, shape=[None,]  + self.input_shape, name='x_input')
@@ -84,9 +84,9 @@ class Classification(BaseModel):
 		# for var in self.classifier.store_vars:
 		# 	print(var.name, ' --> ', var.get_shape())
 
-		self.global_step, self.global_step_update = self.build_step_var('global_step')
+		self.global_step, self.global_step_update = self._build_step_var('global_step')
 	
-		self.train_classifier, self.learning_rate = self.build_train_function('optimizer', self.loss, self.classifier.vars, 
+		self.train_classifier, self.learning_rate = self._build_train_function('optimizer', self.loss, self.classifier.vars, 
 						step=self.global_step, step_update=self.global_step_update)
 		# model saver
 		self.saver = tf.train.Saver(self.classifier.store_vars + [self.global_step,])

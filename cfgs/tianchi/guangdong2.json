@@ -9,7 +9,7 @@
         "show warning" : false
     },
 
-    "assets dir" : "assets/tianchi_guangdong/result3",
+    "assets dir" : "assets/tianchi_guangdong/result2",
 
     "model" : "attention_mil",
     "model params" : {
@@ -19,22 +19,24 @@
         "z dims" : 500,
         "nb classes" : 11,
 
-        // "finetune steps": 10000,
+        "mil pooling" : "maxpooling",
 
-        // "finetune optimizer" : "sgd",
-        // "finetune optimizer params" : {
-        //     "lr" : 0.0001,
-        //     "lr scheme" : "exponential",
-        //     "lr params" : {
-        //         "decay_steps" : 70000,
-        //         "decay_rate" : 0.1
-        //     }
-        // },
+        "finetune steps": 10000,
+
+        "finetune optimizer" : "sgd",
+        "finetune optimizer params" : {
+            "lr" : 0.0001,
+            "lr scheme" : "exponential",
+            "lr params" : {
+                "decay_steps" : 70000,
+                "decay_rate" : 0.1
+            }
+        },
 
 
         "optimizer" : "adam",
         "optimizer params" : {
-            "lr" : 0.0001,
+            "lr" : 0.00001,
             "lr scheme" : "exponential",
             "lr params" : {
                 "decay_steps" : 70000,
@@ -58,22 +60,6 @@
             "fc nb nodes" : [1024, 1024],
 
             "load pretrained weights" : "vgg16",
-
-            "debug" : true
-        },
-
-        "attention_net" : "classifier",
-        "attention_net params" : {
-            "activation" : "none",
-            "normalization" : "none",
-            "weightsinit" : "xavier",
-
-            "including conv" : false,
-            "including top" : true,
-
-            "fc nb nodes" : [600],
-
-            "has bias": false,
 
             "debug" : true
         },

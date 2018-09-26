@@ -74,8 +74,8 @@ class VAE(BaseModel):
 
 		self.config['encoder params']['name'] = 'encoder'
 		self.config['decoder params']['name'] = 'decoder'
-		self.encoder = self.build_encoder('encoder')
-		self.decoder = self.build_decoder('decoder')
+		self.encoder = self._build_encoder('encoder')
+		self.decoder = self._build_decoder('decoder')
 
 		# build encoder
 		self.mean_z, self.log_var_z = self.encoder(self.x_real)

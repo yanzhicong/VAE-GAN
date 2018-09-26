@@ -91,14 +91,14 @@ class AAE(BaseModel):
 
 	def build_model(self):
 		# network config
-		self.discriminator = self.build_discriminator('discriminator', params={
+		self.discriminator = self._build_discriminator('discriminator', params={
 			'name':'Discriminator',
 			"output dims":1,
 			'output_activation':'none'})
-		self.encoder = self.build_encoder('encoder', params={
+		self.encoder = self._build_encoder('encoder', params={
 			'name':'Encoder',
 			"output dims":self.z_dim})
-		self.decoder = self.build_decoder('decoder', params={'name':'Decoder'})
+		self.decoder = self._build_decoder('decoder', params={'name':'Decoder'})
 
 		# build model
 		self.img = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='img')
@@ -128,17 +128,17 @@ class AAE(BaseModel):
 		self.loss_recon = get_loss('reconstruction', 'l2', {'x': self.img, 'y': self.img_recon})
 
 		# optimizer config
-		self.global_step, self.global_step_update = self.build_step_var('global_step')
+		self.global_step, self.global_step_update = self._build_step_var('global_step')
 
-		self.train_auto_encoder, _ = self.build_train_function('auto-encoder', 
+		self.train_auto_encoder, _ = self._build_train_function('auto-encoder', 
 												self.loss_recon, self.encoder.vars + self.decoder.vars, 
 												step=self.global_step, build_summary=self.has_summary)
 		 
-		self.train_discriminator, _ = self.build_train_function('discriminator', 
+		self.train_discriminator, _ = self._build_train_function('discriminator', 
 												self.loss_adv_down, self.discriminator.vars,
 												step=self.global_step, build_summary=self.has_summary)
 
-		self.train_encoder, _ = self.build_train_function('encoder', 
+		self.train_encoder, _ = self._build_train_function('encoder', 
 												self.loss_adv_up, self.encoder.vars,
 												step=self.global_step, build_summary=self.has_summary)
 

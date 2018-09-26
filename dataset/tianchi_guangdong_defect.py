@@ -109,8 +109,6 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 		else:
 			image_fp = self._get_image_path_and_label(ind, phase, method)
 		
-		# print(image_fp)
-
 		try:
 			img = io.imread(image_fp)
 			img = self._image_correct(img, image_fp)
@@ -124,8 +122,6 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 
 		area = self.find_most_possible_metal_area(img, show_warning=self.show_warning)
 		area_img = self.crop_and_reshape_image_area(img, area, fixed_height=self.area_height)
-
-		# area_img = self.flexible_scaling(img, min_w=384, min_h=384)
 
 		area_img = area_img.astype(np.float32) / 255.0
 		self.scale_output(area_img)
@@ -148,7 +144,6 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 				image_label = np.array(image_label)
 			else:
 				image_label = np.array(image_label)
-
 
 		if method == 'supervised':
 			return image_bag, image_label 
@@ -360,10 +355,7 @@ class TianChiGuangdongDefect(BaseImageListDataset, BaseMILDataset):
 			ind_list = np.array([int(fn.split('.')[0]) for fn in image_list])
 			sort_ind = np.argsort(ind_list)
 			image_list = [image_list[i] for i in sort_ind]
-			
 			image_list = [os.path.join('guangdong_round1_test_a_20180916', fn) for fn in image_list if '.jpg' in fn]
-			
-			# ind_list = []
 
 			with open(self.test_imagelist_fp, 'w', encoding='utf-8') as outfile:
 				outfile.write('images\n')

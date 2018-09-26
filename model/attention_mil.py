@@ -106,7 +106,7 @@ class AttentionMIL(BaseModel):
 		self.input_shape = self.config['input shape']
 		self.z_dims = int(self.config['z dims'])
 		self.nb_classes = int(self.config['nb classes'])
-		self.mil_pooling = self.config.get('MIL pooling', 'attention')
+		self.mil_pooling = self.config.get('mil pooling', 'attention')
 		self.finetune_steps = int(self.config.get('finetune steps', 0))
 
 		assert self.mil_pooling in ['maxpooling', 'avgpooling', 'attention']
@@ -116,21 +116,20 @@ class AttentionMIL(BaseModel):
 
 	def build_model(self):
 
-		self.feature_ext_net = self.build_classifier('feature_ext', params={
+		self.feature_ext_net = self._build_classifier('feature_ext', params={
 			'name' : 'feature_ext',
 			"output dims" : self.z_dims
 		})
 
 		if self.mil_pooling == 'attention':
-			# self.attention_net = self.build_classifier('attention_net', params={
-			# 	'name' : 'attention_net',
-			# 	"output dims" : 1
-			# })
-			self.attention_net_params = self.config.get('attention_net params')
-			self.attention_net_params['name'] = 'attention_net'
+			self.attention_net_params = self.config['attention_net params'].copy()
+			self.attention_net_params.update({
+				'name' : 'attention_net',
+				'output dims' : 1
+			})
 			self.attention_net = AttentionNet(self.attention_net_params, self.is_training)
 
-		self.classifier = self.build_classifier('classifier', params={
+		self.classifier = self._build_classifier('classifier', params={
 			'name' : 'classifier',
 			"output dims" : self.nb_classes
 		})
@@ -144,8 +143,6 @@ class AttentionMIL(BaseModel):
 
 		# 2.  feature extraction
 		self.features, self.fea_ext_net_endpoints = self.feature_ext_net.features(self.x_bag)
-
-		print(self.features.get_shape())
 
 		# 3. mil pooling
 		if self.mil_pooling == 'maxpooling':
@@ -168,27 +165,47 @@ class AttentionMIL(BaseModel):
 		self.bag_label = tf.reshape(self.label, [1, -1])
 
 		# 5. loss and metric
-		self.entropy_loss = get_loss('classification', 'binary entropy', 
-						{'logits' : self.logits, 'labels' : self.bag_label})
+		self.entropy_loss = get_loss('classification', 'binary entropy', {'logits' : self.logits, 'labels' : self.bag_label})
 
-		self.regulation_loss = get_loss('regularization', 'l2', {'var_list' : self.classifier.trainable_vars}) * 0.005
-		self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.feature_ext_net.trainable_vars}) * 0.005
+		# self.regulation_loss = get_loss('regularization', 'l2', {'var_list' : self.classifier.trainable_vars}) * 0.005
+		# self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.feature_ext_net.trainable_vars}) * 0.005
 
-		if self.mil_pooling == 'attention':
-			self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.attention_net.trainable_vars}) * 0.005
+		# if self.mil_pooling == 'attention':
+		# 	self.regulation_loss += get_loss('regularization', 'l2', {'var_list' : self.attention_net.trainable_vars}) * 0.005
 
-		self.loss = self.entropy_loss + self.regulation_loss
+		self.loss = self.entropy_loss
+		#  + self.regulation_loss
 
 		self.train_acc = get_metric('accuracy', 'multi-class acc2', {'probs': self.probs, 'labels':self.bag_label})
 
 		# build optimizer
-		self.global_step, self.global_step_update = self.build_step_var('global_step')
+		self.global_step, self.global_step_update = self._build_step_var('global_step')
 
 		if self.has_summary:
 			sum_list = []
-			sum_list.append(tf.summary.scalar('train entropy loss', self.entropy_loss))
-			sum_list.append(tf.summary.scalar('train regulation loss', self.regulation_loss))
+			# sum_list.append(tf.summary.scalar('train entropy loss', self.entropy_loss))
+			# sum_list.append(tf.summary.scalar('train regulation loss', self.regulation_loss))
 			sum_list.append(tf.summary.scalar('train acc', self.train_acc))
+		else:
+			sum_list = []
+
+		train_function_args = {
+			'step' : self.global_step, 
+			'step_update' : self.global_step_update,
+			'build_summary' : True, 
+			'sum_list' : sum_list
+		}
+
+		if self.finetune_steps > 0:
+			self.finetune_classifier, _ =  self._build_train_function('finetune', self.loss, self.finetune_vars, **train_function_args)
+
+		self.train_classifier,  _, = self._build_train_function('optimizer', self.loss, self.vars, **train_function_args)
+
+		self.saver = tf.train.Saver(self.store_vars + [self.global_step,])
+
+
+	def build_summary(self):
+		if self.has_summary:
 
 			endpoints_sum_list = []
 			if self.mil_pooling == 'attention':
@@ -203,39 +220,21 @@ class AttentionMIL(BaseModel):
 			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/logits', self.logits))
 			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/probs', self.probs))
 			endpoints_sum_list.append(tf.summary.histogram('netout_classifier/labels', self.label))
-		else:
-			sum_list = []
-			endpoints_sum_list = []
+			self.endpoints_sum = tf.summary.merge(endpoints_sum_list)
 
 
-		train_function_args = {
-			'step' : self.global_step, 
-			'step_update' : self.global_step_update,
-			'build_summary' : True, 
-			'sum_list' : sum_list,
-			'build_endpoints_summary' : True, 
-			'endpoints_sum_list' : endpoints_sum_list
-		}
-
-		if self.finetune_steps > 0:
-			self.finetune_classifier,
-			self.finetune_and_inspect_classifier, _, self.build_train_function('finetune', self.loss, self.finetune_vars, **train_function_args)
-
-		self.train_classifier, \
-		self.train_and_inspect_classifier, _, = self.build_train_function('optimizer', self.loss, self.vars, **train_function_args)
-
-		self.saver = tf.train.Saver(self.store_vars + [self.global_step,])
-
-
-	def build_summary(self):
-		if self.has_summary:
 			sum_list = self.feature_ext_net.histogram_summary_list
 			if self.mil_pooling == 'attention':
 				sum_list += self.attention_net.histogram_summary_list
 			sum_list += self.classifier.histogram_summary_list
 			self.sum_hist = tf.summary.merge(sum_list)
 		else:
+			self.endpoints_sum = None
 			self.sum_hist = None
+
+
+	def load_pretrained_weights(self, sess):
+		return self.feature_ext_net.load_pretrained_weights(sess)
 
 
 	'''
@@ -249,10 +248,17 @@ class AttentionMIL(BaseModel):
 		}
 
 		step = int(sess.run([self.global_step])[0])
-		if step % 1000 == 0:
-			return self.train_and_inspect_classifier(sess, feed_dict)
+
+		if step < self.finetune_steps:
+			if step % 1000 == 0:
+				return self.finetune_classifier(sess, feed_dict, summary=self.endpoints_sum)
+			else:
+				return self.finetune_classifier(sess, feed_dict)
 		else:
-			return self.train_classifier(sess, feed_dict)
+			if step % 1000 == 0:
+				return self.train_classifier(sess, feed_dict, summary=self.endpoints_sum)
+			else:
+				return self.train_classifier(sess, feed_dict)
 
 
 	'''

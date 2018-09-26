@@ -12,6 +12,7 @@ if __name__ == '__main__':
 	config = {
 		"output dims" : 10,
 		'name' : 'VGG16',
+		'normalization' : 'fused_batch_norm',
 		'load pretrained weight' : 'vgg16'
 	}
 
@@ -26,7 +27,13 @@ if __name__ == '__main__':
 	for var in model.vars:
 		print(var.name, ' --> ', var.get_shape())
 
+	
 
-	model.load_pretrained_weights()
+	
+	tfconfig = tf.ConfigProto()
+	tfconfig.gpu_options.allow_growth = True
+
+	with tf.Session(config=tfconfig) as sess:
+		model.load_pretrained_weights(sess)
 
 

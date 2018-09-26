@@ -88,8 +88,8 @@ class WGAN_GP(BaseModel):
 		self.config['discriminator params']['name'] = 'Discriminator'
 		self.config['generator params']['name'] = 'Generator'
 
-		self.discriminator = self.build_discriminator('discriminator')
-		self.generator = self.build_generator('generator')
+		self.discriminator = self._build_discriminator('discriminator')
+		self.generator = self._build_generator('generator')
 
 		# build model
 		self.x_real = tf.placeholder(tf.float32, shape=[None, ] + list(self.input_shape), name='x_input')

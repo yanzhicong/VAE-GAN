@@ -260,7 +260,6 @@ class BaseDataset(object):
 		else:
 			return img
 
-
 	def crop_and_pad_image(self, img, bbox):
 		""" crop and pad image
 		"""
@@ -332,7 +331,6 @@ class BaseDataset(object):
 			return img_crop, mask_crop
 		else:
 			return img_crop
-sssss
 
 	def scale_output(self, data):
 		""" input data is in range of [0.0, 1.0]
